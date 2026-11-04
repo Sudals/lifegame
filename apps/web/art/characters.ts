@@ -617,13 +617,15 @@ export function renderSheet(s: CharacterSpec): PixelCanvas {
 // ───────────── 등장인물 ─────────────
 export const CHARACTERS: CharacterSpec[] = [
   { id: 'player', name: '나', skin: 'light', hair: 'messy', hairTone: tone('ink', 0).map((v, i) => (i === 3 ? c('vio1') : v)) as Tone4, outfit: 'hoodie', outfitTone: tone('blue', 1), accent: c('gray5'), lanyard: true, age: 'young' },
-  { id: 'prof-llm-kim', name: '김교수', skin: 'light', hair: 'slick', hairTone: [c('ink0'), c('ink2'), c('gray1'), c('gray3')], outfit: 'suit', outfitTone: tone('blue', 0), accent: c('red2'), glasses: 'square', age: 'mid' },
+  { id: 'prof-llm-kim', name: '강교수', skin: 'light', hair: 'slick', hairTone: [c('ink0'), c('ink2'), c('gray1'), c('gray3')], outfit: 'suit', outfitTone: tone('blue', 0), accent: c('red2'), glasses: 'square', age: 'mid' },
   { id: 'prof-vision-park', name: '박교수', skin: 'light', hair: 'short', hairTone: tone('wood', 0), outfit: 'cardigan', outfitTone: tone('wood', 2), accent: c('blue4'), glasses: 'round', glassesColor: c('wood1'), age: 'mid' },
   { id: 'prof-rl-lee', name: '이교수', skin: 'tan', hair: 'short', hairTone: tone('ink', 0).map((v, i) => (i === 3 ? c('gray2') : v)) as Tone4, outfit: 'jacket', outfitTone: tone('grn', 0), accent: c('gray5'), beard: 'stubble', age: 'mid' },
   { id: 'prof-eff-choi', name: '최교수', skin: 'light', hair: 'bob', hairTone: tone('gray', 2), outfit: 'blouse', outfitTone: tone('vio', 0), accent: c('gray5'), glasses: 'round', glassesColor: c('gold1'), age: 'old' },
   { id: 'prof-new-jung', name: '정교수', skin: 'light', hair: 'ponytail', hairTone: tone('ink', 0).map((v, i) => (i === 3 ? c('blue1') : v)) as Tone4, outfit: 'jacket', outfitTone: tone('teal', 0), accent: c('gray5'), age: 'young', iris: c('wood1') },
   { id: 'prof-ind-han', name: '한교수', skin: 'tan', hair: 'slick', hairTone: tone('wood', 0), outfit: 'suit', outfitTone: tone('gray', 1), accent: c('gold2'), age: 'mid' },
   { id: 'prof-theory-yoon', name: '윤교수', skin: 'light', hair: 'wild', hairTone: tone('gray', 3), outfit: 'sweater', outfitTone: tone('red', 0), accent: c('gray5'), glasses: 'round', beard: 'stubble', age: 'old' },
+  // DBI 연구실 — 실존 인물의 외모가 아닌 일반적인 디자인 (비즈니스 캐주얼: 노타이 셔츠 + 재킷)
+  { id: 'prof-dbi-hanyang', name: '김은찬 교수', skin: 'light', hair: 'short', hairTone: tone('ink', 0).map((v, i) => (i === 3 ? c('blue1') : v)) as Tone4, outfit: 'suit', outfitTone: tone('gray', 0), accent: c('blue5'), glasses: 'square', glassesColor: c('ink2'), age: 'young' },
   { id: 'senior', name: '선배', skin: 'light', hair: 'long', hairTone: tone('wood', 0), outfit: 'labcoat', outfitTone: [c('gray3'), c('gray4'), c('gray5'), c('gray6')], accent: c('grn2'), eyeBags: true, age: 'young', iris: c('wood1') },
   { id: 'counselor', name: '상담 선생님', skin: 'light', hair: 'bun', hairTone: tone('wood', 1), outfit: 'cardigan', outfitTone: tone('gold', 1), accent: c('gray5'), age: 'mid', iris: c('wood1') },
   { id: 'reviewer', name: '리뷰어 2', skin: 'light', hair: 'hood', hairTone: tone('vio', 0), outfit: 'cloak', outfitTone: [c('ink0'), c('ink1'), c('ink2'), c('vio0')], accent: c('gold2'), shadowFace: true },

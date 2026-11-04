@@ -5,8 +5,9 @@ describe('AI 콘텐츠 팩', () => {
   it('zod 스키마와 참조 무결성을 통과한다', () => {
     expect(checkIntegrity(aiPack)).toEqual([]);
   });
-  it('MVP 볼륨: 연구실 7개, 아이디어 경로 9종, 저널 9개', () => {
-    expect(aiPack.labs).toHaveLength(7);
+  it('MVP 볼륨: 연구실 7개 이상(DBI 포함), 아이디어 경로 9종, 저널 9개', () => {
+    expect(aiPack.labs.length).toBeGreaterThanOrEqual(7);
+    expect(aiPack.labs.some((l) => l.id === 'dbi-hanyang')).toBe(true);
     expect(aiPack.ideaSources).toHaveLength(9);
     expect(aiPack.journals).toHaveLength(9);
     expect(aiPack.venues.length).toBeGreaterThanOrEqual(15);

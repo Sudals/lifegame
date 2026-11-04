@@ -47,5 +47,12 @@
   {"id": "sci-material", "title": "신소재 물성 예측 데이터셋", "field": "ai4science", "type": "dataset", "novelty": 3, "difficulty": 2, "gpu": "C", "trend": 3, "competition": 1, "weeks": 16},
   {"id": "theory-gen", "title": "과매개변수화 신경망의 일반화 경계", "field": "theory", "type": "theory", "novelty": 4, "difficulty": 5, "gpu": "D", "trend": 3, "competition": 2, "weeks": 24},
   {"id": "theory-icl", "title": "인컨텍스트 학습의 이론적 해석", "field": "theory", "type": "theory", "novelty": 5, "difficulty": 5, "gpu": "D", "trend": 5, "competition": 4, "weeks": 24},
-  {"id": "theory-opt", "title": "Adam 수렴성의 새로운 증명", "field": "theory", "type": "theory", "novelty": 3, "difficulty": 4, "gpu": "D", "trend": 2, "competition": 2, "weeks": 21}
+  {"id": "theory-opt", "title": "Adam 수렴성의 새로운 증명", "field": "theory", "type": "theory", "novelty": 3, "difficulty": 4, "gpu": "D", "trend": 2, "competition": 2, "weeks": 21},
+  {"id": "dbi-multiexit", "title": "다중 출구(Multi-Exit) 추론 경량화", "field": "efficiency", "type": "method", "novelty": 4, "difficulty": 4, "gpu": "B", "trend": 4, "competition": 3, "weeks": 21},
+  {"id": "dbi-credit", "title": "카드 소비 데이터 기반 신용위험 예측", "field": "timeseries", "type": "application", "novelty": 3, "difficulty": 2, "gpu": "C", "trend": 3, "competition": 2, "weeks": 16},
+  {"id": "dbi-medimg", "title": "초음파 영상 간암 검출 데이터 효율화", "field": "vision", "type": "application", "novelty": 3, "difficulty": 3, "gpu": "B", "trend": 3, "competition": 2, "weeks": 18},
+  {"id": "dbi-dysarthria", "title": "구음장애 음성 인식 멀티태스크 파인튜닝", "field": "speech", "type": "method", "novelty": 4, "difficulty": 3, "gpu": "B", "trend": 3, "competition": 2, "weeks": 18},
+  {"id": "dbi-ecommerce", "title": "e-커머스 구매 예측 설명가능 모델", "field": "recsys", "type": "analysis", "novelty": 3, "difficulty": 2, "gpu": "C", "trend": 3, "competition": 2, "weeks": 16},
+  {"id": "dbi-tabnet", "title": "TabNet 기반 해석 가능한 의료 진단", "field": "xai", "type": "method", "novelty": 3, "difficulty": 3, "gpu": "C", "trend": 3, "competition": 2, "weeks": 18},
+  {"id": "dbi-edge", "title": "엣지 AI 실시간 병해충 탐지", "field": "efficiency", "type": "application", "novelty": 3, "difficulty": 3, "gpu": "C", "trend": 3, "competition": 2, "weeks": 17}
 ]

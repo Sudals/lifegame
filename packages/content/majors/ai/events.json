@@ -508,5 +508,35 @@
     "id": "nap", "title": "기절", "weight": 2, "scene": "lab-day", "mood": "tired", "when": { "maxStamina": 35 },
     "text": "점심 먹고 잠깐 엎드렸는데 눈 떠보니 저녁이다.",
     "choices": [ { "label": "개운하다...?", "effects": { "stamina": 6, "trust": -2 }, "result": "{prof}님이 지나가다 보셨다고 한다." } ]
+  },
+
+  {
+    "id": "dbi-industry-review", "title": "산학 과제 중간 보고", "speaker": "교수", "weight": 3, "scene": "office", "mood": "normal", "when": { "labIds": ["dbi-hanyang"], "semester": true },
+    "text": "\"다음 주 기업 과제 중간 보고예요. 논문 지표보다 현장에서 쓸 수 있는 결과인지가 제일 중요해요.\"",
+    "variants": ["\"이번 과제는 현장 데이터가 생명이에요. 담당자분들이 실제로 쓰실 수 있게 정리해봅시다.\"", "\"보고 자료에 비즈니스 시사점 한 장 꼭 넣어주세요. 숫자만으로는 설득이 안 돼요.\""],
+    "choices": [
+      { "label": "데모까지 준비한다", "effects": { "stamina": -6, "trust": 4, "network": 3 }, "result": "현장 담당자가 \"바로 써보고 싶다\"고 했다. {prof}님이 엄지를 들어주셨다." },
+      { "label": "핵심 지표와 시사점만 깔끔하게", "effects": { "stress": -2, "trust": 2 }, "result": "\"딱 필요한 것만 있네요.\" 보고가 30분 만에 끝났다." }
+    ]
+  },
+  {
+    "id": "dbi-hospital-data", "title": "병원 협업 데이터", "weight": 2, "scene": "lab-day", "mood": "flustered", "when": { "labIds": ["dbi-hanyang"], "minWeek": 6 },
+    "text": "협업 병원에서 비식별화된 데이터가 도착했다. 결측치와 표기 방식이 제각각이다.",
+    "choices": [
+      { "label": "전처리부터 꼼꼼히 한다", "effects": { "stamina": -5, "research": 1, "trust": 2 }, "result": "데이터 사전을 만들어 두니 실험이 훨씬 수월해졌다." },
+      { "label": "일단 모델부터 돌려본다", "outcomes": [
+        { "p": 1, "luck": true, "effects": { "research": 0.5 }, "result": "운 좋게 베이스라인이 바로 나왔다." },
+        { "p": 1.2, "effects": { "stress": 5 }, "result": "결측치 때문에 결과가 이상하다. 결국 전처리로 돌아갔다." }
+      ] }
+    ]
+  },
+  {
+    "id": "dbi-media", "title": "교수님 언론 인터뷰", "weight": 1, "scene": "lab-day", "mood": "happy", "when": { "labIds": ["dbi-hanyang"] },
+    "text": "{prof}님이 경제 방송에 AI 전문가로 출연하셨다. 연구실 단톡방이 들썩인다.",
+    "variants": ["{prof}님이 신문에 AI 산업 칼럼을 기고하셨다. 링크가 단톡방에 올라왔다."],
+    "choices": [
+      { "label": "링크를 가족 단톡방에도 공유한다", "effects": { "relation": 3, "stress": -3 }, "result": "엄마: \"너네 교수님 TV 나오시네!\" 괜히 뿌듯하다." },
+      { "label": "내용을 정리해 연구 아이디어로 메모한다", "effects": { "research": 0.5, "trust": 1 }, "result": "산업 현장의 고민이 곧 연구 주제라는 걸 다시 느꼈다." }
+    ]
   }
 ]

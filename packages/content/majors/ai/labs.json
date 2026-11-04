@@ -2,7 +2,7 @@
   {
     "id": "llm-kim",
     "name": "거대언어모델 연구실",
-    "professor": "김교수",
+    "professor": "강교수",
     "fields": [
       "llm",
       "safety",
@@ -178,5 +178,36 @@
       "\"교수님이 화이트보드를 3개 갖고 계셔.\""
     ],
     "tuitionCover": 0.8
+  },
+  {
+    "id": "dbi-hanyang",
+    "name": "DBI 연구실 (한양대)",
+    "professor": "김은찬 교수",
+    "fields": [
+      "efficiency",
+      "xai",
+      "vision",
+      "recsys",
+      "timeseries",
+      "speech"
+    ],
+    "salary": 1700000,
+    "track": 4,
+    "potential": 5,
+    "humanity": 4,
+    "chores": 2,
+    "projectLoad": 4,
+    "gpu": "B",
+    "style": "collab",
+    "industry": 5,
+    "admissionCut": 56,
+    "tuitionCover": 1,
+    "description": "한양대학교 정보시스템학과 Data & Business Intelligence Lab. 금융·헬스케어·네트워크/보안 분야의 실제 산업 문제를 AI로 풀고, 데이터 유형(정형·텍스트·이미지)별 핵심 기술과 비즈니스 시사점까지 연구한다. 2024년 부임한 교수님과 함께 빠르게 성장 중인 랩.",
+    "rumors": [
+      "\"정부·기업 과제가 20건이 넘는대. 현대로템, 코레일 과제도 했대.\"",
+      "\"교수님이 금융권·대기업 연구소 출신이라 산업 감각이 남다르셔.\"",
+      "\"작년에 NeurIPS 붙은 선배가 있대! 경량화 연구였다던데.\"",
+      "\"병원이랑 협업해서 의료 데이터 연구도 많이 해.\""
+    ]
   }
 ]

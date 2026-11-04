@@ -768,7 +768,7 @@
    "frame": 128
   },
   "prof-llm-kim": {
-   "name": "김교수",
+   "name": "강교수",
    "file": "/art/char-prof-llm-kim.png",
    "frame": 128
   },
@@ -800,6 +800,11 @@
   "prof-theory-yoon": {
    "name": "윤교수",
    "file": "/art/char-prof-theory-yoon.png",
+   "frame": 128
+  },
+  "prof-dbi-hanyang": {
+   "name": "김은찬 교수",
+   "file": "/art/char-prof-dbi-hanyang.png",
    "frame": 128
   },
   "senior": {
