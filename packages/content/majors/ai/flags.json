@@ -1,0 +1,21 @@
+[
+  { "id": "ta", "name": "학부 조교", "monthly": 400000, "weeklyHours": 6, "weekly": { "stress": 0.5 } },
+  { "id": "extra-project", "name": "추가 과제", "monthly": 300000, "weeklyHours": 4, "weekly": { "trust": 0.2 } },
+  { "id": "freelance", "name": "외주 개발", "monthly": 700000, "weeklyHours": 8, "weekly": { "stress": 1, "stamina": -1 } },
+  { "id": "rent-up", "name": "월세 인상", "monthly": -100000 },
+  { "id": "loan", "name": "학자금 대출 상환", "monthly": -150000, "weekly": { "stress": 0.3 } },
+  { "id": "parents-support", "name": "부모님 용돈", "monthly": 300000, "weekly": { "stress": 0.2 } },
+  { "id": "gym", "name": "헬스장", "monthly": -50000, "weeklyHours": 3, "weekly": { "stamina": 2, "stress": -0.6 } },
+  { "id": "relationship", "name": "연애 중", "monthly": -150000, "weeklyHours": 4, "weekly": { "stress": -1.5 } },
+  { "id": "study-group", "name": "논문 스터디", "weeklyHours": 2, "weekly": { "research": 0.15, "relation": 0.1 } },
+  { "id": "startup-club", "name": "창업 동아리", "weeklyHours": 3, "weekly": { "network": 0.3, "stress": 0.2 } },
+  { "id": "new-gear", "name": "새 노트북", "efficiency": 1.06 },
+  { "id": "cold", "name": "감기", "weekly": { "stamina": -3 }, "efficiency": 0.85 },
+  { "id": "toothache", "name": "충치 방치", "weekly": { "stress": 0.6 }, "efficiency": 0.95 },
+  { "id": "coffee-pass", "name": "카페 정기권", "monthly": -60000, "weekly": { "stress": -0.4 }, "efficiency": 1.02 },
+  { "id": "dating", "name": "썸", "hidden": true },
+  { "id": "intern-applied", "name": "인턴 지원", "hidden": true },
+  { "id": "intern-done", "name": "빅테크 인턴 경력", "weekly": { "network": 0.05 } },
+  { "id": "coauthor-promised", "name": "선배와 공저 약속", "hidden": true },
+  { "id": "moved", "name": "이사함", "hidden": true }
+]

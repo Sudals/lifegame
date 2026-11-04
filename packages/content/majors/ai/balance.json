@@ -54,5 +54,19 @@
   "stressReliefPerSleepHourOver6": 1.5,
   "labMeetingPerTrackStar": 0.03,
   "writingQualityBase": 8,
-  "writingQualityPerResearch": 0.12
+  "writingQualityPerResearch": 0.12,
+  "dualTaskResearch": 70,
+  "multitaskEfficiency": 0.9,
+  "livingMin": 14,
+  "livingMax": 42,
+  "skipMealStamina": 0.4,
+  "skipMealStress": 0.15,
+  "projectRatioMin": 0.5,
+  "projectRatioMax": 1.5,
+  "projectTrustPenalty": 6,
+  "projectTrustBonus": 3,
+  "choreRelationPenalty": 5,
+  "tuitionPerSemester": 4800000,
+  "thesisFee": 300000,
+  "acceptIncentivePerTrack": 100000
 }

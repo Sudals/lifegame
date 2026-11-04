@@ -253,3 +253,14 @@ h1, h2, h3, .btn.primary, .stage-name, strong { font-family: 'Galmuri11 Bold', '
 /* 엔딩 등급 도장 */
 .grade.slam { animation: grade-slam 0.5s steps(5) 0.4s both; }
 @keyframes grade-slam { from { transform: scale(3) rotate(-20deg); opacity: 0; } }
+
+/* v0.2: 플래너·상태 칩 */
+.preset-row { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0 2px; }
+.fixed-toggle { background: none; border: none; color: var(--dim); font: inherit; font-size: 0.8em; text-align: left; padding: 2px 0; cursor: pointer; width: 100%; }
+.fixed-toggle:hover { color: var(--accent); }
+.fixed-box { border-left: 3px solid var(--line); padding-left: 8px; margin: 2px 0 6px; display: flex; flex-direction: column; }
+.fixed-box small { margin: -4px 0 4px; font-size: 0.75em; }
+.flag-chip { border: 2px solid var(--line); padding: 0 5px; color: var(--ink); }
+.flag-chip.income { border-color: var(--good); }
+.flag-chip.cost { border-color: var(--bad); }
+.stage-choice:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; border-image-source: url(/art/ui-panel.png) !important; color: #9498b0 !important; }

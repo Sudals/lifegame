@@ -7,7 +7,9 @@ import {
   defaultPlan,
   formatDate,
   GAME_VERSION,
+  migrate,
   newGame,
+  PLAN_DEFAULTS,
   type GameState,
   type NewGameOptions,
   type WeeklyPlan,
@@ -40,7 +42,11 @@ interface Store {
 
 function sanitizePlan(g: GameState, plan: WeeklyPlan): WeeklyPlan {
   const active = activePapers(g);
-  return { ...plan, focusPaperId: active.some((p) => p.id === plan.focusPaperId) ? plan.focusPaperId : (active[0]?.id ?? null) };
+  const p = { ...PLAN_DEFAULTS, ...plan };
+  const focusPaperId = active.some((x) => x.id === p.focusPaperId) ? p.focusPaperId : (active[0]?.id ?? null);
+  const secondFocusPaperId =
+    p.secondFocusPaperId && p.secondFocusPaperId !== focusPaperId && active.some((x) => x.id === p.secondFocusPaperId) ? p.secondFocusPaperId : null;
+  return { ...p, focusPaperId, secondFocusPaperId };
 }
 
 /** 주간 진행 후 연출: 달력 넘김, 채택/리젝 도장 */
@@ -86,7 +92,7 @@ function autosave(g: GameState, slot: number): void {
 export const useGame = create<Store>((set, get) => ({
   screen: 'title',
   game: null,
-  plan: { sleepPerDay: 7, research: 30, study: 10, rest: 10, focusPaperId: null, counseling: false, attendConferenceId: null },
+  plan: { ...PLAN_DEFAULTS, sleepPerDay: 7, research: 30, study: 10, rest: 10, focusPaperId: null, counseling: false, attendConferenceId: null },
   slot: 1,
   toast: null,
   deltas: [],
@@ -99,11 +105,9 @@ export const useGame = create<Store>((set, get) => ({
     autosave(g, slot);
   },
 
-  loadState(state, slot) {
-    if (state.version !== GAME_VERSION) {
-      // 세이브 포맷이 바뀌면 여기서 migrate 함수를 적용
-      get().notify(`세이브 버전(${state.version})이 현재 버전(${GAME_VERSION})과 다릅니다.`);
-    }
+  loadState(raw, slot) {
+    const state = raw.version === GAME_VERSION ? raw : migrate(raw);
+    if (raw.version !== GAME_VERSION) get().notify(`세이브를 ${raw.version} → ${GAME_VERSION} 형식으로 변환했습니다.`);
     set({ game: state, slot, screen: 'game', plan: sanitizePlan(state, defaultPlan(state)) });
   },
 

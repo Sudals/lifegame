@@ -34,6 +34,7 @@ export const Lab = z.object({
   style: z.enum(['handsoff', 'micro', 'collab']),
   industry: stars, // 산학/네트워크
   admissionCut: z.number().min(0).max(100),
+  tuitionCover: z.number().min(0).max(1).default(1), // 등록금 장학 비율
   description: z.string(),
   rumors: z.array(z.string()).min(1),
 });
@@ -94,19 +95,58 @@ export const IdeaSource = z.object({
 });
 export type IdeaSource = z.infer<typeof IdeaSource>;
 
+/** 상태 플래그: 조교·연애·대출 등 — 켜져 있는 동안 매달 수입/지출, 매주 시간·효과 */
+export const FlagDef = z.object({
+  id: z.string(),
+  name: z.string(),
+  monthly: z.number().int().default(0), // +수입 / -지출 (원/월)
+  weeklyHours: z.number().default(0), // 주당 고정 시간
+  weekly: Effects.default({}), // 매주 효과
+  efficiency: z.number().positive().default(1), // 연구 효율 배수
+  hidden: z.boolean().default(false),
+});
+export type FlagDef = z.infer<typeof FlagDef>;
+
+const FlagSet = z.object({ id: z.string(), weeks: z.number().int().positive().optional() });
+const Schedule = z.object({ eventId: z.string(), weeks: z.number().int().positive() });
+
+export const Outcome = z.object({
+  p: z.number().positive().default(1), // 가중치
+  luck: z.boolean().default(false), // true면 운이 높을수록 이 결과 확률↑
+  effects: Effects.default({}),
+  result: z.string(),
+  setFlags: z.array(FlagSet).default([]),
+  clearFlags: z.array(z.string()).default([]),
+  schedule: Schedule.optional(),
+});
+export type Outcome = z.infer<typeof Outcome>;
+
 export const EventChoice = z.object({
   label: z.string(),
-  effects: Effects,
-  result: z.string(),
+  hint: z.string().optional(),
+  requireMoney: z.number().int().positive().optional(), // 잔고가 부족하면 선택 불가
+  effects: Effects.default({}),
+  result: z.string().default(''),
+  setFlags: z.array(FlagSet).default([]),
+  clearFlags: z.array(z.string()).default([]),
+  schedule: Schedule.optional(), // 후속 이벤트 예약 (분기)
+  outcomes: z.array(Outcome).default([]), // 있으면 확률적으로 하나 선택
+  addPaper: z
+    .object({ title: z.string(), field: z.string(), stage: z.enum(['experiment', 'writing']), quality: z.number(), authorOrder: z.union([z.literal(1), z.literal(2), z.literal(3)]) })
+    .optional(),
 });
+export type EventChoice = z.infer<typeof EventChoice>;
 
 export const GameEvent = z.object({
   id: z.string(),
   title: z.string(),
   speaker: z.string().optional(),
   text: z.string(),
+  /** 같은 이벤트의 다른 멘트 — {prof} {lab} {name} {venue} {rival} {senior} {month} {season} {paper} {dday} {money} 치환 */
+  variants: z.array(z.string()).default([]),
   weight: z.number().positive(),
   once: z.boolean().default(false),
+  random: z.boolean().default(true), // false = 예약(후속)으로만 등장
   /** 연출: 배경 장면 id와 화자 표정 (apps/web/src/art/manifest.json) */
   scene: z.string().optional(),
   mood: z.enum(['normal', 'happy', 'tired', 'frustrated', 'flustered', 'angry']).optional(),
@@ -123,6 +163,14 @@ export const GameEvent = z.object({
       minHumanity: z.number(),
       maxHumanity: z.number(),
       hasPaperStage: z.string(),
+      minResearch: z.number(),
+      maxResearch: z.number(),
+      minTrust: z.number(),
+      maxTrust: z.number(),
+      minAccepted: z.number().int(),
+      flags: z.array(z.string()), // 모두 켜져 있어야
+      notFlags: z.array(z.string()), // 하나도 켜져 있으면 안 됨
+      semester: z.boolean(), // true=학기 중, false=방학
     })
     .partial()
     .default({}),
@@ -191,6 +239,20 @@ export const Balance = z.object({
   tierScore: z.record(z.string(), z.number()),
   authorWeight: z.record(z.string(), z.number()),
   topicCandidates: z.number().int(),
+  dualTaskResearch: z.number(), // 이 연구력 이상이면 두 작업 동시 진행
+  multitaskEfficiency: z.number(),
+  livingMin: z.number(),
+  livingMax: z.number(),
+  skipMealStamina: z.number(), // 생활시간(식사·이동)을 줄인 1시간당
+  skipMealStress: z.number(),
+  projectRatioMin: z.number(),
+  projectRatioMax: z.number(),
+  projectTrustPenalty: z.number(), // 과제 100% 대비 덜 했을 때 주당 신뢰 감소(비율 1당)
+  projectTrustBonus: z.number(),
+  choreRelationPenalty: z.number(),
+  tuitionPerSemester: z.number(),
+  thesisFee: z.number(),
+  acceptIncentivePerTrack: z.number(),
 });
 export type Balance = z.infer<typeof Balance>;
 
@@ -203,6 +265,7 @@ export const ContentPack = z.object({
   ideaSources: z.array(IdeaSource),
   events: z.array(GameEvent),
   careers: z.array(Career),
+  flags: z.array(FlagDef),
   balance: Balance,
 });
 export type ContentPack = z.infer<typeof ContentPack>;
@@ -232,6 +295,21 @@ export function checkIntegrity(pack: ContentPack): string[] {
   }
   for (const l of pack.labs) {
     for (const f of l.fields) if (!fields.has(f)) errors.push(`lab ${l.id}: 주제 카드가 없는 분야 "${f}"`);
+  }
+  dup('flags', pack.flags.map((f) => f.id));
+  const flagIds = new Set(pack.flags.map((f) => f.id));
+  const eventIds = new Set(pack.events.map((e) => e.id));
+  for (const e of pack.events) {
+    const refs = [...(e.when.flags ?? []), ...(e.when.notFlags ?? [])];
+    for (const ch of e.choices) {
+      refs.push(...ch.setFlags.map((f) => f.id), ...ch.clearFlags);
+      if (ch.schedule && !eventIds.has(ch.schedule.eventId)) errors.push(`event ${e.id}: 없는 후속 이벤트 "${ch.schedule.eventId}"`);
+      for (const o of ch.outcomes) {
+        refs.push(...o.setFlags.map((f) => f.id), ...o.clearFlags);
+        if (o.schedule && !eventIds.has(o.schedule.eventId)) errors.push(`event ${e.id}: 없는 후속 이벤트 "${o.schedule.eventId}"`);
+      }
+    }
+    for (const f of refs) if (!flagIds.has(f)) errors.push(`event ${e.id}: 없는 플래그 "${f}"`);
   }
   for (const v of [...pack.venues, ...pack.journals]) {
     for (const f of v.fields) if (!fields.has(f)) errors.push(`${v.id}: 주제 카드가 없는 분야 "${f}"`);

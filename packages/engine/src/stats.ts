@@ -1,6 +1,7 @@
 import type { ContentPack, Effects, GpuGrade, Lab } from '@grad-sim/content';
 import { inSemester } from './time';
-import { clamp, type GameState, type WeeklyPlan } from './state';
+import { flagEfficiency, flagHours } from './flags';
+import { clamp, PLAN_DEFAULTS, type GameState, type WeeklyPlan } from './state';
 
 export const GPU_RANK: Record<GpuGrade, number> = { A: 4, B: 3, C: 2, D: 1 };
 export const CONFERENCE_HOURS = 20;
@@ -27,19 +28,45 @@ export function applyEffects(state: GameState, fx: Effects): void {
 export interface ForcedHours {
   living: number;
   class: number;
-  project: number;
-  chores: number;
+  project: number; // 계획 반영(비율 적용)
+  chores: number; // 계획 반영(비율 적용)
+  projectBase: number; // 연구실 기준 과제 시간
+  choresBase: number;
+  extra: { name: string; hours: number }[]; // 조교·외주 등 플래그 시간
 }
 
-export function forcedHours(pack: ContentPack, state: GameState): ForcedHours {
+/** 저장된 계획에 새 필드가 없을 수 있으므로 기본값 보정 + 범위 제한 */
+export function normalizePlan(pack: ContentPack, plan: WeeklyPlan): WeeklyPlan {
+  const b = pack.balance;
+  const p = { ...PLAN_DEFAULTS, ...plan } as WeeklyPlan;
+  return {
+    ...p,
+    living: clamp(Math.round(p.living), b.livingMin, b.livingMax),
+    projectRatio: clamp(p.projectRatio, b.projectRatioMin, b.projectRatioMax),
+    choreRatio: clamp(p.choreRatio, 0, 1),
+    split: clamp(p.split, 0.2, 0.8),
+  };
+}
+
+export function forcedHours(pack: ContentPack, state: GameState, plan?: WeeklyPlan): ForcedHours {
   const b = pack.balance;
   const lab = getLab(pack, state.labId);
+  const p = normalizePlan(pack, plan ?? ({ ...PLAN_DEFAULTS } as unknown as WeeklyPlan));
+  const projectBase = lab ? lab.projectLoad * b.projectHoursPerStar : 0;
+  const choresBase = lab ? lab.chores * b.baseChoreHoursPerStar : 0;
   return {
-    living: b.livingHoursPerWeek,
+    living: plan ? p.living : b.livingHoursPerWeek,
     class: inSemester(state.week) && state.credits < b.requiredCredits ? b.classHoursPerWeek : 0,
-    project: lab ? lab.projectLoad * b.projectHoursPerStar : 0,
-    chores: lab ? lab.chores * b.baseChoreHoursPerStar : 0,
+    project: Math.round(projectBase * (plan ? p.projectRatio : 1)),
+    chores: Math.round(choresBase * (plan ? p.choreRatio : 1)),
+    projectBase,
+    choresBase,
+    extra: flagHours(pack, state),
   };
+}
+
+export function canDualTask(pack: ContentPack, state: GameState): boolean {
+  return state.stats.research >= pack.balance.dualTaskResearch;
 }
 
 export interface PlanCheck {
@@ -52,10 +79,12 @@ export interface PlanCheck {
   errors: string[];
 }
 
-export function checkPlan(pack: ContentPack, state: GameState, plan: WeeklyPlan): PlanCheck {
-  const forced = forcedHours(pack, state);
+export function checkPlan(pack: ContentPack, state: GameState, rawPlan: WeeklyPlan): PlanCheck {
+  const plan = normalizePlan(pack, rawPlan);
+  const forced = forcedHours(pack, state, plan);
   const sleepHours = Math.round(plan.sleepPerDay * 7);
-  const extraHours = (plan.counseling ? pack.balance.counselingHours : 0) + (plan.attendConferenceId ? CONFERENCE_HOURS : 0);
+  const flagH = forced.extra.reduce((a, x) => a + x.hours, 0);
+  const extraHours = flagH + (plan.counseling ? pack.balance.counselingHours : 0) + (plan.attendConferenceId ? CONFERENCE_HOURS : 0);
   const fixed = forced.living + forced.class + forced.project + forced.chores + sleepHours + extraHours;
   const freeHours = 168 - fixed;
   const allocated = plan.research + plan.study + plan.rest;
@@ -69,7 +98,7 @@ export function checkPlan(pack: ContentPack, state: GameState, plan: WeeklyPlan)
 /** 체력·스트레스·수면 부채에 따른 시간당 효율 */
 export function efficiency(pack: ContentPack, state: GameState): number {
   const s = state.stats;
-  let eff = 0.5 + (0.5 * s.stamina) / 100;
+  let eff = (0.5 + (0.5 * s.stamina) / 100) * flagEfficiency(pack, state);
   if (s.stress >= pack.balance.burnoutStress) eff *= 0.6;
   else if (s.stress >= 70) eff *= 0.85;
   if (state.hidden.sleepDebt > 20) eff *= 0.9;

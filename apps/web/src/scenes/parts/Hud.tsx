@@ -1,11 +1,21 @@
 import type React from 'react';
 import { useState } from 'react';
-import { dateOf, formatDate, getLab, inSemester, mentalState, upcomingDeadlines, type GameState } from '@grad-sim/engine';
+import type { FlagDef } from '@grad-sim/content';
+import { activeFlags, dateOf, formatDate, getLab, inSemester, mentalState, upcomingDeadlines, type GameState } from '@grad-sim/engine';
 import { Icon } from '../../art/Sprite';
 import type { IconName } from '../../art/assets';
 import { StatBar, won } from '../../components/ui';
 import { cloudSave } from '../../net/api';
 import { pack, useGame } from '../../store/gameStore';
+
+function flagTitle(def: FlagDef): string {
+  const parts: string[] = [];
+  if (def.monthly) parts.push(`${def.monthly > 0 ? '+' : ''}${Math.round(def.monthly / 10000)}만/월`);
+  if (def.weeklyHours) parts.push(`${def.weeklyHours}h/주`);
+  if (def.efficiency !== 1) parts.push(`효율 ${def.efficiency > 1 ? '+' : ''}${Math.round((def.efficiency - 1) * 100)}%`);
+  for (const [k, v] of Object.entries(def.weekly)) parts.push(`${k} ${v! > 0 ? '+' : ''}${v}/주`);
+  return parts.join(' · ');
+}
 
 function luckHint(luck: number): string {
   if (luck >= 65) return '요즘 왠지 운이 좋다';
@@ -100,6 +110,15 @@ export function Hud({ game }: { game: GameState }) {
           <Icon name="network" size={12} /> 네트워크 {Math.round(game.hidden.network)}
         </span>
         <span className={`mental ${mentalState(pack, game)}`}>{mentalState(pack, game)}</span>
+        <span title="월급은 매달 1주차에 들어옵니다">💰 월급날 {game.week % 4 === 0 ? '이번 주' : `${4 - (game.week % 4)}주 뒤`}</span>
+        {activeFlags(pack, game)
+          .filter((f) => !f.def.hidden)
+          .map((f) => (
+            <span key={f.def.id} className={`flag-chip ${f.def.monthly < 0 ? 'cost' : f.def.monthly > 0 ? 'income' : ''}`} title={flagTitle(f.def)}>
+              {f.def.name}
+              {f.weeksLeft !== null && ` ${f.weeksLeft}주`}
+            </span>
+          ))}
       </div>
       <div className="hud-deadlines">
         {deadlines.map((dl) => (

@@ -7,6 +7,7 @@ import ideaSources from './majors/ai/idea-sources.json';
 import events from './majors/ai/events.json';
 import careers from './majors/ai/careers.json';
 import balance from './majors/ai/balance.json';
+import flags from './majors/ai/flags.json';
 
 export * from './schema/index';
 
@@ -27,6 +28,7 @@ export const aiPack: ContentPack = loadPack({
   ideaSources,
   events,
   careers,
+  flags,
   balance,
 });
 

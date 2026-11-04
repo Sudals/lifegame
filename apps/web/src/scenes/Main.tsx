@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getLab, type GameState } from '@grad-sim/engine';
+import { getLab, weeklyMonologue, type GameState } from '@grad-sim/engine';
 import { Character } from '../art/Character';
 import { isRainy, labScene, playerMood } from '../art/direction';
 import { Sprite } from '../art/Sprite';
@@ -21,8 +21,9 @@ function LabStage({ game }: { game: GameState }) {
   const plan = useGame((s) => s.plan);
   const lines = useMemo(() => {
     const week = game.log.filter((l) => l.week === game.week - 1 || (game.week === 0 && l.week === 0));
-    return week.length ? week : game.log.slice(-1);
-  }, [game.log, game.week]);
+    // 아무 일 없던 주: 지난 로그(예: 월급)를 반복하지 말고 그 주 상황에 맞는 혼잣말
+    return week.length ? week : [{ week: game.week, ...weeklyMonologue(pack, game) }];
+  }, [game]);
   const [idx, setIdx] = useState(0);
   const [typing, setTyping] = useState(false);
   useEffect(() => setIdx(0), [game.week, lines.length]);

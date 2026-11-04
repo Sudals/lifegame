@@ -1,6 +1,8 @@
 import type { ContentPack } from '@grad-sim/content';
-import { rollEvent } from './events';
+import { eventText, rollEvent } from './events';
+import { activeFlags, applyFlagWeekly, clearFlag, expireFlags, flagMonthly, hasFlag, setFlag } from './flags';
 import {
+  addEventPaper,
   createThesis,
   discardIdeas,
   experimentFailChoices,
@@ -13,18 +15,20 @@ import {
 import { attendCost, findVenue, queueRebuttals, rebuttalChoices, resolveRebuttal, resolveReviews, submitPaper } from './review';
 import { Rng } from './rng';
 import { acceptedCount, careerOffers, computeEnding } from './scoring';
-import { applyEffects, checkPlan, getLab } from './stats';
+import { applyEffects, checkPlan, getLab, normalizePlan } from './stats';
+import { fillTemplate } from './text';
 import {
   clamp,
   clone,
   GAME_VERSION,
+  PLAN_DEFAULTS,
   type Background,
   type GameState,
   type InboxItem,
   type StartTerm,
   type WeeklyPlan,
 } from './state';
-import { dateOf, formatDate, isMonthStart, isSemesterEnd, masterDeadlineWeek, ongoingConferences, upcomingDeadlines } from './time';
+import { dateOf, formatDate, isMonthStart, isSemesterEnd, masterDeadlineWeek, ongoingConferences, semesterIndex, upcomingDeadlines } from './time';
 
 export const MAX_CONTACTS = 4;
 
@@ -77,6 +81,8 @@ export function newGame(pack: ContentPack, opts: NewGameOptions): GameState {
     lastPlan: null,
     nextId: 1,
     ending: null,
+    flags: {},
+    scheduled: [],
   };
   state.rngState = rng.save();
   log(state, `${state.player.name}, ${state.startYear}년 ${state.startMonth}월 입학을 목표로 연구실 컨택을 시작한다.`, 'info');
@@ -211,10 +217,13 @@ export function canAttendConference(state: GameState): boolean {
 }
 
 export function defaultPlan(state: GameState): WeeklyPlan {
-  return state.lastPlan ? { ...state.lastPlan, attendConferenceId: null, counseling: false } : { sleepPerDay: 7, research: 30, study: 10, rest: 10, focusPaperId: null, counseling: false, attendConferenceId: null };
+  return state.lastPlan
+    ? { ...PLAN_DEFAULTS, ...state.lastPlan, attendConferenceId: null, counseling: false }
+    : { ...PLAN_DEFAULTS, sleepPerDay: 7, research: 30, study: 10, rest: 10, focusPaperId: null, counseling: false, attendConferenceId: null };
 }
 
-export function advanceWeek(pack: ContentPack, state: GameState, plan: WeeklyPlan): GameState {
+export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: WeeklyPlan): GameState {
+  const plan = normalizePlan(pack, rawPlan);
   if (state.phase !== 'semester') throw new Error('학기 중이 아닙니다.');
   if (state.inbox.length > 0) throw new Error('먼저 처리할 일이 있습니다.');
   const check = checkPlan(pack, state, plan);
@@ -266,22 +275,56 @@ export function advanceWeek(pack: ContentPack, state: GameState, plan: WeeklyPla
       st.money -= b.counselingCost;
     }
 
+    // 생활시간(식사·이동)을 줄이면 체력·스트레스, 늘리면 여유
+    const living = forced.living - b.livingHoursPerWeek;
+    if (living < 0) {
+      dStamina += living * b.skipMealStamina;
+      dStress -= living * b.skipMealStress;
+    } else dStress -= living * 0.1;
+
+    // 과제·잡무를 덜/더 하면 신뢰·관계 변화
+    const pr = plan.projectRatio;
+    if (forced.projectBase > 0) {
+      if (pr < 1) h.trust = clamp(h.trust - (1 - pr) * b.projectTrustPenalty, 0, 100);
+      else if (pr > 1) h.trust = clamp(h.trust + (pr - 1) * b.projectTrustBonus, 0, 100);
+    }
+    if (forced.choresBase > 0 && plan.choreRatio < 1) {
+      h.relation = clamp(h.relation - (1 - plan.choreRatio) * b.choreRelationPenalty, 0, 100);
+      h.trust = clamp(h.trust - (1 - plan.choreRatio) * 1.5, 0, 100);
+    }
+
     // 연구력 (수확 체감은 applyEffects에서 적용)
     const labMeeting = lab.track * b.labMeetingPerTrackStar;
     const dResearch = plan.study * b.researchPerStudyHour + plan.research * b.researchPerResearchHour + labMeeting + forced.project * 0.004;
 
     applyEffects(s, { stamina: dStamina, stress: dStress, research: dResearch });
+    applyFlagWeekly(pack, s);
     if (plan.research > 0) h.trust = clamp(h.trust + 0.3, 0, 100);
     else h.trust = clamp(h.trust - 1.5, 0, 100);
 
     // 연구 진척
     progressResearch(pack, s, plan, rng);
 
-    // 월급/고정비
+    // 월급날 (매달 1주차, 한 달에 한 번)
     if (isMonthStart(s.week)) {
-      const income = lab.salary + lab.projectLoad * b.projectStipendPerStar;
-      st.money += income - b.livingCostPerMonth;
-      log(s, `월급 ${income.toLocaleString()}원 입금, 생활비 ${b.livingCostPerMonth.toLocaleString()}원 지출.`, 'info');
+      const m = dateOf(s, s.week).month;
+      const salary = lab.salary;
+      const stipend = lab.projectLoad * b.projectStipendPerStar;
+      const extras = flagMonthly(pack, s);
+      const extraSum = extras.reduce((a, x) => a + x.amount, 0);
+      const net = salary + stipend + extraSum - b.livingCostPerMonth;
+      st.money += net;
+      const parts = [`인건비 ${salary.toLocaleString()}`, `과제수당 ${stipend.toLocaleString()}`, ...extras.map((x) => `${x.name} ${x.amount > 0 ? '+' : ''}${x.amount.toLocaleString()}`), `생활비 -${b.livingCostPerMonth.toLocaleString()}`];
+      log(s, `💰 ${m}월 월급날: ${parts.join(' · ')} → ${net >= 0 ? '+' : ''}${net.toLocaleString()}원`, net >= 0 ? 'info' : 'bad');
+    }
+    // 등록금 (학기 시작 주) — 연구실 장학 비율만큼 면제
+    if (s.week % 24 === 0) {
+      const due = Math.round((b.tuitionPerSemester * (1 - lab.tuitionCover)) / 10000) * 10000;
+      const sem = semesterIndex(s.week) + 1;
+      if (due > 0) {
+        st.money -= due;
+        log(s, `🎓 ${sem}학기 등록금 ${b.tuitionPerSemester.toLocaleString()}원 중 장학 ${Math.round(lab.tuitionCover * 100)}% — 본인 부담 ${due.toLocaleString()}원 납부.`, 'bad');
+      } else log(s, `🎓 ${sem}학기 등록금은 연구실 장학으로 전액 면제됐다.`, 'good');
     }
 
     // 심사
@@ -317,6 +360,7 @@ export function advanceWeek(pack: ContentPack, state: GameState, plan: WeeklyPla
 
     // 다음 주로
     s.week += 1;
+    for (const name of expireFlags(pack, s)) log(s, `「${name}」 기간이 끝났다.`, 'info');
     if (s.week >= s.semesterDeadlineWeek - 16) createThesis(s);
     if (h.maxStressWeeks >= b.dropoutStressWeeks) {
       // 번아웃 한계: 첫 번째는 휴학 권유, 휴학 후 재발 시 중도 포기
@@ -375,6 +419,8 @@ export function graduationStatus(pack: ContentPack, state: GameState): Graduatio
 function graduationReview(pack: ContentPack, s: GameState): void {
   const g = graduationStatus(pack, s);
   if (g.credits && g.thesis && g.paper) {
+    s.stats.money -= pack.balance.thesisFee;
+    log(s, `학위논문 심사비 ${pack.balance.thesisFee.toLocaleString()}원을 냈다.`, 'info');
     s.phase = 'career';
     s.inbox = [];
     log(s, '🎓 학위 심사 통과! 이제 진로를 선택하자.', 'good');
@@ -422,14 +468,33 @@ export interface InboxView {
   title: string;
   speaker?: string;
   text: string;
-  choices: { label: string; hint?: string }[];
+  choices: { label: string; hint?: string; disabled?: boolean }[];
 }
 
 export function describeInbox(pack: ContentPack, state: GameState, item: InboxItem): InboxView {
   switch (item.kind) {
     case 'event': {
       const e = pack.events.find((x) => x.id === item.eventId)!;
-      return { title: e.title, speaker: e.speaker, text: e.text, choices: e.choices.map((c) => ({ label: c.label })) };
+      const v = item.vars;
+      return {
+        title: fillTemplate(e.title, v),
+        speaker: e.speaker,
+        text: fillTemplate(eventText(pack, item), v),
+        choices: e.choices.map((c) => {
+          const cost = c.requireMoney ?? (c.effects.money && c.effects.money < 0 ? -c.effects.money : 0);
+          const disabled = c.requireMoney !== undefined && state.stats.money < c.requireMoney;
+          const tags = [
+            c.hint ? fillTemplate(c.hint, v) : '',
+            cost > 0 ? `-${cost.toLocaleString()}원` : c.effects.money && c.effects.money > 0 ? `+${c.effects.money.toLocaleString()}원` : '',
+            c.outcomes.length ? '결과는 운에 따라' : '',
+            ...c.setFlags.map((f) => {
+              const def = pack.flags.find((x) => x.id === f.id);
+              return def && !def.hidden ? `「${def.name}」${f.weeks ? ` ${f.weeks}주` : ''}` : '';
+            }),
+          ].filter(Boolean);
+          return { label: fillTemplate(c.label, v), hint: disabled ? `잔고 부족 (${c.requireMoney!.toLocaleString()}원 필요)` : tags.join(' · ') || undefined, disabled };
+        }),
+      };
     }
     case 'rebuttal': {
       const p = state.papers.find((x) => x.id === item.paperId)!;
@@ -471,15 +536,37 @@ export function describeInbox(pack: ContentPack, state: GameState, item: InboxIt
 }
 
 export function resolveInbox(pack: ContentPack, state: GameState, choice: number): GameState {
-  return act(state, (s) => {
+  return act(state, (s, rng) => {
     const item = s.inbox.shift();
     if (!item) return;
     switch (item.kind) {
       case 'event': {
         const e = pack.events.find((x) => x.id === item.eventId)!;
-        const c = e.choices[choice] ?? e.choices[0]!;
+        const affordable = (i: number) => {
+          const ch = e.choices[i];
+          return !!ch && (ch.requireMoney === undefined || s.stats.money >= ch.requireMoney);
+        };
+        // 잔고가 부족한 선택지는 고를 수 없음 → 가능한 첫 선택지로
+        const idx = affordable(choice) ? choice : e.choices.findIndex((_, i) => affordable(i));
+        const c = e.choices[idx < 0 ? e.choices.length - 1 : idx]!;
         applyEffects(s, c.effects);
-        log(s, `[${e.title}] ${c.result}`, 'info');
+        for (const f of c.setFlags) setFlag(s, f.id, f.weeks);
+        for (const f of c.clearFlags) clearFlag(s, f);
+        if (c.schedule) s.scheduled.push({ eventId: c.schedule.eventId, week: s.week + c.schedule.weeks });
+        let result = c.result;
+        let tone: 'good' | 'bad' | 'info' = 'info';
+        if (c.outcomes.length) {
+          const luck = s.stats.luck / 50; // 1 = 평균
+          const o = rng.weighted(c.outcomes, (x) => x.p * (x.luck ? luck : 1));
+          applyEffects(s, o.effects);
+          for (const f of o.setFlags) setFlag(s, f.id, f.weeks);
+          for (const f of o.clearFlags) clearFlag(s, f);
+          if (o.schedule) s.scheduled.push({ eventId: o.schedule.eventId, week: s.week + o.schedule.weeks });
+          result = [c.result, o.result].filter(Boolean).join(' ');
+          tone = o.luck ? 'good' : 'bad';
+        }
+        if (c.addPaper) addEventPaper(s, c.addPaper);
+        log(s, `[${fillTemplate(e.title, item.vars)}] ${fillTemplate(result, item.vars)}`, tone);
         break;
       }
       case 'rebuttal':
@@ -513,4 +600,4 @@ export function resolveInbox(pack: ContentPack, state: GameState, choice: number
   });
 }
 
-export { careerOffers };
+export { careerOffers, activeFlags, hasFlag };

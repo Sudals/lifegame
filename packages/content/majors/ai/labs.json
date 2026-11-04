@@ -3,7 +3,11 @@
     "id": "llm-kim",
     "name": "거대언어모델 연구실",
     "professor": "김교수",
-    "fields": ["llm", "safety", "multimodal"],
+    "fields": [
+      "llm",
+      "safety",
+      "multimodal"
+    ],
     "salary": 1800000,
     "track": 5,
     "humanity": 2,
@@ -14,13 +18,22 @@
     "industry": 4,
     "admissionCut": 70,
     "description": "탑티어 논문이 쏟아지는 국내 최정상 LLM 랩. 대신 주말 미팅이 일상이다.",
-    "rumors": ["\"토요일 오전 9시 미팅은 전통이래.\"", "\"여기 나오면 빅테크는 그냥 간다더라.\"", "\"교수님 슬랙 답장 속도가 3초야.\""]
+    "rumors": [
+      "\"토요일 오전 9시 미팅은 전통이래.\"",
+      "\"여기 나오면 빅테크는 그냥 간다더라.\"",
+      "\"교수님 슬랙 답장 속도가 3초야.\""
+    ],
+    "tuitionCover": 1
   },
   {
     "id": "vision-park",
     "name": "비전·생성모델 연구실",
     "professor": "박교수",
-    "fields": ["vision", "diffusion", "multimodal"],
+    "fields": [
+      "vision",
+      "diffusion",
+      "multimodal"
+    ],
     "salary": 1400000,
     "track": 4,
     "humanity": 4,
@@ -31,13 +44,21 @@
     "industry": 3,
     "admissionCut": 58,
     "description": "실적과 분위기 모두 괜찮은 균형형 랩. 선배들이 다들 '추천'한다.",
-    "rumors": ["\"교수님이 리버탈 같이 써주셔.\"", "\"GPU가 가끔 모자라긴 해.\"", "\"랩 회식이 진짜 맛집 위주야.\""]
+    "rumors": [
+      "\"교수님이 리버탈 같이 써주셔.\"",
+      "\"GPU가 가끔 모자라긴 해.\"",
+      "\"랩 회식이 진짜 맛집 위주야.\""
+    ],
+    "tuitionCover": 1
   },
   {
     "id": "rl-lee",
     "name": "강화학습·로보틱스 연구실",
     "professor": "이교수",
-    "fields": ["rl", "robotics"],
+    "fields": [
+      "rl",
+      "robotics"
+    ],
     "salary": 2300000,
     "track": 3,
     "humanity": 3,
@@ -48,13 +69,21 @@
     "industry": 4,
     "admissionCut": 45,
     "description": "인건비는 최고. 과제 보고서도 최고(로 많음).",
-    "rumors": ["\"월급날은 행복한데 보고서 마감도 매달 있어.\"", "\"로봇 팔이 또 고장났대.\"", "\"교수님은 자율을 존중하셔. 아주 많이.\""]
+    "rumors": [
+      "\"월급날은 행복한데 보고서 마감도 매달 있어.\"",
+      "\"로봇 팔이 또 고장났대.\"",
+      "\"교수님은 자율을 존중하셔. 아주 많이.\""
+    ],
+    "tuitionCover": 1
   },
   {
     "id": "eff-choi",
     "name": "효율적 AI·경량화 연구실",
     "professor": "최교수",
-    "fields": ["efficiency", "federated"],
+    "fields": [
+      "efficiency",
+      "federated"
+    ],
     "salary": 1000000,
     "track": 3,
     "humanity": 5,
@@ -65,13 +94,22 @@
     "industry": 3,
     "admissionCut": 50,
     "description": "천사 교수님으로 유명. 단, GPU는 '아껴 쓰는 법'부터 배운다.",
-    "rumors": ["\"교수님이 정시 퇴근을 권장하셔!\"", "\"GPU 예약표가 엑셀로 돌아.\"", "\"양자화 하나는 진짜 잘 가르쳐줘.\""]
+    "rumors": [
+      "\"교수님이 정시 퇴근을 권장하셔!\"",
+      "\"GPU 예약표가 엑셀로 돌아.\"",
+      "\"양자화 하나는 진짜 잘 가르쳐줘.\""
+    ],
+    "tuitionCover": 0.7
   },
   {
     "id": "new-jung",
     "name": "신임 교수 연구실",
     "professor": "정교수",
-    "fields": ["multimodal", "ai4science", "graph"],
+    "fields": [
+      "multimodal",
+      "ai4science",
+      "graph"
+    ],
     "salary": 800000,
     "track": 2,
     "potential": 5,
@@ -83,13 +121,22 @@
     "industry": 2,
     "admissionCut": 30,
     "description": "막 부임한 교수님과 함께 성장하는 랩. 1기생은 전설이 되거나, 전설로 남는다.",
-    "rumors": ["\"교수님이 포닥을 탑랩에서 하셨대.\"", "\"아직 선배가 없어서 다 직접 해야 해.\"", "\"스타트업 자금처럼 연구비를 따오시는 중이래.\""]
+    "rumors": [
+      "\"교수님이 포닥을 탑랩에서 하셨대.\"",
+      "\"아직 선배가 없어서 다 직접 해야 해.\"",
+      "\"스타트업 자금처럼 연구비를 따오시는 중이래.\""
+    ],
+    "tuitionCover": 0.5
   },
   {
     "id": "ind-han",
     "name": "산학 협력 AI 연구실",
     "professor": "한교수",
-    "fields": ["recsys", "timeseries", "speech"],
+    "fields": [
+      "recsys",
+      "timeseries",
+      "speech"
+    ],
     "salary": 2100000,
     "track": 2,
     "humanity": 3,
@@ -100,13 +147,21 @@
     "industry": 5,
     "admissionCut": 40,
     "description": "기업 과제 위주. 논문은 약해도 취업 연계는 최강.",
-    "rumors": ["\"졸업 전에 이미 오퍼 받는 사람이 많아.\"", "\"논문보다 데모가 중요해.\"", "\"기업 미팅 정장 필수래.\""]
+    "rumors": [
+      "\"졸업 전에 이미 오퍼 받는 사람이 많아.\"",
+      "\"논문보다 데모가 중요해.\"",
+      "\"기업 미팅 정장 필수래.\""
+    ],
+    "tuitionCover": 1
   },
   {
     "id": "theory-yoon",
     "name": "이론 ML 연구실",
     "professor": "윤교수",
-    "fields": ["theory", "xai"],
+    "fields": [
+      "theory",
+      "xai"
+    ],
     "salary": 1000000,
     "track": 4,
     "humanity": 3,
@@ -117,6 +172,11 @@
     "industry": 1,
     "admissionCut": 60,
     "description": "칠판과 분필의 랩. 증명 하나로 JMLR을 노린다. GPU? 그게 뭐죠?",
-    "rumors": ["\"면접에서 측도론 질문 나온대.\"", "\"과제가 거의 없어서 시간은 많아.\"", "\"교수님이 화이트보드를 3개 갖고 계셔.\""]
+    "rumors": [
+      "\"면접에서 측도론 질문 나온대.\"",
+      "\"과제가 거의 없어서 시간은 많아.\"",
+      "\"교수님이 화이트보드를 3개 갖고 계셔.\""
+    ],
+    "tuitionCover": 0.8
   }
 ]

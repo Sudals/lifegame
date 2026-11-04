@@ -18,8 +18,8 @@ import {
 import { activePapers, canExplore } from './research';
 import { acceptanceHint, findVenue, submitTargets } from './review';
 import { careerOffers } from './scoring';
-import { checkPlan, getLab, GPU_RANK } from './stats';
-import type { GameState, WeeklyPlan } from './state';
+import { canDualTask, checkPlan, getLab, GPU_RANK } from './stats';
+import { PLAN_DEFAULTS, type GameState, type WeeklyPlan } from './state';
 import { ongoingConferences } from './time';
 
 /** 밸런스 시뮬레이션용 봇 전략 (개발환경 문서 9장) */
@@ -43,12 +43,17 @@ function botPlan(pack: ContentPack, s: GameState, strat: BotStrategy): WeeklyPla
     active.find((p) => p.kind === 'paper') ??
     thesis;
   const conf = canAttendConference(s) ? ongoingConferences(pack, s)[0] : undefined;
+  // 연구력 70 이상이면 두 번째 작업도 진행
+  const second = canDualTask(pack, s) ? active.find((p) => p.id !== focus?.id) : undefined;
   const plan: WeeklyPlan = {
+    ...PLAN_DEFAULTS,
     sleepPerDay: cfg.sleep,
     research: 0,
     study: 0,
     rest: 0,
     focusPaperId: focus?.id ?? null,
+    secondFocusPaperId: second?.id ?? null,
+    split: 0.6,
     counseling: s.stats.stress >= 75 && s.stats.money > 0,
     attendConferenceId: conf && s.stats.money > 2_000_000 ? conf.venueId : null,
   };

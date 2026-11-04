@@ -1,581 +1,512 @@
 [
   {
-    "id": "weekend-meeting",
-    "title": "갑작스러운 주말 미팅",
-    "speaker": "교수",
-    "weight": 3,
-    "text": "\"토요일 오전에 잠깐 미팅 가능하죠? 진행 상황 보고 싶어서요.\"",
-    "when": {
-      "maxHumanity": 3
-    },
+    "id": "weekend-meeting", "title": "갑작스러운 주말 미팅", "speaker": "교수", "weight": 3, "scene": "office", "mood": "normal",
+    "text": "\"토요일 오전에 잠깐 미팅 가능하죠? 「{paper}」 진행 상황 보고 싶어서요.\"",
+    "variants": ["\"{venue} 마감 전에 주말에 한 번 봅시다. 9시 어때요?\"", "\"일요일에 시간 돼요? 그림 몇 개만 같이 보죠. 금방 끝나요.\"", "\"{season}이라 다들 쉬고 싶겠지만... 토요일에 랩 미팅 합시다.\""],
+    "when": { "maxHumanity": 3 },
     "choices": [
-      {
-        "label": "\"네! 준비해 가겠습니다.\"",
-        "effects": {
-          "trust": 4,
-          "stress": 6,
-          "stamina": -5,
-          "research": 0.5
-        },
-        "result": "주말이 사라졌지만 교수님 표정이 밝다."
-      },
-      {
-        "label": "\"월요일 아침 첫 타임은 어떠세요?\"",
-        "effects": {
-          "trust": -2,
-          "stress": -2
-        },
-        "result": "교수님이 잠시 생각하더니 수락했다. 주말은 지켰다."
-      }
-    ],
-    "scene": "office",
-    "mood": "normal"
+      { "label": "\"네! 준비해 가겠습니다.\"", "effects": { "trust": 4, "stress": 6, "stamina": -5, "research": 1 }, "result": "주말이 사라졌지만 {prof}님 표정이 밝다." },
+      { "label": "\"월요일 아침 첫 타임은 어떠세요?\"", "effects": { "stress": -2 }, "outcomes": [
+        { "p": 2, "luck": true, "effects": { "trust": -1 }, "result": "{prof}님이 잠시 생각하더니 수락했다. 주말은 지켰다." },
+        { "p": 1, "effects": { "trust": -4, "stress": 4 }, "result": "\"...그래요. 월요일에 보죠.\" 목소리가 차갑다." }
+      ] }
+    ]
   },
   {
-    "id": "praise",
-    "title": "교수님의 칭찬",
-    "speaker": "교수",
-    "weight": 2,
+    "id": "praise", "title": "교수님의 칭찬", "speaker": "교수", "weight": 2, "scene": "office", "mood": "happy",
     "text": "\"요즘 실험 정리를 잘하네요. 이 방향 좋아요.\"",
-    "when": {
-      "minHumanity": 3
-    },
-    "choices": [
-      {
-        "label": "(속으로 환호한다)",
-        "effects": {
-          "stress": -8,
-          "trust": 3
-        },
-        "result": "오늘은 퇴근길 편의점 아이스크림이 더 달다."
-      }
-    ],
-    "scene": "office",
-    "mood": "happy"
+    "variants": ["\"「{paper}」 초안 봤어요. 흐름이 깔끔해졌네요.\"", "\"{name}씨 랩 세미나 발표 좋았어요. 다른 학생들도 참고하라고 했어요.\"", "\"이번 {venue}, 우리 랩에서는 {name}씨 논문이 제일 기대돼요.\""],
+    "when": { "minHumanity": 3 },
+    "choices": [ { "label": "(속으로 환호한다)", "effects": { "stress": -8, "trust": 3 }, "result": "오늘은 퇴근길 편의점 아이스크림이 더 달다." } ]
   },
   {
-    "id": "compare",
-    "title": "다른 학생과의 비교",
-    "speaker": "교수",
-    "weight": 2,
-    "text": "\"옆 랩 OO씨는 벌써 NeurIPS 냈다던데...\"",
-    "when": {
-      "maxHumanity": 3
-    },
-    "choices": [
-      {
-        "label": "자극받아 이번 주 더 달린다",
-        "effects": {
-          "stress": 8,
-          "research": 1,
-          "stamina": -6
-        },
-        "result": "모니터 앞에서 새벽을 맞이했다."
-      },
-      {
-        "label": "\"저는 제 속도로 가겠습니다.\"",
-        "effects": {
-          "stress": 2,
-          "trust": -1
-        },
-        "result": "멘탈은 지켰다. 아마도."
-      }
+    "id": "compare", "title": "다른 학생과의 비교", "speaker": "교수", "weight": 2, "scene": "office", "mood": "angry",
+    "text": "\"옆 랩 {rival}씨는 벌써 {venue} 냈다던데...\"",
+    "variants": [
+      "\"{rival}씨는 이번 {venue} 리뷰 점수가 8점이래요. 우리도 분발해야죠.\"",
+      "\"작년 이맘때 {rival}씨는 1저자 논문이 두 편이었어요.\"",
+      "\"요즘 {season}이라고 다들 느슨해졌나요? {rival}씨는 주말에도 나오던데.\"",
+      "\"{venue} 마감이 D-{dday}인데, {rival}씨는 벌써 원고 다 썼대요. {name}씨는요?\"",
+      "\"{rival}씨가 이번에 빅테크 인턴 붙었대요. 논문 실적 덕분이겠죠.\""
     ],
-    "scene": "office",
-    "mood": "angry"
+    "when": { "maxHumanity": 3 },
+    "choices": [
+      { "label": "자극받아 이번 주 더 달린다", "effects": { "stress": 8, "research": 1, "stamina": -6 }, "result": "모니터 앞에서 새벽을 맞이했다." },
+      { "label": "\"저는 제 속도로 가겠습니다.\"", "effects": { "stress": 2, "trust": -1 }, "result": "멘탈은 지켰다. 아마도." },
+      { "label": "{rival}씨에게 비결을 물어본다", "effects": { "network": 2, "research": 0.5 }, "result": "{rival}씨는 의외로 친절했다. 비결은 '실험 자동화 스크립트'였다." }
+    ]
   },
   {
-    "id": "prof-trip",
-    "title": "교수님 해외 출장",
-    "weight": 2,
+    "id": "prof-trip", "title": "교수님 해외 출장", "weight": 2, "scene": "lab-day", "mood": "happy",
     "text": "교수님이 2주간 해외 출장을 가셨다. 연구실에 평화가 찾아왔다.",
+    "variants": ["{prof}님이 {venue} 참석차 출국하셨다. 단톡방이 조용하다.", "{prof}님이 학회 심사위원으로 일주일간 자리를 비우신다. 랩 분위기가 묘하게 들떠 있다."],
     "choices": [
-      {
-        "label": "이 기회에 밀린 논문을 읽는다",
-        "effects": {
-          "research": 1.5,
-          "stress": -3
-        },
-        "result": "오랜만에 집중해서 논문 5편을 읽었다."
-      },
-      {
-        "label": "조금 일찍 퇴근한다",
-        "effects": {
-          "stress": -10,
-          "stamina": 6
-        },
-        "result": "해가 떠 있을 때 퇴근하는 기분, 잊고 있었다."
-      }
-    ],
-    "scene": "lab-day",
-    "mood": "happy"
+      { "label": "이 기회에 밀린 논문을 읽는다", "effects": { "research": 1.5, "stress": -3 }, "result": "오랜만에 집중해서 논문 5편을 읽었다." },
+      { "label": "조금 일찍 퇴근한다", "effects": { "stress": -10, "stamina": 6 }, "result": "해가 떠 있을 때 퇴근하는 기분, 잊고 있었다." }
+    ]
   },
   {
-    "id": "server-down",
-    "title": "서버 다운",
-    "weight": 2,
+    "id": "server-down", "title": "서버 다운", "weight": 2, "scene": "lab-night", "mood": "frustrated",
     "text": "학습 중이던 서버가 갑자기 꺼졌다. 체크포인트는... 3일 전 것이 마지막이다.",
-    "when": {
-      "hasPaperStage": "experiment"
-    },
+    "variants": ["「{paper}」 실험이 72시간째 돌던 중 정전이 났다.", "CUDA out of memory. 배치 크기를 줄였더니 이번엔 loss가 NaN이다.", "서버 디스크가 꽉 찼다. 범인은 누군가의 체크포인트 300개다."],
+    "when": { "hasPaperStage": "experiment" },
     "choices": [
-      {
-        "label": "울면서 다시 돌린다",
-        "effects": {
-          "stress": 8,
-          "stamina": -4
-        },
-        "result": "체크포인트 주기를 1시간으로 바꿨다."
-      },
-      {
-        "label": "이참에 코드 리팩토링",
-        "effects": {
-          "stress": 3,
-          "research": 1
-        },
-        "result": "다시 돌린 실험이 오히려 빨라졌다."
-      }
-    ],
-    "scene": "lab-night",
-    "mood": "frustrated"
+      { "label": "울면서 다시 돌린다", "effects": { "stress": 8, "stamina": -4 }, "result": "체크포인트 주기를 1시간으로 바꿨다." },
+      { "label": "이참에 코드 리팩토링", "effects": { "stress": 3, "research": 1 }, "result": "다시 돌린 실험이 오히려 빨라졌다." }
+    ]
   },
   {
-    "id": "gpu-war",
-    "title": "GPU 쟁탈전",
-    "weight": 2,
-    "text": "데드라인 시즌, 연구실 GPU 예약표가 피바다다.",
-    "when": {
-      "hasPaperStage": "experiment"
-    },
+    "id": "gpu-war", "title": "GPU 쟁탈전", "weight": 2, "scene": "lab-night", "mood": "flustered",
+    "text": "{venue} 마감 시즌, 연구실 GPU 예약표가 피바다다.",
+    "variants": ["{senior}이 GPU 8장을 일주일째 쓰고 있다.", "누군가 내 학습 프로세스를 kill 했다. 범인은 단톡방에 없다."],
+    "when": { "hasPaperStage": "experiment" },
     "choices": [
-      {
-        "label": "새벽 3시에 예약 선점",
-        "effects": {
-          "stamina": -8,
-          "relation": -2,
-          "research": 0.5
-        },
-        "result": "GPU를 얻고, 동기의 눈총도 얻었다."
-      },
-      {
-        "label": "클라우드 크레딧을 자비로 결제",
-        "effects": {
-          "money": -300000,
-          "stress": -3
-        },
-        "result": "카드 명세서는 나중에 생각하기로 했다."
-      },
-      {
-        "label": "동기에게 양보한다",
-        "effects": {
-          "relation": 4,
-          "stress": 3
-        },
-        "result": "동기가 커피를 사줬다. 다음엔 돌려받자."
-      }
-    ],
-    "scene": "lab-night",
-    "mood": "flustered"
+      { "label": "새벽 3시에 예약 선점", "effects": { "stamina": -8, "relation": -2, "research": 0.5 }, "result": "GPU를 얻고, 동기의 눈총도 얻었다." },
+      { "label": "클라우드 크레딧을 자비로 결제", "requireMoney": 300000, "effects": { "money": -300000, "stress": -3 }, "result": "카드 명세서는 나중에 생각하기로 했다." },
+      { "label": "동기에게 양보한다", "effects": { "relation": 4, "stress": 3 }, "result": "동기가 커피를 사줬다. 다음엔 돌려받자." }
+    ]
   },
   {
-    "id": "lab-dinner",
-    "title": "연구실 회식",
-    "weight": 2,
-    "text": "\"오늘 랩 회식이에요! 교수님이 쏘신대요.\"",
+    "id": "lab-dinner", "title": "연구실 회식", "weight": 2, "scene": "cafe", "mood": "happy",
+    "text": "\"오늘 랩 회식이에요! {prof}님이 쏘신대요.\"",
+    "variants": ["\"{venue} 투고 기념 회식! 고기 먹으러 가요.\"", "\"{season} 맞이 랩 회식 공지 — 장소는 교수님 단골집입니다.\""],
     "choices": [
-      {
-        "label": "참석한다",
-        "effects": {
-          "relation": 5,
-          "stress": -5,
-          "stamina": -2
-        },
-        "result": "선배에게 졸업 꿀팁을 잔뜩 들었다."
-      },
-      {
-        "label": "실험이 바빠서 패스",
-        "effects": {
-          "relation": -2,
-          "research": 0.5
-        },
-        "result": "단톡방에 올라온 고기 사진이 야속하다."
-      }
-    ],
-    "scene": "cafe",
-    "mood": "happy"
+      { "label": "참석한다", "effects": { "relation": 5, "stress": -5, "stamina": -2 }, "result": "{senior}에게 졸업 꿀팁을 잔뜩 들었다." },
+      { "label": "실험이 바빠서 패스", "effects": { "relation": -2, "research": 0.5 }, "result": "단톡방에 올라온 고기 사진이 야속하다." }
+    ]
   },
   {
-    "id": "senior-help",
-    "title": "선배의 도움",
-    "speaker": "선배",
-    "weight": 2,
+    "id": "senior-help", "title": "선배의 도움", "speaker": "선배", "weight": 2, "scene": "lab-day", "mood": "happy",
     "text": "\"이 코드 구조 좀 이상한데? 내가 30분만 봐줄게.\"",
-    "choices": [
-      {
-        "label": "감사합니다 선배님!",
-        "effects": {
-          "research": 1.5,
-          "relation": 2,
-          "stress": -3
-        },
-        "result": "30분이 3시간이 됐지만 버그 5개를 잡았다."
-      }
-    ],
-    "scene": "lab-day",
-    "mood": "happy"
+    "variants": ["\"「{paper}」? 나 그거 비슷한 거 해봤어. 베이스라인 코드 줄까?\"", "\"리버탈은 이렇게 쓰는 거야. 내 작년 거 보여줄게.\""],
+    "choices": [ { "label": "감사합니다 선배님!", "effects": { "research": 1.5, "relation": 2, "stress": -3 }, "result": "30분이 3시간이 됐지만 버그 5개를 잡았다." } ]
   },
   {
-    "id": "freshman-mentor",
-    "title": "신입 사수 역할",
-    "weight": 1,
-    "when": {
-      "minWeek": 30
-    },
+    "id": "freshman-mentor", "title": "신입 사수 역할", "weight": 1, "scene": "lab-day", "mood": "normal", "when": { "minWeek": 30 },
     "text": "새로 들어온 학부 인턴의 사수가 되었다.",
     "choices": [
-      {
-        "label": "열심히 가르친다",
-        "effects": {
-          "relation": 4,
-          "stamina": -5,
-          "research": 0.5
-        },
-        "result": "가르치다 보니 나도 정리가 됐다."
-      },
-      {
-        "label": "최소한만 챙긴다",
-        "effects": {
-          "relation": -2,
-          "stress": -1
-        },
-        "result": "인턴이 조용히 혼자 깃허브를 뒤지고 있다."
-      }
-    ],
-    "scene": "lab-day",
-    "mood": "normal"
+      { "label": "열심히 가르친다", "effects": { "relation": 4, "stamina": -5, "research": 0.5 }, "result": "가르치다 보니 나도 정리가 됐다." },
+      { "label": "최소한만 챙긴다", "effects": { "relation": -2, "stress": -1 }, "result": "인턴이 조용히 혼자 깃허브를 뒤지고 있다." }
+    ]
   },
   {
-    "id": "equipment-broken",
-    "title": "장비 고장",
-    "weight": 1,
+    "id": "equipment-broken", "title": "장비 고장", "weight": 1, "scene": "lab-day", "mood": "tired",
     "text": "연구실 프린터와 에어컨이 동시에 고장났다. 수리 담당은... 당신이다.",
-    "choices": [
-      {
-        "label": "행정실에 전화를 돌린다",
-        "effects": {
-          "stress": 5,
-          "stamina": -3,
-          "trust": 1
-        },
-        "result": "반나절이 사라졌지만 에어컨은 돌아왔다."
-      }
-    ],
-    "scene": "lab-day",
-    "mood": "tired"
+    "variants": ["랩 냉장고에서 정체불명의 냄새가 난다. 청소 당번은 당신이다.", "연구실 공유 모니터가 깜빡거린다. 행정실에 물품 신청서를 써야 한다."],
+    "choices": [ { "label": "행정실에 전화를 돌린다", "effects": { "stress": 5, "stamina": -3, "trust": 1 }, "result": "반나절이 사라졌지만 문제는 해결됐다." } ]
   },
   {
-    "id": "part-time",
-    "title": "알바 제안",
-    "weight": 1,
-    "when": {
-      "maxMoney": 1500000
-    },
-    "text": "학부 후배가 과외 알바를 소개해줬다. 주 4시간, 월 60만 원.",
+    "id": "part-time", "title": "과외 알바 제안", "weight": 1, "scene": "home", "mood": "normal", "when": { "maxMoney": 1500000 },
+    "text": "학부 후배가 과외 알바를 소개해줬다. 주 4시간, 이번 달 60만 원.",
     "choices": [
-      {
-        "label": "한다 (이번 달 수입)",
-        "effects": {
-          "money": 600000,
-          "stamina": -6,
-          "stress": 3
-        },
-        "result": "통장이 숨을 쉬기 시작했다."
-      },
-      {
-        "label": "연구에 집중한다",
-        "effects": {
-          "stress": 2
-        },
-        "result": "라면 박스를 하나 더 샀다."
-      }
-    ],
-    "scene": "home",
-    "mood": "normal"
+      { "label": "한다", "effects": { "money": 600000, "stamina": -6, "stress": 3 }, "result": "통장이 숨을 쉬기 시작했다." },
+      { "label": "연구에 집중한다", "effects": { "stress": 2 }, "result": "라면 박스를 하나 더 샀다." }
+    ]
   },
   {
-    "id": "scholarship",
-    "title": "뜻밖의 장학금",
-    "weight": 1,
+    "id": "scholarship", "title": "뜻밖의 장학금", "weight": 1, "scene": "classroom", "mood": "happy", "when": { "semester": true },
     "text": "학과 사무실에서 연락이 왔다. 성적 우수 장학금 대상자란다!",
-    "choices": [
-      {
-        "label": "감사히 받는다",
-        "effects": {
-          "money": 1000000,
-          "stress": -6
-        },
-        "result": "오늘 저녁은 삼겹살이다."
-      }
-    ],
-    "scene": "classroom",
-    "mood": "happy"
+    "variants": ["동문회에서 연구 장려금을 준다고 한다. {lab} 추천으로 선정됐다!"],
+    "choices": [ { "label": "감사히 받는다", "effects": { "money": 1000000, "stress": -6 }, "result": "오늘 저녁은 삼겹살이다." } ]
   },
   {
-    "id": "laptop-broken",
-    "title": "노트북 고장",
-    "weight": 1,
+    "id": "laptop-broken", "title": "노트북 고장", "weight": 1, "scene": "home", "mood": "flustered",
     "text": "노트북에 커피를 쏟았다. 화면이 깜빡이더니 꺼졌다.",
     "choices": [
-      {
-        "label": "새로 산다",
-        "effects": {
-          "money": -1500000,
-          "stress": 4
-        },
-        "result": "새 노트북은 빠르다. 통장은 가볍다."
-      },
-      {
-        "label": "수리 맡기고 연구실 PC로 버틴다",
-        "effects": {
-          "money": -300000,
-          "stress": 8,
-          "stamina": -3
-        },
-        "result": "연구실 PC는 2015년산이다."
-      }
-    ],
-    "scene": "home",
-    "mood": "flustered"
+      { "label": "새로 산다", "requireMoney": 1500000, "effects": { "money": -1500000, "stress": 2 }, "setFlags": [{ "id": "new-gear" }], "result": "새 노트북은 빠르다. 통장은 가볍다. (연구 효율 소폭↑)" },
+      { "label": "수리 맡긴다", "requireMoney": 300000, "effects": { "money": -300000, "stress": 5 }, "result": "일주일 뒤에 찾으러 오란다." },
+      { "label": "연구실 PC로 버틴다", "effects": { "stress": 8, "stamina": -3 }, "result": "연구실 PC는 2015년산이다." }
+    ]
   },
   {
-    "id": "health-check",
-    "title": "건강검진",
-    "weight": 1,
-    "when": {
-      "maxStamina": 40
-    },
+    "id": "health-check", "title": "건강검진", "weight": 1, "scene": "counseling", "mood": "tired", "when": { "maxStamina": 40 },
     "text": "학교 건강검진 결과지에 빨간 글씨가 몇 개 보인다.",
     "choices": [
-      {
-        "label": "운동을 시작한다",
-        "effects": {
-          "stamina": 10,
-          "stress": -3
-        },
-        "result": "헬스장 3개월권을 끊었다. 이번엔 진짜다."
-      },
-      {
-        "label": "못 본 척한다",
-        "effects": {
-          "stress": 3
-        },
-        "result": "결과지는 서랍 깊숙이 들어갔다."
-      }
-    ],
-    "scene": "counseling",
-    "mood": "tired"
+      { "label": "헬스장을 등록한다", "requireMoney": 50000, "effects": { "stress": -3 }, "setFlags": [{ "id": "gym", "weeks": 12 }], "result": "헬스장 3개월권을 끊었다. 이번엔 진짜다." },
+      { "label": "못 본 척한다", "effects": { "stress": 3 }, "result": "결과지는 서랍 깊숙이 들어갔다." }
+    ]
   },
   {
-    "id": "family-event",
-    "title": "가족 행사",
-    "weight": 1,
+    "id": "family-event", "title": "가족 행사", "weight": 1, "scene": "home", "mood": "happy",
     "text": "할머니 생신이라 고향에 내려가야 한다. \"그래서 졸업은 언제 하니?\"",
+    "variants": ["사촌 동생이 대학에 붙었다고 가족 모임이 열린다. \"대학원은 뭐 하는 데니?\"", "{month}월, 부모님 결혼기념일이다. 오랜만에 집에 가볼까."],
     "choices": [
-      {
-        "label": "내려간다",
-        "effects": {
-          "stress": -6,
-          "stamina": 2,
-          "money": -150000
-        },
-        "result": "질문 공세는 힘들었지만 집밥은 최고였다."
-      },
-      {
-        "label": "영상통화로 대신한다",
-        "effects": {
-          "stress": 2
-        },
-        "result": "화면 너머 할머니가 손을 흔드셨다."
-      }
-    ],
-    "scene": "home",
-    "mood": "happy"
+      { "label": "내려간다", "requireMoney": 150000, "effects": { "stress": -6, "stamina": 2, "money": -150000 }, "result": "질문 공세는 힘들었지만 집밥은 최고였다." },
+      { "label": "영상통화로 대신한다", "effects": { "stress": 2 }, "result": "화면 너머 가족들이 손을 흔들었다." }
+    ]
   },
   {
-    "id": "date",
-    "title": "소개팅 제안",
-    "weight": 1,
+    "id": "date", "title": "소개팅 제안", "weight": 1, "scene": "cafe", "mood": "flustered", "when": { "notFlags": ["relationship", "dating"] },
     "text": "친구가 소개팅을 주선하겠다고 한다. \"대학원생이라고 하면 괜찮아해.\"",
     "choices": [
-      {
-        "label": "나간다",
-        "effects": {
-          "stress": -7,
-          "money": -80000,
-          "luck": 1
-        },
-        "result": "연구 얘기를 30분 해버렸지만 상대가 웃어줬다."
-      },
-      {
-        "label": "논문 마감 끝나고...",
-        "effects": {
-          "stress": 1
-        },
-        "result": "마감은 끝나지 않는다는 걸 우리 모두 알고 있다."
-      }
-    ],
-    "scene": "cafe",
-    "mood": "flustered"
+      { "label": "나간다", "requireMoney": 80000, "effects": { "money": -80000 }, "outcomes": [
+        { "p": 1, "luck": true, "effects": { "stress": -7 }, "setFlags": [{ "id": "dating", "weeks": 8 }], "schedule": { "eventId": "date-2", "weeks": 3 }, "result": "연구 얘기를 30분 해버렸지만 상대가 웃어줬다. 연락처를 교환했다." },
+        { "p": 1, "effects": { "stress": 2 }, "result": "어색한 침묵 끝에 \"좋은 분 만나세요\"로 끝났다." }
+      ] },
+      { "label": "논문 마감 끝나고...", "effects": { "stress": 1 }, "result": "마감은 끝나지 않는다는 걸 우리 모두 알고 있다." }
+    ]
   },
   {
-    "id": "intern-offer",
-    "title": "인턴 제안",
-    "weight": 1,
-    "when": {
-      "minWeek": 20
-    },
-    "text": "빅테크 리서치 팀에서 여름 인턴 제안 메일이 왔다!",
+    "id": "date-2", "title": "두 번째 만남", "weight": 1, "random": false, "scene": "cafe", "mood": "flustered", "when": { "flags": ["dating"] },
+    "text": "그 사람에게서 연락이 왔다. \"이번 주말에 영화 볼래요?\"",
     "choices": [
-      {
-        "label": "지원한다 (교수님께 허락 구하기)",
-        "effects": {
-          "network": 8,
-          "trust": -3,
-          "money": 2000000,
-          "stress": 4
-        },
-        "result": "인턴을 마치고 돌아오니 링크드인 알림이 폭발했다."
-      },
-      {
-        "label": "연구실에 남는다",
-        "effects": {
-          "trust": 3
-        },
-        "result": "교수님이 은근히 흐뭇해하신다."
-      }
-    ],
-    "scene": "home",
-    "mood": "happy"
+      { "label": "만난다", "requireMoney": 50000, "effects": { "money": -50000 }, "outcomes": [
+        { "p": 1.2, "luck": true, "effects": { "stress": -10 }, "setFlags": [{ "id": "relationship" }], "clearFlags": ["dating"], "result": "영화가 끝나고 고백했다. \"...좋아요.\" 연애를 시작했다!" },
+        { "p": 1, "effects": { "stress": 1 }, "clearFlags": ["dating"], "result": "즐거웠지만, 좋은 친구로 남기로 했다." }
+      ] },
+      { "label": "바쁘다고 미룬다", "effects": { "stress": 2 }, "clearFlags": ["dating"], "result": "답장이 점점 짧아지더니 연락이 끊겼다." }
+    ]
   },
   {
-    "id": "scooped",
-    "title": "선점당함(Scooped)",
-    "weight": 1,
-    "when": {
-      "hasPaperStage": "experiment"
-    },
-    "text": "arXiv 새 논문 알림... 제목이 내 아이디어와 거의 같다.",
+    "id": "anniversary", "title": "100일", "weight": 1, "once": true, "scene": "cafe", "mood": "happy", "when": { "flags": ["relationship"] },
+    "text": "사귄 지 100일! 선물을 준비해야 한다.",
     "choices": [
-      {
-        "label": "차별점을 찾아 방향을 튼다",
-        "effects": {
-          "stress": 10,
-          "research": 1
-        },
-        "result": "밤새 비교표를 만들었다. 아직 살아있다."
-      },
-      {
-        "label": "인용하고 확장 연구로 포지셔닝",
-        "effects": {
-          "stress": 5
-        },
-        "result": "\"concurrent work\"라는 마법의 단어를 배웠다."
-      }
-    ],
-    "scene": "lab-night",
-    "mood": "frustrated"
+      { "label": "선물을 산다", "requireMoney": 150000, "effects": { "money": -150000, "stress": -6 }, "result": "선물을 받고 환하게 웃었다. 15만 원이 아깝지 않다." },
+      { "label": "손편지를 쓴다", "effects": { "stress": -3, "luck": 1 }, "result": "\"이런 거 처음 받아봐.\" 돈 안 드는 진심이 통했다." }
+    ]
   },
   {
-    "id": "reviewer-invite",
-    "title": "리뷰어 초대",
-    "weight": 1,
-    "when": {
-      "minWeek": 40
-    },
-    "text": "학회 서브 리뷰어로 초대받았다. 내가... 리뷰어 2가 될 차례인가?",
+    "id": "relationship-crisis", "title": "서운함", "weight": 2, "scene": "cafe", "mood": "frustrated", "when": { "flags": ["relationship"], "minStress": 70 },
+    "text": "\"요즘 연구실에만 있네. 우리 얘기 좀 해.\"",
     "choices": [
-      {
-        "label": "성실하게 리뷰한다",
-        "effects": {
-          "research": 1.5,
-          "stamina": -3,
-          "network": 2
-        },
-        "result": "남의 논문을 보니 내 논문의 약점이 보인다."
-      },
-      {
-        "label": "정중히 거절한다",
-        "effects": {},
-        "result": "받은편지함이 조금 가벼워졌다."
-      }
-    ],
-    "scene": "lab-night",
-    "mood": "normal"
+      { "label": "이번 주는 시간을 낸다", "effects": { "stress": -4, "trust": -2, "stamina": 3 }, "result": "오랜만에 산책을 했다. 서로 많이 지쳐 있었다는 걸 알았다." },
+      { "label": "\"마감만 끝나면...\"", "outcomes": [
+        { "p": 1, "luck": true, "effects": { "stress": 3 }, "result": "\"알았어. 대신 끝나면 여행 가자.\" 겨우 넘겼다." },
+        { "p": 1, "effects": { "stress": 15 }, "clearFlags": ["relationship"], "result": "\"우리 잠깐 생각할 시간을 갖자.\" 그리고 연락이 끊겼다." }
+      ] }
+    ]
   },
   {
-    "id": "convenience-night",
-    "title": "새벽 편의점",
-    "weight": 2,
-    "when": {
-      "minStress": 60
-    },
+    "id": "intern-offer", "title": "인턴 공고", "weight": 1, "scene": "home", "mood": "happy", "when": { "minWeek": 20, "notFlags": ["intern-applied", "intern-done"] },
+    "text": "빅테크 리서치 팀 여름 인턴 공고가 떴다. 마감은 다음 주.",
+    "choices": [
+      { "label": "지원한다", "effects": { "stamina": -4, "stress": 3 }, "setFlags": [{ "id": "intern-applied", "weeks": 10 }], "schedule": { "eventId": "intern-result", "weeks": 4 }, "result": "지원서를 냈다. 코딩 테스트와 면접이 남았다." },
+      { "label": "연구실에 남는다", "effects": { "trust": 3 }, "result": "{prof}님이 은근히 흐뭇해하신다." }
+    ]
+  },
+  {
+    "id": "intern-result", "title": "인턴 결과 발표", "weight": 1, "random": false, "scene": "home", "mood": "flustered", "when": { "flags": ["intern-applied"] },
+    "text": "받은편지함에 인턴 결과 메일이 도착했다. 제목: [Application Update]",
+    "choices": [
+      { "label": "떨리는 손으로 연다", "outcomes": [
+        { "p": 1, "luck": true, "effects": { "network": 8, "money": 3000000, "trust": -4, "stress": 4, "research": 1 }, "setFlags": [{ "id": "intern-done" }], "clearFlags": ["intern-applied"], "result": "합격! 여름 동안 인턴을 했다. 링크드인 알림이 폭발한다." },
+        { "p": 1.2, "effects": { "stress": 6 }, "clearFlags": ["intern-applied"], "result": "불합격... 피드백에 '연구 경험 부족'이라고 적혀 있다." }
+      ] }
+    ]
+  },
+  {
+    "id": "scooped", "title": "선점당함(Scooped)", "weight": 1, "scene": "lab-night", "mood": "frustrated", "when": { "hasPaperStage": "experiment" },
+    "text": "arXiv 새 논문 알림... 제목이 「{paper}」와 거의 같다.",
+    "variants": ["{rival}씨가 트위터에 올린 논문 요약이... 내 아이디어다.", "{venue}에 같은 아이디어 논문이 이미 나왔다. 저자는 대형 랩이다."],
+    "choices": [
+      { "label": "차별점을 찾아 방향을 튼다", "effects": { "stress": 10, "research": 1 }, "result": "밤새 비교표를 만들었다. 아직 살아있다." },
+      { "label": "인용하고 확장 연구로 포지셔닝", "effects": { "stress": 5 }, "result": "\"concurrent work\"라는 마법의 단어를 배웠다." }
+    ]
+  },
+  {
+    "id": "reviewer-invite", "title": "리뷰어 초대", "weight": 1, "scene": "lab-night", "mood": "normal", "when": { "minWeek": 40 },
+    "text": "{venue} 서브 리뷰어로 초대받았다. 내가... 리뷰어 2가 될 차례인가?",
+    "choices": [
+      { "label": "성실하게 리뷰한다", "effects": { "research": 1.5, "stamina": -3, "network": 2 }, "result": "남의 논문을 보니 내 논문의 약점이 보인다." },
+      { "label": "정중히 거절한다", "effects": {}, "result": "받은편지함이 조금 가벼워졌다." }
+    ]
+  },
+  {
+    "id": "convenience-night", "title": "새벽 편의점", "weight": 2, "scene": "store", "mood": "tired", "when": { "minStress": 60 },
     "text": "새벽 2시, 편의점 앞 벤치. 삼각김밥이 유난히 짜다.",
+    "variants": ["새벽 편의점. 알바생이 \"오늘도 늦으시네요\"라고 인사한다. 단골이 됐다.", "{venue} 마감 D-{dday}. 에너지 드링크 진열대 앞에서 한참을 서 있었다."],
     "choices": [
-      {
-        "label": "오늘은 그만 들어가서 잔다",
-        "effects": {
-          "stamina": 6,
-          "stress": -5
-        },
-        "result": "오랜만에 7시간을 잤다."
-      },
-      {
-        "label": "에너지 드링크를 하나 더 산다",
-        "effects": {
-          "stamina": -6,
-          "research": 0.5,
-          "stress": 3
-        },
-        "result": "심장이 연구보다 빨리 뛴다."
-      }
-    ],
-    "scene": "store",
-    "mood": "tired"
+      { "label": "오늘은 그만 들어가서 잔다", "effects": { "stamina": 6, "stress": -5 }, "result": "오랜만에 7시간을 잤다." },
+      { "label": "에너지 드링크를 하나 더 산다", "effects": { "stamina": -6, "research": 0.5, "stress": 3, "money": -2500 }, "result": "심장이 연구보다 빨리 뛴다." }
+    ]
   },
   {
-    "id": "mt",
-    "title": "연구실 MT",
-    "weight": 1,
-    "when": {
-      "months": [
-        7,
-        8,
-        1,
-        2
-      ]
-    },
-    "text": "방학 맞이 연구실 MT! 교수님도 오신다고 한다.",
+    "id": "mt", "title": "연구실 MT", "weight": 1, "scene": "cafe", "mood": "happy", "when": { "months": [7, 8, 1, 2] },
+    "text": "방학 맞이 연구실 MT! {prof}님도 오신다고 한다.",
     "choices": [
-      {
-        "label": "즐긴다",
-        "effects": {
-          "relation": 6,
-          "stress": -10,
-          "stamina": -3,
-          "money": -100000
-        },
-        "result": "교수님의 노래 실력은 비밀로 하기로 했다."
-      },
-      {
-        "label": "몸이 안 좋다고 빠진다",
-        "effects": {
-          "relation": -3,
-          "stamina": 4
-        },
-        "result": "단톡방 사진을 보며 조금 아쉬웠다."
-      }
-    ],
-    "scene": "cafe",
-    "mood": "happy"
+      { "label": "즐긴다 (회비 10만 원)", "requireMoney": 100000, "effects": { "relation": 6, "stress": -10, "stamina": -3, "money": -100000 }, "result": "{prof}님의 노래 실력은 비밀로 하기로 했다." },
+      { "label": "몸이 안 좋다고 빠진다", "effects": { "relation": -3, "stamina": 4 }, "result": "단톡방 사진을 보며 조금 아쉬웠다." }
+    ]
+  },
+
+  {
+    "id": "rent-up", "title": "월세 인상 통보", "weight": 1, "scene": "home", "mood": "flustered", "when": { "minWeek": 8, "notFlags": ["rent-up", "moved"] },
+    "text": "집주인에게서 문자가 왔다. \"다음 달부터 월세를 10만 원 올리려고 해요.\"",
+    "choices": [
+      { "label": "받아들인다", "setFlags": [{ "id": "rent-up" }], "effects": { "stress": 3 }, "result": "매달 고정비가 10만 원 늘었다." },
+      { "label": "이사한다 (120만 원)", "requireMoney": 1200000, "effects": { "money": -1200000, "stamina": -10, "stress": 6 }, "setFlags": [{ "id": "moved" }], "result": "학교 근처 싼 원룸으로 이사했다. 이삿짐의 절반은 논문 출력물이었다." },
+      { "label": "협상해본다", "outcomes": [
+        { "p": 1, "luck": true, "effects": { "stress": -2 }, "result": "\"학생이니까... 올해는 그냥 넘어갈게요.\" 협상 성공!" },
+        { "p": 1, "effects": { "stress": 4 }, "setFlags": [{ "id": "rent-up" }], "result": "\"그럼 나가셔도 돼요.\" 결국 올려줬다." }
+      ] }
+    ]
+  },
+  {
+    "id": "wedding-gift", "title": "청첩장", "weight": 1, "scene": "home", "mood": "normal", "when": { "minWeek": 6 },
+    "text": "{season}, 학부 동기의 청첩장이 왔다. 벌써 다들 결혼을 하는구나.",
+    "variants": ["{month}월의 신부라니. 학부 때 같이 밤새던 친구가 결혼한다."],
+    "choices": [
+      { "label": "참석하고 축의금 10만 원", "requireMoney": 100000, "effects": { "money": -100000, "network": 1, "stress": -2 }, "result": "오랜만에 동기들을 만났다. 다들 회사 얘기뿐이다." },
+      { "label": "계좌로 5만 원만", "requireMoney": 50000, "effects": { "money": -50000 }, "result": "\"고마워! 다음에 밥 사줄게.\"" },
+      { "label": "바빠서 못 간다", "effects": { "stress": 2 }, "result": "미안한 마음에 축하 메시지를 길게 썼다." }
+    ]
+  },
+  {
+    "id": "chuseok", "title": "추석 연휴", "weight": 3, "scene": "home", "mood": "happy", "when": { "months": [9, 10] },
+    "text": "추석 연휴다. 고향에 내려갈까?",
+    "choices": [
+      { "label": "내려간다 (교통비 15만 원)", "requireMoney": 150000, "effects": { "money": -150000, "stress": -10, "stamina": 6 }, "outcomes": [
+        { "p": 1, "luck": true, "effects": { "money": 300000 }, "result": "큰아버지가 \"공부하느라 고생한다\"며 용돈 30만 원을 주셨다!" },
+        { "p": 1, "effects": { "stress": 3 }, "result": "\"그래서 언제 취직하니?\" 송편보다 질문이 많았다." }
+      ] },
+      { "label": "연구실에 남는다", "effects": { "research": 1, "stress": 4 }, "result": "텅 빈 연구실에서 GPU를 독차지했다." }
+    ]
+  },
+  {
+    "id": "seollal", "title": "설 연휴", "weight": 3, "scene": "home", "mood": "normal", "when": { "months": [1, 2] },
+    "text": "설 연휴. 친척들의 \"졸업 언제 하니?\" 폭격이 예상된다.",
+    "choices": [
+      { "label": "내려간다 (교통비 15만 원)", "requireMoney": 150000, "effects": { "money": -150000, "stress": -6, "stamina": 4 }, "outcomes": [
+        { "p": 1, "luck": true, "effects": { "money": 200000 }, "result": "세배를 드렸더니 할머니가 \"대학원생도 학생이지\"라며 세뱃돈을 주셨다." },
+        { "p": 1, "effects": { "stress": 4 }, "result": "조카들에게 세뱃돈을 주고 나니 지갑이 비었다." }
+      ] },
+      { "label": "영상통화로 인사한다", "effects": { "stress": 2 }, "result": "화면 너머 떡국이 맛있어 보인다." }
+    ]
+  },
+  {
+    "id": "phone-broken", "title": "액정 파손", "weight": 1, "scene": "lab-day", "mood": "flustered",
+    "text": "휴대폰 액정이 깨졌다. 거미줄 사이로 슬랙 알림이 보인다.",
+    "choices": [
+      { "label": "수리한다 (30만 원)", "requireMoney": 300000, "effects": { "money": -300000 }, "result": "새 액정이 반짝인다. 슬랙 알림도 선명하게 보인다." },
+      { "label": "보호필름으로 버틴다", "effects": { "stress": 5 }, "result": "손가락에 유리 가루가 묻는다." }
+    ]
+  },
+  {
+    "id": "dentist", "title": "어금니가 시리다", "weight": 1, "scene": "home", "mood": "tired", "when": { "notFlags": ["toothache"] },
+    "text": "찬물을 마실 때마다 어금니가 시리다. 치과에 가야 할 것 같다.",
+    "choices": [
+      { "label": "바로 치과에 간다 (40만 원)", "requireMoney": 400000, "effects": { "money": -400000, "stamina": -2 }, "result": "충치 두 개. 일찍 와서 다행이란다." },
+      { "label": "마감 끝나고 간다", "setFlags": [{ "id": "toothache", "weeks": 10 }], "schedule": { "eventId": "dentist-worse", "weeks": 6 }, "result": "진통제를 사 왔다. 괜찮겠지..." }
+    ]
+  },
+  {
+    "id": "dentist-worse", "title": "결국 치과", "weight": 1, "random": false, "scene": "counseling", "mood": "frustrated", "when": { "flags": ["toothache"] },
+    "text": "결국 이가 깨졌다. 신경치료가 필요하단다. 견적은 90만 원.",
+    "choices": [ { "label": "치료받는다", "effects": { "money": -900000, "stress": 5, "stamina": -4 }, "clearFlags": ["toothache"], "result": "미룬 대가는 비쌌다. 정기 검진을 달력에 적었다." } ]
+  },
+  {
+    "id": "cloud-bill", "title": "클라우드 청구서", "weight": 1, "scene": "lab-night", "mood": "flustered", "when": { "hasPaperStage": "experiment" },
+    "text": "클라우드 GPU 청구서가 왔다. 꺼두는 걸 깜빡한 인스턴스가 있었다... ₩870,000",
+    "choices": [
+      { "label": "내가 낸다", "effects": { "money": -870000, "stress": 6 }, "result": "자동 종료 스크립트를 짰다. 비싼 교훈이었다." },
+      { "label": "{prof}님께 보고드린다", "outcomes": [
+        { "p": 1, "luck": true, "effects": { "trust": -2, "stress": 2 }, "result": "{prof}님이 연구비로 처리해주셨다. 대신 잔소리를 30분 들었다." },
+        { "p": 1, "effects": { "money": -435000, "trust": -3, "stress": 4 }, "result": "연구비로는 안 된단다. 반반 부담하기로 했다." }
+      ] }
+    ]
+  },
+  {
+    "id": "ta-offer", "title": "조교 모집", "weight": 2, "scene": "classroom", "mood": "normal", "when": { "semester": true, "minWeek": 2, "notFlags": ["ta"] },
+    "text": "학과에서 학부 '기계학습 개론' 조교를 구한다. 월 40만 원, 주 6시간.",
+    "choices": [
+      { "label": "지원한다", "setFlags": [{ "id": "ta", "weeks": 14 }], "effects": { "stress": 2 }, "result": "조교가 됐다. 이번 학기는 월 40만 원 추가, 주 6시간을 쓴다." },
+      { "label": "연구에 집중한다", "result": "조교 자리는 동기가 가져갔다." }
+    ]
+  },
+  {
+    "id": "freelance-offer", "title": "외주 제안", "weight": 1, "scene": "cafe", "mood": "normal", "when": { "minResearch": 45, "notFlags": ["freelance"] },
+    "text": "지인 회사에서 추천 모델 외주를 제안했다. 두 달간 월 70만 원, 주 8시간.",
+    "choices": [
+      { "label": "수락한다", "setFlags": [{ "id": "freelance", "weeks": 8 }], "effects": { "trust": -2 }, "result": "밤에는 외주, 낮에는 연구. 통장은 든든해진다." },
+      { "label": "거절한다", "effects": { "trust": 1 }, "result": "\"아쉽네요. 졸업하면 연락 주세요!\"" }
+    ]
+  },
+  {
+    "id": "coin-tip", "title": "\"이거 무조건 오른다\"", "weight": 1, "scene": "home", "mood": "flustered", "when": { "minMoney": 4000000 },
+    "text": "동기가 \"이거 무조건 오른다\"며 코인 링크를 보냈다.",
+    "choices": [
+      { "label": "100만 원만 넣어본다", "requireMoney": 1000000, "outcomes": [
+        { "p": 1, "luck": true, "effects": { "money": 1000000, "stress": -3 }, "result": "두 배가 됐다! 바로 뺐다. 다신 안 한다." },
+        { "p": 1.4, "effects": { "money": -900000, "stress": 8 }, "result": "-90%. 남은 건 10만 원과 교훈뿐이다." }
+      ] },
+      { "label": "무시한다", "result": "통장을 지켰다. 동기는 다음 날 단톡방에서 조용해졌다." }
+    ]
+  },
+  {
+    "id": "gear-temptation", "title": "지름신", "weight": 1, "scene": "home", "mood": "happy", "when": { "minMoney": 5000000, "notFlags": ["new-gear"] },
+    "text": "새로 나온 노트북이 너무 갖고 싶다. 빌드 시간이 절반이라는데...",
+    "choices": [
+      { "label": "산다 (220만 원)", "requireMoney": 2200000, "effects": { "money": -2200000, "stress": -4 }, "setFlags": [{ "id": "new-gear" }], "result": "언박싱의 행복. (연구 효율 소폭↑)" },
+      { "label": "참는다", "effects": { "stress": 2 }, "result": "장바구니에만 담아두었다." }
+    ]
+  },
+  {
+    "id": "coffee-pass", "title": "카페 정기권", "weight": 1, "scene": "cafe", "mood": "happy", "when": { "notFlags": ["coffee-pass"] },
+    "text": "단골 카페 사장님이 정기권을 권한다. 한 달 6만 원, 아메리카노 무제한.",
+    "choices": [
+      { "label": "끊는다", "setFlags": [{ "id": "coffee-pass", "weeks": 8 }], "result": "카페가 제2의 연구실이 됐다." },
+      { "label": "믹스커피로 버틴다", "result": "연구실 믹스커피도 나쁘지 않다. 아마도." }
+    ]
+  },
+  {
+    "id": "loan-offer", "title": "잔고 부족", "weight": 4, "scene": "home", "mood": "frustrated", "when": { "maxMoney": 300000, "notFlags": ["loan", "parents-support"] },
+    "text": "통장 잔고가 {money}. 카드값 날이 다가온다. 학자금 대출 안내 문자가 와 있다.",
+    "choices": [
+      { "label": "학자금 대출을 받는다", "effects": { "money": 3000000, "stress": 3 }, "setFlags": [{ "id": "loan" }], "result": "300만 원이 들어왔다. 매달 15만 원씩 갚아야 한다." },
+      { "label": "부모님께 연락한다", "outcomes": [
+        { "p": 1, "luck": true, "effects": { "money": 500000, "stress": 4 }, "setFlags": [{ "id": "parents-support", "weeks": 16 }], "result": "\"밥은 잘 챙겨 먹어라.\" 부모님이 당분간 매달 용돈을 보내주시기로 했다." },
+        { "p": 1, "effects": { "money": 300000, "stress": 6 }, "result": "한숨과 함께 30만 원을 받았다. \"알바라도 해야지...\"" }
+      ] },
+      { "label": "버텨본다", "effects": { "stress": 6 }, "result": "이번 달은 학식과 라면으로 버티기로 했다." }
+    ]
+  },
+  {
+    "id": "receipt-lost", "title": "영수증 분실", "weight": 1, "scene": "office", "mood": "flustered", "when": { "minAccepted": 1 },
+    "text": "{venue} 등록비 영수증을 행정실에 내야 하는데... 영수증이 없다.",
+    "choices": [
+      { "label": "재발급을 요청한다", "effects": { "stamina": -4, "stress": 3 }, "result": "영어 이메일 세 통 끝에 영수증을 받았다." },
+      { "label": "포기하고 내가 낸다", "effects": { "money": -300000, "stress": 1 }, "result": "30만 원짜리 수업료였다." }
+    ]
+  },
+  {
+    "id": "coffee-machine", "title": "커피머신 고장", "weight": 1, "scene": "lab-day", "mood": "frustrated",
+    "text": "연구실 커피머신이 고장 났다. 연구실 전체의 생산성이 멈췄다.",
+    "choices": [
+      { "label": "내가 새로 산다 (25만 원)", "requireMoney": 250000, "effects": { "money": -250000, "relation": 8, "stress": -2 }, "result": "연구실의 영웅이 됐다. 머신에 내 이름이 붙었다." },
+      { "label": "랩 공금으로 사자고 건의", "effects": { "trust": -1, "relation": 2 }, "result": "{prof}님 결재까지 3주가 걸렸다." },
+      { "label": "믹스커피로 버틴다", "effects": { "stress": 2 }, "result": "믹스커피 소비량이 세 배가 됐다." }
+    ]
+  },
+
+  {
+    "id": "coauthor-offer", "title": "선배의 제안", "speaker": "선배", "weight": 1, "scene": "lab-day", "mood": "happy", "when": { "minWeek": 10, "notFlags": ["coauthor-promised"] },
+    "text": "\"{name}, 내 논문 실험 좀 도와줄래? 2저자로 넣어줄게.\"",
+    "choices": [
+      { "label": "돕는다", "effects": { "stamina": -8, "relation": 5 }, "setFlags": [{ "id": "coauthor-promised", "weeks": 12 }], "schedule": { "eventId": "coauthor-done", "weeks": 6 }, "result": "주말마다 {senior}과 실험을 같이 돌리기로 했다." },
+      { "label": "\"제 연구도 벅차서요...\"", "effects": { "relation": -3 }, "result": "\"그래, 이해해.\" 조금 서운한 눈치다." }
+    ]
+  },
+  {
+    "id": "coauthor-done", "title": "공동연구 완성", "speaker": "선배", "weight": 1, "random": false, "scene": "lab-day", "mood": "happy", "when": { "flags": ["coauthor-promised"] },
+    "text": "\"덕분에 실험 다 끝났어! 원고도 거의 다 썼어. 이제 투고만 하면 돼.\"",
+    "choices": [
+      { "label": "같이 마무리한다", "clearFlags": ["coauthor-promised"], "effects": { "relation": 4 }, "addPaper": { "title": "선배와의 공동연구 (2저자)", "field": "multimodal", "stage": "writing", "quality": 58, "authorOrder": 2 }, "result": "공동연구 원고가 연구 보드에 추가됐다. (2저자, 작성 단계)" }
+    ]
+  },
+  {
+    "id": "code-request", "title": "코드 공개 요청", "weight": 1, "scene": "lab-night", "mood": "flustered", "when": { "minAccepted": 1 },
+    "text": "깃허브에 이슈가 달렸다. \"Will the code be released?\"",
+    "choices": [
+      { "label": "코드를 정리해 공개한다", "effects": { "stamina": -6, "network": 5, "research": 0.5 }, "result": "README까지 쓰고 나니 스타가 50개 달렸다." },
+      { "label": "\"Coming soon\"이라고 답한다", "effects": { "network": -1 }, "result": "전설의 coming soon 레포가 하나 늘었다." }
+    ]
+  },
+  {
+    "id": "citation-burst", "title": "인용 알림", "weight": 1, "scene": "lab-day", "mood": "happy", "when": { "minAccepted": 1 },
+    "text": "구글 스칼라 알림: 내 논문이 인용됐다! 그것도 유명 연구실에서.",
+    "choices": [ { "label": "캡처해서 가족 단톡방에 올린다", "effects": { "network": 4, "stress": -5, "luck": 1 }, "result": "엄마: \"최고👍\" (무슨 뜻인지는 모르신다)" } ]
+  },
+  {
+    "id": "prof-project", "title": "새 과제", "speaker": "교수", "weight": 1, "scene": "office", "mood": "normal", "when": { "minTrust": 55, "semester": true, "notFlags": ["extra-project"] },
+    "text": "\"새 과제가 하나 들어왔는데, {name}씨가 맡아줄래요? 인건비 더 챙겨줄게요.\"",
+    "choices": [
+      { "label": "맡겠습니다", "setFlags": [{ "id": "extra-project", "weeks": 16 }], "effects": { "trust": 4 }, "result": "월 30만 원이 늘고, 주 4시간이 과제로 묶였다." },
+      { "label": "정중히 거절한다", "effects": { "trust": -3 }, "result": "\"음, 그래요. 연구에 집중해요.\"" }
+    ]
+  },
+  {
+    "id": "study-group", "title": "논문 스터디", "weight": 1, "scene": "classroom", "mood": "normal", "when": { "maxResearch": 60, "notFlags": ["study-group"] },
+    "text": "동기들이 주 1회 논문 스터디를 하자고 한다. 이번 주제는 {venue} 베스트 페이퍼.",
+    "choices": [
+      { "label": "참여한다", "setFlags": [{ "id": "study-group", "weeks": 16 }], "result": "매주 2시간, 논문 한 편씩. 연구력이 꾸준히 오른다." },
+      { "label": "혼자 읽는 게 편하다", "result": "혼자 읽다가 세 페이지에서 잠들었다." }
+    ]
+  },
+  {
+    "id": "lab-seminar", "title": "랩 세미나 발표", "weight": 2, "scene": "classroom", "mood": "flustered", "when": { "semester": true },
+    "text": "다음 주 랩 세미나 발표 차례다. 주제는 「{paper}」.",
+    "choices": [
+      { "label": "제대로 준비한다", "effects": { "stamina": -6, "research": 1, "trust": 3 }, "result": "\"좋네요. 이 그림은 논문에 그대로 쓰죠.\"" },
+      { "label": "있는 슬라이드로 대충", "outcomes": [
+        { "p": 1, "luck": true, "effects": { "stress": -2 }, "result": "{prof}님이 오늘 피곤하셨는지 질문이 없었다. 살았다." },
+        { "p": 1.3, "effects": { "trust": -4, "stress": 6 }, "result": "\"이거 준비한 거 맞아요?\" 20분간 질문 폭격을 받았다." }
+      ] }
+    ]
+  },
+  {
+    "id": "sports-day", "title": "학과 체육대회", "weight": 3, "scene": "classroom", "mood": "happy", "when": { "months": [5, 10] },
+    "text": "학과 체육대회 날이다. 우리 랩은 피구 우승 후보라는데...",
+    "choices": [
+      { "label": "참가한다", "effects": { "relation": 5, "stamina": -6, "stress": -6 }, "outcomes": [
+        { "p": 1, "luck": true, "effects": { "trust": 2 }, "result": "피구 우승! {prof}님이 상금으로 치킨을 쏘셨다." },
+        { "p": 1, "effects": {}, "result": "1회전 탈락. 그래도 오랜만에 땀을 흘렸다." }
+      ] },
+      { "label": "연구실을 지킨다", "effects": { "research": 0.5, "relation": -2 }, "result": "조용한 연구실에서 실험을 돌렸다." }
+    ]
+  },
+  {
+    "id": "cherry-blossom", "title": "벚꽃", "weight": 3, "scene": "lab-day", "mood": "happy", "when": { "months": [4] },
+    "text": "캠퍼스에 벚꽃이 만개했다. 창밖으로 사진 찍는 학부생들이 보인다.",
+    "choices": [
+      { "label": "점심시간에 산책한다", "effects": { "stress": -7, "stamina": 2 }, "result": "벚꽃 아래서 먹는 학식 김밥, 의외로 낭만적이다." },
+      { "label": "창문으로만 감상한다", "effects": { "stress": 1, "research": 0.3 }, "result": "벚꽃 엔딩을 들으며 코드를 짰다." }
+    ]
+  },
+  {
+    "id": "monsoon", "title": "장마", "weight": 3, "scene": "lab-night", "mood": "flustered", "when": { "months": [7] },
+    "text": "장마철. 서버실 천장에서 물이 샌다!",
+    "choices": [
+      { "label": "서버를 옮긴다", "effects": { "stamina": -8, "trust": 3 }, "result": "비 맞은 생쥐 꼴로 서버 4대를 옮겼다. {prof}님이 고맙다고 하셨다." },
+      { "label": "행정실에 신고한다", "outcomes": [
+        { "p": 1, "luck": true, "effects": {}, "result": "시설팀이 30분 만에 와서 고쳐줬다." },
+        { "p": 1, "effects": { "stress": 6 }, "result": "수리까지 일주일. 그동안 실험은 멈췄다." }
+      ] }
+    ]
+  },
+  {
+    "id": "cold", "title": "감기", "weight": 3, "scene": "home", "mood": "tired", "when": { "months": [11, 12, 1, 2], "maxStamina": 65, "notFlags": ["cold"] },
+    "text": "목이 칼칼하고 열이 난다. 감기다.",
+    "choices": [
+      { "label": "병원 가고 이틀 푹 쉰다", "requireMoney": 30000, "effects": { "money": -30000, "stamina": 8, "stress": -2, "trust": -1 }, "result": "죽을 먹고 14시간을 잤다. 살 것 같다." },
+      { "label": "약 먹고 버틴다", "setFlags": [{ "id": "cold", "weeks": 2 }], "effects": { "stress": 2 }, "result": "콧물을 훌쩍이며 출근했다. (2주간 효율↓)" }
+    ]
+  },
+  {
+    "id": "christmas", "title": "크리스마스", "weight": 3, "scene": "lab-night", "mood": "happy", "when": { "months": [12] },
+    "text": "연구실 창밖에 눈이 내린다. 크리스마스다.",
+    "variants": ["크리스마스 이브. {venue} 리뷰 결과는 산타가 주지 않는다."],
+    "choices": [
+      { "label": "연구실 파티를 연다", "requireMoney": 30000, "effects": { "relation": 5, "stress": -5, "money": -30000 }, "result": "케이크에 'SOTA'라고 써달라고 했다." },
+      { "label": "집에서 푹 쉰다", "effects": { "stress": -7, "stamina": 5 }, "result": "오랜만에 아무것도 안 했다. 최고의 선물이다." }
+    ]
+  },
+  {
+    "id": "startup-club", "title": "창업 동아리", "weight": 1, "scene": "cafe", "mood": "normal", "when": { "minWeek": 16, "notFlags": ["startup-club"] },
+    "text": "학내 창업 동아리에서 AI 엔지니어를 찾는다. \"지분 드릴게요!\"",
+    "choices": [
+      { "label": "합류한다", "setFlags": [{ "id": "startup-club", "weeks": 24 }], "effects": { "network": 3, "trust": -1 }, "result": "주 3시간씩 동아리 회의에 나간다. 명함이 생겼다." },
+      { "label": "지분은 마음만 받는다", "result": "\"나중에 유니콘 되면 후회할걸요?\"" }
+    ]
+  },
+  {
+    "id": "senior-graduation", "title": "선배의 졸업", "weight": 1, "once": true, "scene": "lab-day", "mood": "happy", "when": { "minWeek": 20 },
+    "text": "{senior}이 졸업한다. 연구실에 빈자리가 생겼다.",
+    "choices": [
+      { "label": "송별회를 연다 (3만 원)", "requireMoney": 30000, "effects": { "money": -30000, "network": 4, "relation": 3 }, "result": "\"회사 오면 연락해. 추천해줄게.\"" },
+      { "label": "코드 인수인계를 받는다", "effects": { "research": 0.5, "stamina": -4 }, "result": "README 없는 코드 3만 줄을 물려받았다." }
+    ]
+  },
+  {
+    "id": "prof-birthday", "title": "교수님 생신", "weight": 1, "scene": "office", "mood": "happy",
+    "text": "{prof}님 생신이다. 연구실에서 케이크를 준비한다. 회비는 2만 원.",
+    "choices": [
+      { "label": "회비를 낸다", "requireMoney": 20000, "effects": { "money": -20000, "trust": 3, "relation": 2 }, "result": "\"이런 거 안 해도 되는데...\" 교수님 입꼬리가 올라갔다." },
+      { "label": "슬쩍 빠진다", "effects": { "trust": -2, "relation": -2 }, "result": "단체 사진에 내가 없다." }
+    ]
+  },
+  {
+    "id": "nap", "title": "기절", "weight": 2, "scene": "lab-day", "mood": "tired", "when": { "maxStamina": 35 },
+    "text": "점심 먹고 잠깐 엎드렸는데 눈 떠보니 저녁이다.",
+    "choices": [ { "label": "개운하다...?", "effects": { "stamina": 6, "trust": -2 }, "result": "{prof}님이 지나가다 보셨다고 한다." } ]
   }
 ]

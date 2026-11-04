@@ -12,6 +12,34 @@ export function getTopic(pack: ContentPack, id: string): Topic {
   return t;
 }
 
+/** 논문의 주제 정보 — 이벤트로 생긴 논문(custom:)은 무난한 기본값 */
+export function paperTopic(pack: ContentPack, p: Paper): Topic {
+  const t = pack.topics.find((x) => x.id === p.topicId);
+  if (t) return t;
+  return { id: p.topicId, title: p.title, field: p.field, type: 'method', novelty: 3, difficulty: 3, gpu: 'C', trend: 3, competition: 3, weeks: p.weeks ?? 16 };
+}
+
+/** 이벤트 보상: 공동연구 원고 등 */
+export function addEventPaper(state: GameState, spec: { title: string; field: string; stage: 'experiment' | 'writing'; quality: number; authorOrder: 1 | 2 | 3 }): Paper {
+  const paper: Paper = {
+    id: `p${state.nextId++}`,
+    topicId: `custom:${state.nextId}`,
+    title: spec.title,
+    field: spec.field,
+    kind: 'paper',
+    stage: spec.stage,
+    progress: spec.stage === 'writing' ? 40 : 0,
+    quality: spec.quality,
+    authorOrder: spec.authorOrder,
+    checkpoints: 2,
+    reviews: [],
+    crunchWeeks: 0,
+    weeks: 14,
+  };
+  state.papers.push(paper);
+  return paper;
+}
+
 export function activePapers(state: GameState): Paper[] {
   return state.papers.filter((p) => p.stage === 'experiment' || p.stage === 'writing' || p.stage === 'revision');
 }
@@ -117,7 +145,7 @@ function speedFactor(pack: ContentPack, state: GameState, p: Paper): number {
   const eff = efficiency(pack, state);
   const research = state.stats.research;
   if (p.kind === 'thesis') return eff * (0.8 + research / 150);
-  const t = getTopic(pack, p.topicId);
+  const t = paperTopic(pack, p);
   const lab = getLab(pack, state.labId);
   const gpuGap = lab ? GPU_RANK[t.gpu] - GPU_RANK[lab.gpu] : 0;
   const gpu = gpuGap > 0 ? Math.max(0.25, 1 - 0.3 * gpuGap) : 1 + 0.05 * -gpuGap;
@@ -128,7 +156,7 @@ function speedFactor(pack: ContentPack, state: GameState, p: Paper): number {
 
 /** ③~⑤ 실험 중간 판정 */
 function experimentCheckpoint(pack: ContentPack, state: GameState, p: Paper, rng: Rng): void {
-  const t = getTopic(pack, p.topicId);
+  const t = paperTopic(pack, p);
   const r = state.stats.research;
   const luck = state.stats.luck;
   const pDiscovery = 0.03 + luck / 1000;
@@ -151,19 +179,32 @@ function experimentCheckpoint(pack: ContentPack, state: GameState, p: Paper, rng
   }
 }
 
-/** 주간 연구 시간 투입 → 진척/완성도 */
+/** 주간 연구 시간 투입 → 진척/완성도. 연구력 70 이상이면 두 작업에 나눠 투입 */
 export function progressResearch(pack: ContentPack, state: GameState, plan: WeeklyPlan, rng: Rng): void {
   const active = activePapers(state);
   const focus = active.find((p) => p.id === plan.focusPaperId) ?? (active.length === 1 ? active[0] : undefined);
   if (!focus || plan.research <= 0) return;
+  const second =
+    state.stats.research >= pack.balance.dualTaskResearch && plan.secondFocusPaperId && plan.secondFocusPaperId !== focus.id
+      ? active.find((p) => p.id === plan.secondFocusPaperId)
+      : undefined;
+  if (!second) return progressOne(pack, state, plan, focus, plan.research, 1, rng);
+  const split = Math.max(0.2, Math.min(0.8, plan.split ?? 0.5));
+  const eff = pack.balance.multitaskEfficiency; // 전환 비용
+  progressOne(pack, state, plan, focus, plan.research * split, eff, rng);
+  progressOne(pack, state, plan, second, plan.research * (1 - split), eff, rng);
+}
+
+function progressOne(pack: ContentPack, state: GameState, plan: WeeklyPlan, focus: Paper, hours: number, multitask: number, rng: Rng): void {
   // 실험 실패 판정을 기다리는 논문은 멈춤
   if (state.inbox.some((i) => i.kind === 'experiment-fail' && i.paperId === focus.id)) return;
+  if (hours <= 0) return;
 
   const b = pack.balance;
   // 주제 카드의 weeks = 주 40시간 투입 기준 예상 소요 기간 (실험 60% / 작성 40%)
-  const hoursFactor = plan.research / 40;
-  const speed = speedFactor(pack, state, focus);
-  const weeks = focus.kind === 'thesis' ? 8 : getTopic(pack, focus.topicId).weeks;
+  const hoursFactor = hours / 40;
+  const speed = speedFactor(pack, state, focus) * multitask;
+  const weeks = focus.kind === 'thesis' ? 8 : paperTopic(pack, focus).weeks;
   const rate = hoursFactor * speed * b.progressPerHour * 1.8;
 
   if (focus.stage === 'experiment') {
@@ -191,7 +232,7 @@ export function progressResearch(pack: ContentPack, state: GameState, plan: Week
   focus.progress = Math.min(100, focus.progress + (100 / (weeks * 0.4)) * rate);
   // 작성 완성도는 진척에 비례 (오래 붙잡는다고 무한히 오르지 않음) + 밤샘 크런치 소폭 보너스
   const skill = b.writingQualityBase + state.stats.research * b.writingQualityPerResearch;
-  focus.quality += ((focus.progress - before) / 100) * skill * (focus.stage === 'revision' ? 0.4 : 1) + (crunch ? 1 : 0);
+  focus.quality += ((focus.progress - before) / 100) * skill * (focus.stage === 'revision' ? 0.4 : 1) + (crunch ? hours / Math.max(1, plan.research) : 0);
 
   if (focus.progress < 100) return;
   if (focus.stage === 'revision') {

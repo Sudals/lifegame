@@ -1,6 +1,6 @@
 import type { RngState } from './rng';
 
-export const GAME_VERSION = '0.1.0';
+export const GAME_VERSION = '0.2.0';
 
 export type Background = 'cs' | 'math' | 'ee' | 'other';
 export type StartTerm = 3 | 9;
@@ -64,6 +64,8 @@ export interface Paper {
   acceptedWeek?: number;
   reviews: ReviewRecord[];
   crunchWeeks: number;
+  /** 이벤트로 생긴 공동연구 등 주제 카드가 없는 논문의 예상 기간 */
+  weeks?: number;
 }
 
 export interface InboxChoice {
@@ -72,7 +74,7 @@ export interface InboxChoice {
 }
 
 export type InboxItem =
-  | { kind: 'event'; eventId: string }
+  | { kind: 'event'; eventId: string; variant?: number; vars?: Record<string, string> }
   | { kind: 'rebuttal'; paperId: string; scores: number[] }
   | { kind: 'experiment-fail'; paperId: string }
   | { kind: 'counseling' }
@@ -98,6 +100,12 @@ export interface WeeklyPlan {
   study: number;
   rest: number;
   focusPaperId: string | null;
+  /** 연구력 70 이상: 두 번째 작업 (연구 시간을 split 비율로 나눔) */
+  secondFocusPaperId: string | null;
+  split: number; // 첫 작업 비중 0.2~0.8
+  living: number; // 식사·이동·생활 (주당)
+  projectRatio: number; // 과제 시간 배율 0.5~1.5
+  choreRatio: number; // 잡무 처리 비율 0~1
   counseling: boolean;
   attendConferenceId: string | null; // 개최 중 학회 참석
 }
@@ -140,6 +148,24 @@ export interface GameState {
   lastPlan: WeeklyPlan | null;
   nextId: number;
   ending: Ending | null;
+  /** 상태 플래그: id → 만료 주차 (PERMANENT = 영구) */
+  flags: Record<string, number>;
+  /** 예약된 후속 이벤트 (분기) */
+  scheduled: { eventId: string; week: number }[];
+}
+
+export const PERMANENT = 1_000_000;
+
+export const PLAN_DEFAULTS = { secondFocusPaperId: null, split: 0.5, living: 28, projectRatio: 1, choreRatio: 1 } as const;
+
+/** 이전 버전 세이브를 현재 형식으로 */
+export function migrate(state: GameState): GameState {
+  const s = clone(state);
+  s.flags ??= {};
+  s.scheduled ??= [];
+  if (s.lastPlan) s.lastPlan = { ...PLAN_DEFAULTS, ...s.lastPlan };
+  s.version = GAME_VERSION;
+  return s;
 }
 
 export function clone<T>(v: T): T {

@@ -127,6 +127,7 @@ export function resolveReviews(pack: ContentPack, state: GameState, rng: Rng): v
           else if (margin > 1.2 && rng.chance(0.5)) pres = 'spotlight';
         }
         accept(state, p, pres);
+        incentive(pack, state, v.tier);
         p.reviews.push({ venueId: v.id, kind: 'conference', scores, decision: pres, week: state.week });
         log(state, `🎉 「${p.title}」 ${v.displayName} 채택! (${pres.toUpperCase()}) 리뷰 점수 ${scores.join('/')}`, 'good');
       } else {
@@ -145,6 +146,7 @@ export function resolveReviews(pack: ContentPack, state: GameState, rng: Rng): v
 
     if (decision === 'accept') {
       accept(state, p, 'journal');
+      incentive(pack, state, j.tier === 'S' ? 'A+' : j.tier);
       if (j.apc > 0) {
         applyEffects(state, { money: -j.apc });
         log(state, `APC ${j.apc.toLocaleString()}원을 납부했다.`, 'info');
@@ -165,6 +167,17 @@ export function resolveReviews(pack: ContentPack, state: GameState, rng: Rng): v
       log(state, `「${p.title}」 ${j.displayName} 리젝.`, 'bad');
     }
   }
+}
+
+/** 채택 인센티브: 연구실 실적 × 단가 (A+/S는 2배, A는 1배) */
+function incentive(pack: ContentPack, state: GameState, tier: string): void {
+  const lab = getLab(pack, state.labId);
+  if (!lab) return;
+  const mult = tier === 'A+' ? 2 : tier === 'A' ? 1 : 0;
+  const amount = lab.track * pack.balance.acceptIncentivePerTrack * mult;
+  if (amount <= 0) return;
+  state.stats.money += amount;
+  log(state, `💰 논문 채택 인센티브 ${amount.toLocaleString()}원이 들어왔다.`, 'good');
 }
 
 function accept(state: GameState, p: Paper, presentation: string): void {

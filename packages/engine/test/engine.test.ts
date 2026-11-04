@@ -162,3 +162,125 @@ describe('밸런스 시뮬레이션 (몬테카를로, 기획안 12장 기준)', 
     expect(report.allnighter!.avgScore).toBeLessThan(report.balanced!.avgScore);
   });
 });
+
+// ───────────── v0.2: 월급·동시 작업·시간 배분·분기·돈 이벤트 ─────────────
+import { describeInbox, eventVars, fillTemplate, flagMonthly, hasFlag, migrate, PLAN_DEFAULTS, weeklyMonologue, type WeeklyPlan } from '../src/index';
+
+const plan = (s: GameState, p: Partial<WeeklyPlan> = {}): WeeklyPlan => ({ ...defaultPlan(s), ...p });
+const clearInbox = (s: GameState) => {
+  while (s.inbox.length) s = resolveInbox(pack, s, 1);
+  return s;
+};
+
+describe('월급', () => {
+  it('월급은 4주(한 달)에 한 번만 들어온다', () => {
+    let s = enrolled('payday');
+    for (let w = 0; w < 12; w++) s = advanceWeek(pack, clearInbox(s), plan(s));
+    const pays = s.log.filter((l) => l.text.includes('월급날'));
+    expect(pays.map((l) => l.week)).toEqual([0, 4, 8]);
+    expect(pays[0]!.text).toMatch(/3월 월급날/);
+  });
+  it('아무 일 없던 주에는 상황 독백이 나온다 (지난 월급 문구를 반복하지 않음)', () => {
+    const s = enrolled('mono');
+    const m = weeklyMonologue(pack, s);
+    expect(m.text.length).toBeGreaterThan(5);
+    expect(m.text).not.toMatch(/월급/);
+  });
+});
+
+describe('두 작업 동시 진행 (연구력 70+)', () => {
+  function twoPapers(research: number) {
+    let s = enrolled('dual');
+    s = clearInbox(s);
+    s.stats.research = research;
+    s.papers.push(
+      { id: 'a', topicId: 'llm-eval', title: 'A', field: 'llm', kind: 'paper', stage: 'experiment', progress: 0, quality: 30, authorOrder: 1, checkpoints: 2, reviews: [], crunchWeeks: 0 },
+      { id: 'b', topicId: 'rec-fair', title: 'B', field: 'recsys', kind: 'paper', stage: 'experiment', progress: 0, quality: 30, authorOrder: 1, checkpoints: 2, reviews: [], crunchWeeks: 0 },
+    );
+    return advanceWeek(pack, s, plan(s, { focusPaperId: 'a', secondFocusPaperId: 'b', research: 40, study: 0, rest: 0 }));
+  }
+  it('연구력 70 이상이면 두 논문이 함께 진척된다', () => {
+    const s = twoPapers(75);
+    expect(s.papers.find((p) => p.id === 'a')!.progress).toBeGreaterThan(0);
+    expect(s.papers.find((p) => p.id === 'b')!.progress).toBeGreaterThan(0);
+  });
+  it('연구력 70 미만이면 첫 번째 작업만 진행된다', () => {
+    const s = twoPapers(50);
+    expect(s.papers.find((p) => p.id === 'a')!.progress).toBeGreaterThan(0);
+    expect(s.papers.find((p) => p.id === 'b')!.progress).toBe(0);
+  });
+});
+
+describe('시간 배분 조정', () => {
+  it('생활시간을 줄이면 배분 가능 시간이 늘고 체력이 깎인다', () => {
+    const s = clearInbox(enrolled('living'));
+    const base = checkPlan(pack, s, plan(s, { living: 28 }));
+    const tight = checkPlan(pack, s, plan(s, { living: 14 }));
+    expect(tight.freeHours - base.freeHours).toBe(14);
+    const a = advanceWeek(pack, s, plan(s, { living: 28, research: 20, study: 0, rest: 10 }));
+    const b = advanceWeek(pack, s, plan(s, { living: 14, research: 20, study: 0, rest: 10 }));
+    expect(b.stats.stamina).toBeLessThan(a.stats.stamina);
+  });
+  it('과제를 덜 하면 교수 신뢰가 떨어진다', () => {
+    const s = clearInbox(enrolled('project'));
+    const full = advanceWeek(pack, s, plan(s, { projectRatio: 1 }));
+    const half = advanceWeek(pack, s, plan(s, { projectRatio: 0.5 }));
+    expect(half.hidden.trust).toBeLessThan(full.hidden.trust);
+  });
+  it('범위를 벗어난 값은 보정된다', () => {
+    const s = clearInbox(enrolled('clamp'));
+    const c = checkPlan(pack, s, plan(s, { living: 0, projectRatio: 9 }));
+    expect(c.forced.living).toBe(pack.balance.livingMin);
+    expect(c.forced.project).toBe(Math.round(c.forced.projectBase * pack.balance.projectRatioMax));
+  });
+});
+
+describe('분기·돈 이벤트', () => {
+  it('선택이 후속 이벤트를 예약하고, 그 주가 되면 등장한다', () => {
+    let s = clearInbox(enrolled('branch'));
+    s.inbox.push({ kind: 'event', eventId: 'dentist', variant: 0, vars: {} });
+    s = resolveInbox(pack, s, 1); // 마감 끝나고 간다 → 충치 방치 + 6주 뒤 악화
+    expect(hasFlag(s, 'toothache')).toBe(true);
+    expect(s.scheduled.some((x) => x.eventId === 'dentist-worse')).toBe(true);
+    let seen = false;
+    for (let w = 0; w < 8 && !seen; w++) {
+      s = advanceWeek(pack, s, plan(s));
+      seen = s.inbox.some((i) => i.kind === 'event' && i.eventId === 'dentist-worse');
+      if (!seen) s = clearInbox(s);
+    }
+    expect(seen).toBe(true);
+  });
+  it('잔고가 부족한 선택지는 고를 수 없다 (가능한 선택지로 대체)', () => {
+    let s = clearInbox(enrolled('broke'));
+    s.stats.money = 1000;
+    s.inbox.push({ kind: 'event', eventId: 'laptop-broken', variant: 0, vars: {} });
+    const view = describeInbox(pack, s, s.inbox[0]!);
+    expect(view.choices[0]!.disabled).toBe(true);
+    s = resolveInbox(pack, s, 0);
+    expect(s.stats.money).toBe(1000); // 150만 원 노트북을 사지 않았다
+    expect(hasFlag(s, 'new-gear')).toBe(false);
+  });
+  it('조교 플래그는 매달 수입과 주당 시간을 만든다', () => {
+    const s = clearInbox(enrolled('ta'));
+    s.flags.ta = s.week + 10;
+    expect(flagMonthly(pack, s)).toEqual([{ name: '학부 조교', amount: 400000 }]);
+    expect(checkPlan(pack, s, plan(s)).extraHours).toBeGreaterThanOrEqual(6);
+  });
+  it('모든 이벤트 문장·선택지·결과에 치환되지 않은 변수가 없다', () => {
+    const s = clearInbox(enrolled('tmpl'));
+    const vars = eventVars(pack, s, Rng.fromSeed('v'));
+    for (const e of pack.events) {
+      const texts = [e.title, e.text, ...e.variants, ...e.choices.flatMap((c) => [c.label, c.result, ...c.outcomes.map((o) => o.result)])];
+      for (const t of texts) expect(fillTemplate(t, vars), `${e.id}: ${t}`).not.toMatch(/[{}]/);
+    }
+  });
+  it('이전 버전 세이브를 마이그레이션한다', () => {
+    const old = clearInbox(enrolled('old')) as unknown as Record<string, unknown>;
+    delete old.flags;
+    delete old.scheduled;
+    const m = migrate(old as unknown as GameState);
+    expect(m.flags).toEqual({});
+    expect(m.scheduled).toEqual([]);
+    expect(advanceWeek(pack, m, { ...PLAN_DEFAULTS, ...defaultPlan(m) }).week).toBe(m.week + 1);
+  });
+});
