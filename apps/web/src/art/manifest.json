@@ -326,7 +326,14 @@
      }
     ],
     "leds": [],
-    "lamps": [],
+    "lamps": [
+     {
+      "x": 235,
+      "y": 184,
+      "w": 22,
+      "h": 2
+     }
+    ],
     "glow": [],
     "window": {
      "x": 432,
@@ -821,7 +828,9 @@
  ],
  "frames": [
   "idle",
+  "blink-half",
   "blink",
+  "talk-half",
   "talk"
  ],
  "sheets": {

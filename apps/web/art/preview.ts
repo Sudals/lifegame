@@ -54,3 +54,11 @@ if (process.argv[1]?.endsWith('preview.ts') && process.argv[3] === 'fx') {
   }
   writePreview(process.argv[2]!, 'fx', sheet, 3);
 }
+
+if (process.argv[1]?.endsWith('preview.ts') && process.argv[3] === 'frames') {
+  const { FRAMES } = await import('./characters');
+  const picks = [CHARACTERS[0]!, CHARACTERS[2]!, CHARACTERS[8]!];
+  const sheet = new PixelCanvas(FRAME * FRAMES.length, FRAME * picks.length, c('blue3'));
+  picks.forEach((ch, r) => FRAMES.forEach((f, col) => sheet.blit(renderFrame(ch, r === 1 ? 'happy' : 'normal', f), col * FRAME, r * FRAME)));
+  writePreview(process.argv[2]!, 'frames', sheet, 2);
+}

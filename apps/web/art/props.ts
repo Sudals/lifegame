@@ -112,10 +112,21 @@ export function windowView(cv: PixelCanvas, x: number, y: number, w: number, h: 
 
 // ───────────── 가구 ─────────────
 export function desk(cv: PixelCanvas, x: number, y: number, w: number, floorY: number, col = c('wood4')): void {
-  cv.rect(x, y, w, 7, col).hline(x, x + w - 1, y, shift(col, 1)).rect(x, y + 7, w, 4, shift(col, -2));
-  cv.rect(x + 6, y + 11, 6, floorY - y - 11, shift(col, -2)).rect(x + w - 12, y + 11, 6, floorY - y - 11, shift(col, -2));
-  cv.rect(x + w - 80, y + 11, 64, 46, shift(col, -1)).hline(x + w - 80, x + w - 17, y + 34, shift(col, -2));
-  cv.rect(x + w - 52, y + 20, 10, 2, c('gray4')).rect(x + w - 52, y + 44, 10, 2, c('gray4'));
+  // 책상 밑 그림자 (빛은 왼쪽 위)
+  for (let j = 0; j < 12; j++) for (let i = 0; i < w + 18; i++) if (((i + j) & 1) === 0 || j < 5) cv.shade(x + 8 + i, floorY + j, 1, 1, j < 5 ? -1 : -1);
+  cv.rect(x, y, w, 7, col).hline(x, x + w - 1, y, shift(col, 1)).hline(x, x + w - 1, y + 1, shift(col, 1));
+  const r = rng(x * 7 + y);
+  for (let i = 0; i < w / 12; i++) {
+    const gx = x + Math.floor(r() * (w - 20));
+    cv.hline(gx, gx + 6 + Math.floor(r() * 14), y + 3 + Math.floor(r() * 3), shift(col, -1));
+  }
+  cv.rect(x, y + 7, w, 4, shift(col, -2)).hline(x, x + w - 1, y + 7, shift(col, -1));
+  const leg = shift(col, -2);
+  cv.rect(x + 6, y + 11, 6, floorY - y - 11, leg).vline(x + 6, y + 11, floorY - 1, shift(col, -1));
+  cv.rect(x + w - 12, y + 11, 6, floorY - y - 11, leg).vline(x + w - 12, y + 11, floorY - 1, shift(col, -1));
+  cv.rect(x + w - 80, y + 11, 64, 46, shift(col, -1)).hline(x + w - 80, x + w - 17, y + 34, shift(col, -2)).hline(x + w - 80, x + w - 17, y + 35, col);
+  cv.vline(x + w - 17, y + 11, y + 56, shift(col, -2)).hline(x + w - 80, x + w - 17, y + 56, shift(col, -2));
+  cv.rect(x + w - 52, y + 20, 10, 2, c('gray4')).rect(x + w - 52, y + 44, 10, 2, c('gray4')).hline(x + w - 52, x + w - 43, y + 21, c('gray2')).hline(x + w - 52, x + w - 43, y + 45, c('gray2'));
 }
 
 export type ScreenKind = 'code' | 'graph' | 'paper' | 'slides';
@@ -156,6 +167,8 @@ export function monitor(cv: PixelCanvas, x: number, y: number, w: number, h: num
   cv.rect(x, y, w, h, c('ink2')).frame(x, y, w, h, c('ink0')).hline(x + 1, x + w - 2, y + 1, c('gray1'));
   const scr = { x: x + 3, y: y + 3, w: w - 6, h: h - 8 };
   screenContent(cv, scr, kind, seed);
+  if (kind !== 'code') for (let i = 0; i < 6; i++) cv.shade(scr.x + 4 + i, scr.y + 1 + i, 1, 1, 1).shade(scr.x + 8 + i, scr.y + 1 + i, 1, 1, 1);
+  cv.vline(x + 1, y + 1, y + h - 2, c('gray1')).hline(x + 1, x + w - 2, y + h - 2, c('ink1'));
   cv.rect(x + w / 2 - 1, y + h - 4, 2, 1, c('grn3'));
   cv.rect(x + w / 2 - 3, y + h, 6, 7, c('gray1')).rect(x + w / 2 - 12, y + h + 7, 24, 3, c('gray1')).hline(x + w / 2 - 12, x + w / 2 + 11, y + h + 7, c('gray2'));
   return scr;
@@ -193,6 +206,8 @@ export function books(cv: PixelCanvas, x: number, yBottom: number, w: number, se
     if (bx + bw > x + w) break;
     const col = c(cols[Math.floor(r() * cols.length)]!);
     cv.rect(bx, yBottom - bh, bw, bh, col).vline(bx + bw - 1, yBottom - bh, yBottom - 1, shift(col, -1)).hline(bx, bx + bw - 2, yBottom - bh + 3, shift(col, 1));
+    if (bw >= 5 && r() > 0.4) cv.hline(bx + 1, bx + bw - 2, yBottom - Math.floor(bh / 2), c('gold3')).hline(bx + 1, bx + bw - 2, yBottom - Math.floor(bh / 2) + 2, c('gold3'));
+    cv.vline(bx, yBottom - bh, yBottom - 1, shift(col, 1));
     bx += bw + (r() > 0.85 ? 3 : 0);
   }
 }
@@ -203,7 +218,9 @@ export function bookshelf(cv: PixelCanvas, x: number, y: number, w: number, h: n
   cv.rect(x + 4, y + 4, w - 8, h - 8, c('wood0'));
   for (let sy = y + 4, i = 0; sy + 34 <= y + h; sy += 36, i++) {
     books(cv, x + 6, sy + 30, w - 12, seed + i);
-    cv.rect(x + 2, sy + 30, w - 4, 6, wood).hline(x + 2, x + w - 3, sy + 30, c('wood3'));
+    castShadow(cv, x + 4, sy, w - 8, 8, 'down', 0.9);
+    castShadow(cv, x + w - 12, sy, 8, 30, 'none', 0.5);
+    cv.rect(x + 2, sy + 30, w - 4, 6, wood).hline(x + 2, x + w - 3, sy + 30, c('wood3')).hline(x + 2, x + w - 3, sy + 35, c('wood0'));
   }
 }
 
@@ -244,17 +261,25 @@ export function clock(cv: PixelCanvas, cx: number, cy: number, r = 9): void {
 export function serverRack(cv: PixelCanvas, x: number, y: number, w: number, h: number): Rect {
   cv.rect(x, y, w, h, c('ink2')).frame(x, y, w, h, c('ink0')).vline(x + 1, y + 1, y + h - 2, c('gray0'));
   for (let yy = y + 6; yy < y + h - 8; yy += 14) {
-    cv.rect(x + 4, yy, w - 8, 11, c('ink1')).hline(x + 4, x + w - 5, yy, c('gray0'));
-    for (let xx = x + 8; xx < x + w - 16; xx += 3) cv.vline(xx, yy + 3, yy + 8, c('ink0'));
+    cv.rect(x + 4, yy, w - 8, 11, c('ink1')).hline(x + 4, x + w - 5, yy, c('gray0')).hline(x + 4, x + w - 5, yy + 10, c('ink0'));
+    for (let xx = x + 8; xx < x + w - 16; xx += 3) cv.vline(xx, yy + 3, yy + 8, c('ink0')).set(xx + 1, yy + 3, c('gray0'));
+    cv.set(x + w - 16, yy + 5, c('teal3')).set(x + w - 14, yy + 5, c('gray3'));
   }
+  castShadow(cv, x + w, y + 6, 10, h - 6, 'right', 0.8);
   return { x: x + w - 12, y: y + 8, w: 6, h: h - 20 };
 }
 
 export function chairBack(cv: PixelCanvas, cx: number, y: number, col = c('ink2')): void {
-  cv.rect(cx - 2, y + 44, 4, 16, c('gray1'));
+  floorShadow(cv, cx + 6, y + 64, 34, 5);
+  cv.rect(cx - 2, y + 44, 4, 16, c('gray1')).vline(cx - 2, y + 44, y + 59, c('gray2'));
+  cv.rect(cx - 27, y + 30, 6, 4, c('gray1')).rect(cx + 21, y + 30, 6, 4, c('gray1')).vline(cx - 25, y + 34, y + 44, c('gray1')).vline(cx + 24, y + 34, y + 44, c('gray1'));
   cv.ellipse(cx, y + 22, 21, 24, col).rect(cx - 21, y + 22, 42, 22, col).ellipse(cx, y + 44, 21, 4, col);
-  cv.dither(cx - 16, y + 4, 10, 34, shift(col, 1), 0.3);
-  cv.rect(cx - 30, y + 58, 60, 4, c('gray1'));
+  const hi = shift(col, 1);
+  for (let j = 4; j < 40; j++) for (let i = -17; i < -9; i++) if (((i + j) & 1) === 0 || i < -14) cv.set(cx + i, y + j, hi);
+  cv.vline(cx, y + 6, y + 42, shift(col, -1)).hline(cx - 18, cx + 18, y + 26, shift(col, -1));
+  for (let j = 4; j < 44; j++) cv.shade(cx + 14, y + j, 7, 1, -1);
+  cv.rect(cx - 30, y + 58, 60, 4, c('gray1')).hline(cx - 30, cx + 29, y + 58, c('gray2'));
+  for (const wx of [cx - 30, cx - 2, cx + 26]) cv.rect(wx, y + 62, 4, 3, c('ink1'));
 }
 
 export function plant(cv: PixelCanvas, x: number, yBottom: number, size = 1): void {
@@ -267,10 +292,15 @@ export function plant(cv: PixelCanvas, x: number, yBottom: number, size = 1): vo
     const lx = x + Math.cos(a) * len;
     const ly = yBottom - ph + Math.sin(a) * len;
     cv.line(x, yBottom - ph, lx, ly, c('grn0'));
-    cv.ellipse(lx, ly, 5 * size, 3 * size, leaf[i % 3]!).set(lx - 1, ly - 1, c('grn4'));
+    const lc = leaf[i % 3]!;
+    cv.ellipse(lx, ly, 5 * size, 3 * size, lc).ellipse(lx + 1, ly + 1, 4 * size, 2 * size, shift(lc, -1)).ellipse(lx - 1, ly - 1, 3 * size, 1.5 * size, lc);
+    cv.line(lx - 3 * size, ly, lx + 3 * size, ly, shift(lc, -1)).set(lx - 2, ly - 1, c('grn4'));
   }
+  floorShadow(cv, x + 4, yBottom, pw * 0.8, 3);
   cv.poly([[x - pw / 2, yBottom - ph], [x + pw / 2, yBottom - ph], [x + pw / 2 - 3, yBottom], [x - pw / 2 + 3, yBottom]], c('red1'));
-  cv.rect(x - pw / 2 - 1, yBottom - ph, pw + 2, 3, c('red2')).vline(x + pw / 2 - 4, yBottom - ph + 3, yBottom - 1, c('red0'));
+  cv.rect(x - pw / 2 - 1, yBottom - ph, pw + 2, 3, c('red2')).hline(x - pw / 2, x + pw / 2, yBottom - ph, c('red3'));
+  cv.vline(x + pw / 2 - 4, yBottom - ph + 3, yBottom - 1, c('red0')).vline(x - pw / 2 + 3, yBottom - ph + 3, yBottom - 4, c('red2'));
+  cv.hline(x - pw / 2 + 1, x + pw / 2 - 1, yBottom - ph + 3, c('wood0'));
 }
 
 export function deskLamp(cv: PixelCanvas, x: number, yBase: number): Rect {
@@ -399,4 +429,141 @@ export function lightPool(cv: PixelCanvas, cx: number, cy: number, rx: number, r
       const steps = d < 0.25 * strength ? 2 : d < 0.6 ? 1 : (x + y) % 2 === 0 ? 1 : 0;
       if (steps) cv.set(x, y, shift(v, steps));
     }
+}
+
+// ───────────── 다듬기: 조명·질감·디테일 ─────────────
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const bd = (x: number, y: number, p: number) => BAYER[(y & 3) * 4 + (x & 3)]! < p * 16;
+
+/** 영역 그림자 (디더 밀도로 부드러운 가장자리). falloff: 'down' | 'right' | 'none' */
+export function castShadow(cv: PixelCanvas, x: number, y: number, w: number, h: number, falloff: 'down' | 'right' | 'none' = 'down', strength = 1): void {
+  for (let j = 0; j < h; j++)
+    for (let i = 0; i < w; i++) {
+      const t = falloff === 'down' ? j / h : falloff === 'right' ? i / w : 0;
+      const p = (1 - t) * strength;
+      if (bd(x + i, y + j, p)) cv.shade(x + i, y + j, 1, 1, -1);
+    }
+}
+
+/** 바닥 위 타원 그림자 (의자·화분·사람) */
+export function floorShadow(cv: PixelCanvas, cx: number, cy: number, rx: number, ry: number): void {
+  for (let y = Math.floor(cy - ry); y <= cy + ry; y++)
+    for (let x = Math.floor(cx - rx); x <= cx + rx; x++) {
+      const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+      if (d <= 1 && bd(x, y, d < 0.5 ? 1 : 0.5)) cv.shade(x, y, 1, 1, -1);
+    }
+}
+
+/** 벽 깊이감: 천장 아래·좌우 모서리 어둡게 */
+export function wallDepth(cv: PixelCanvas, top: number, bottom: number): void {
+  castShadow(cv, 0, top, W, 12, 'down', 0.75);
+  castShadow(cv, 0, top, 26, bottom - top, 'right', 0.6);
+  for (let j = top; j < bottom; j++) for (let i = 0; i < 26; i++) if (bd(W - 1 - i, j, (1 - i / 26) * 0.6)) cv.shade(W - 1 - i, j, 1, 1, -1);
+}
+
+/** 창문 빛: 바닥에 비스듬한 밝은 사각형 */
+export function windowShaft(cv: PixelCanvas, win: Rect, floorY: number, time: Time, len = 90, dir: 1 | -1 = 1): void {
+  if (time === 'night') return;
+  const skew = 0.9 * dir;
+  for (let j = 0; j < len && floorY + j < H; j++) {
+    const y = floorY + j;
+    const x0 = Math.round(win.x + 10 + j * skew * (dir === 1 ? 1 : 1.4));
+    const x1 = Math.round(win.x + win.w - 10 + j * skew * (dir === 1 ? 1.4 : 1));
+    const fade = 1 - j / len;
+    for (let x = x0; x <= x1; x++) {
+      const edge = Math.min(x - x0, x1 - x) < 4 ? 0.5 : 1;
+      if (bd(x, y, 0.55 * fade * edge)) cv.shade(x, y, 1, 1, time === 'day' ? 1 : 1);
+    }
+  }
+}
+
+/** 미세 질감: 결정적 노이즈로 ±1 톤 */
+export function noise(cv: PixelCanvas, x: number, y: number, w: number, h: number, seed: number, density = 0.004): void {
+  const r = rng(seed);
+  const n = Math.floor(w * h * density);
+  for (let i = 0; i < n; i++) {
+    const px = x + Math.floor(r() * w);
+    const py = y + Math.floor(r() * h);
+    r();
+    cv.shade(px, py, 1, 1, -1);
+  }
+}
+
+/** 바닥 반사 (광택 타일): 위쪽 밝은 물체를 흐릿하게 */
+export function floorGloss(cv: PixelCanvas, y0: number, rows = 14): void {
+  for (let j = 0; j < rows; j++)
+    for (let x = 0; x < W; x++) {
+      const src = cv.get(x, y0 - 1 - j * 2);
+      if (src < 0 || !bd(x, y0 + j, 0.25 * (1 - j / rows))) continue;
+      cv.set(x, y0 + j, shift(cv.get(x, y0 + j), 1));
+    }
+}
+
+export function ceilingTiles(cv: PixelCanvas, h: number, base: number): void {
+  cv.rect(0, 0, W, h, base);
+  for (let x = 0; x < W; x += 64) cv.vline(x, 0, h - 1, shift(base, -1));
+  cv.hline(0, W, h, shift(base, -2));
+}
+
+export function cable(cv: PixelCanvas, x0: number, y0: number, x1: number, y1: number, sag = 8, col = c('ink2')): void {
+  let px = x0;
+  let py = y0;
+  for (let i = 1; i <= 24; i++) {
+    const f = i / 24;
+    const x = Math.round(x0 + (x1 - x0) * f);
+    const y = Math.round(y0 + (y1 - y0) * f + Math.sin(f * Math.PI) * sag);
+    cv.line(px, py, x, y, col);
+    px = x;
+    py = y;
+  }
+}
+
+export function stickyNotes(cv: PixelCanvas, x: number, y: number, n: number): void {
+  const cols = [c('gold3'), c('red3'), c('grn3'), c('teal3')];
+  for (let i = 0; i < n; i++) {
+    const col = cols[i % cols.length]!;
+    cv.rect(x, y + i * 7, 6, 6, col).hline(x, x + 5, y + i * 7, shift(col, 1)).hline(x + 1, x + 4, y + i * 7 + 3, shift(col, -2));
+  }
+}
+
+export function backpack(cv: PixelCanvas, x: number, yBottom: number, col = c('red1')): void {
+  cv.ellipse(x, yBottom - 14, 11, 14, col).rect(x - 11, yBottom - 14, 22, 14, col);
+  cv.rect(x - 7, yBottom - 12, 14, 10, shift(col, 1)).hline(x - 7, x + 6, yBottom - 12, shift(col, 2));
+  cv.vline(x - 3, yBottom - 26, yBottom - 13, shift(col, -1)).vline(x + 3, yBottom - 26, yBottom - 13, shift(col, -1));
+  cv.rect(x - 1, yBottom - 9, 2, 2, c('gray4'));
+  cv.dither(x + 4, yBottom - 26, 7, 26, shift(col, -1), 0.5, (px, py) => cv.get(px, py) === col);
+}
+
+export function trashBin(cv: PixelCanvas, x: number, yBottom: number): void {
+  cv.poly([[x - 9, yBottom - 20], [x + 9, yBottom - 20], [x + 7, yBottom], [x - 7, yBottom]], c('gray2'));
+  cv.hline(x - 9, x + 9, yBottom - 20, c('gray3')).vline(x + 6, yBottom - 18, yBottom - 1, c('gray1'));
+  cv.ellipse(x - 3, yBottom - 22, 4, 3, c('gray6')).ellipse(x + 3, yBottom - 23, 3, 3, c('gray5'));
+}
+
+export function rug(cv: PixelCanvas, cx: number, cy: number, rx: number, ry: number, a: number, b: number): void {
+  cv.ellipse(cx, cy, rx, ry, a).ellipse(cx, cy, rx - 8, ry - 4, b).ellipse(cx, cy, rx - 14, ry - 7, a);
+  for (let x = cx - rx + 6; x < cx + rx - 6; x += 6) cv.set(x, cy + ry, shift(a, -1)).set(x + 2, cy + ry + 1, shift(a, -1));
+}
+
+export function bankerLamp(cv: PixelCanvas, x: number, yBase: number): Rect {
+  cv.rect(x - 6, yBase - 3, 12, 3, c('gold1')).vline(x, yBase - 14, yBase - 3, c('gold2'));
+  cv.poly([[x - 12, yBase - 14], [x + 12, yBase - 14], [x + 9, yBase - 21], [x - 9, yBase - 21]], c('grn1'));
+  cv.hline(x - 9, x + 9, yBase - 21, c('grn3')).hline(x - 12, x + 12, yBase - 14, c('grn0'));
+  return { x: x - 11, y: yBase - 13, w: 22, h: 2 };
+}
+
+export function wallClockShadow(cv: PixelCanvas, cx: number, cy: number, r: number): void {
+  floorShadow(cv, cx + 3, cy + 3, r + 2, r + 2);
+}
+
+export function spotlight(cv: PixelCanvas, topX: number, bottomX: number, bottomY: number, spread: number): void {
+  for (let y = 0; y < bottomY; y++) {
+    const f = y / bottomY;
+    const cx = topX + (bottomX - topX) * f;
+    const half = 4 + spread * f;
+    for (let x = Math.floor(cx - half); x <= cx + half; x++) {
+      const edge = 1 - Math.abs(x - cx) / half;
+      if (bd(x, y, 0.35 * edge * (0.4 + f * 0.6))) cv.shade(x, y, 1, 1, 1);
+    }
+  }
 }

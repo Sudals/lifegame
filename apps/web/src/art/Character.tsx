@@ -1,10 +1,13 @@
 import { memo, useEffect, useState } from 'react';
 import { character, EXPRESSIONS, FRAME, type CharacterId, type Expression } from './assets';
 
+/** 시트 열: art/characters.ts FRAMES 순서 */
+const COL = { idle: 0, blinkHalf: 1, blink: 2, talkHalf: 3, talk: 4 } as const;
+
 /**
- * 반신 캐릭터: 128x128 프레임 시트 (행 = 표정, 열 = 기본/눈깜빡/말하기)
- * - 2.5~5.5초마다 랜덤 눈깜빡임
- * - talking 동안 입 모양 교차
+ * 반신 캐릭터: 128x128 프레임 시트 (행 = 표정, 열 = 기본/반눈/눈감음/반입/말하기)
+ * - 눈깜빡임: 반눈 → 감음 → 반눈 (가끔 두 번)
+ * - 말하기: 반입 ↔ 입 벌림 ↔ 다물기를 불규칙하게
  * - 숨쉬기 1px 상하 (CSS)
  */
 export const Character = memo(function Character({
@@ -26,33 +29,49 @@ export const Character = memo(function Character({
   dim?: boolean;
   enter?: 'up' | 'left' | 'right' | 'none';
 }) {
-  const [blink, setBlink] = useState(false);
-  const [mouth, setMouth] = useState(false);
+  const [eye, setEye] = useState<number>(COL.idle);
+  const [mouth, setMouth] = useState<number>(COL.idle);
 
   useEffect(() => {
-    let t: number;
+    const timers: number[] = [];
+    const at = (ms: number, f: () => void) => timers.push(window.setTimeout(f, ms));
+    let alive = true;
+    const blinkOnce = (start: number) => {
+      at(start, () => setEye(COL.blinkHalf));
+      at(start + 45, () => setEye(COL.blink));
+      at(start + 130, () => setEye(COL.blinkHalf));
+      at(start + 175, () => setEye(COL.idle));
+    };
     const schedule = () => {
-      t = window.setTimeout(
-        () => {
-          setBlink(true);
-          window.setTimeout(() => setBlink(false), 130);
-          schedule();
-        },
-        2500 + Math.random() * 3000,
-      );
+      if (!alive) return;
+      const wait = 2200 + Math.random() * 3400;
+      blinkOnce(wait);
+      if (Math.random() < 0.2) blinkOnce(wait + 260);
+      at(wait + 600, schedule);
     };
     schedule();
-    return () => window.clearTimeout(t);
+    return () => {
+      alive = false;
+      timers.forEach((t) => window.clearTimeout(t));
+    };
   }, []);
 
   useEffect(() => {
-    if (!talking) return setMouth(false);
-    const t = window.setInterval(() => setMouth((m) => !m), 120);
-    return () => window.clearInterval(t);
+    if (!talking) return setMouth(COL.idle);
+    const seq = [COL.talkHalf, COL.talk, COL.talkHalf, COL.idle, COL.talk, COL.talkHalf, COL.idle];
+    let i = 0;
+    let t: number;
+    const step = () => {
+      setMouth(seq[i++ % seq.length]!);
+      t = window.setTimeout(step, 70 + Math.random() * 50);
+    };
+    step();
+    return () => window.clearTimeout(t);
   }, [talking]);
 
   const row = Math.max(0, EXPRESSIONS.indexOf(expr));
-  const col = blink ? 1 : mouth ? 2 : 0;
+  // 눈을 감는 중이면 눈 프레임 우선, 아니면 입 프레임
+  const col = eye !== COL.idle ? eye : mouth;
   const c = character(id);
   return (
     <div className={`char enter-${enter} ${dim ? 'dim' : ''}`} style={{ left: x - FRAME / 2, top: bottom - FRAME }}>

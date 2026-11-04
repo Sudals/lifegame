@@ -6,7 +6,7 @@
 | 에셋 | 파일 | 출처 | 라이선스 | 상업 이용 |
 |---|---|---|---|---|
 | 배경 11종 (연구실 낮/저녁/밤/새벽, 교수실, 강의실, 자취방, 학회장, 카페, 상담실, 편의점) | `public/art/scene-*.png` | 자체 제작 (art/scenes.ts, art/props.ts) | 프로젝트 소유 | 가능 |
-| 캐릭터 11명 × 표정 6 × 프레임 3 | `public/art/char-*.png` | 자체 제작 (art/characters.ts) | 프로젝트 소유 | 가능 |
+| 캐릭터 11명 × 표정 6 × 프레임 5 | `public/art/char-*.png` | 자체 제작 (art/characters.ts) | 프로젝트 소유 | 가능 |
 | 이펙트 시트 (김, 코드 스크롤, 비, Zzz, 반짝임, 불꽃놀이, 먹구름, 메일, 디더 전환, 빛, 달력) | `public/art/fx-*.png` | 자체 제작 (art/fx.ts) | 프로젝트 소유 | 가능 |
 | 도장 6종 (ACCEPT/REJECT/ORAL/MAJOR/MINOR/PASS) | `public/art/stamp-*.png` | 자체 제작, 5x7 도트 폰트(art/lib/font.ts) | 프로젝트 소유 | 가능 |
 | 아이콘 16종, UI 9-slice 프레임 4종 | `public/art/icons.png`, `ui-*.png` | 자체 제작 | 프로젝트 소유 | 가능 |

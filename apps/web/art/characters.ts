@@ -1,6 +1,7 @@
 /**
  * 반신 캐릭터 생성기 — 128x128 프레임, 레이어(뒷머리/몸/목/얼굴/표정/앞머리/소품) 합성.
- * 시트 = 행: 표정 6종 × 열: [기본, 눈깜빡, 말하기]
+ * 시트 = 행: 표정 6종 × 열: [기본, 반눈, 눈감음, 반입, 말하기]
+ * 다듬기: 선택적 외곽선(sel-out), 머리 깊이 음영·가닥·하이라이트, 앞머리 그림자, 홍채 그라데이션
  */
 import { c, shift, tone, type Tone4 } from './palette';
 import { PixelCanvas, T } from './lib/canvas';
@@ -8,7 +9,7 @@ import { text } from './lib/font';
 
 export const FRAME = 128;
 export const EXPRESSIONS = ['normal', 'happy', 'tired', 'frustrated', 'flustered', 'angry'] as const;
-export const FRAMES = ['idle', 'blink', 'talk'] as const;
+export const FRAMES = ['idle', 'blink-half', 'blink', 'talk-half', 'talk'] as const;
 export type Expression = (typeof EXPRESSIONS)[number];
 export type FrameKind = (typeof FRAMES)[number];
 
@@ -58,6 +59,44 @@ function inTorso(x: number, y: number): boolean {
   return ((x - 38) / 19) ** 2 + ((y - 99) / 15) ** 2 <= 1 || ((x - 90) / 19) ** 2 + ((y - 99) / 15) ** 2 <= 1;
 }
 
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const dith = (x: number, y: number, density: number) => BAYER4[(y & 3) * 4 + (x & 3)]! < density * 16;
+
+/** 마스크 가장자리까지의 거리(1~4). 1 = 테두리 픽셀 */
+function depthMap(mask: (x: number, y: number) => boolean, maxD = 4): Int8Array {
+  const d = new Int8Array(FRAME * FRAME);
+  for (let y = 0; y < FRAME; y++)
+    for (let x = 0; x < FRAME; x++) {
+      if (!mask(x, y)) continue;
+      let k = 1;
+      outer: for (; k < maxD; k++) {
+        for (let j = -k; j <= k; j++)
+          for (let i = -k; i <= k; i++) if ((Math.abs(i) === k || Math.abs(j) === k) && !mask(x + i, y + j)) break outer;
+      }
+      d[y * FRAME + x] = k;
+    }
+  return d;
+}
+
+/** 선택적 외곽선: 맞닿은 색의 어두운 톤, 빛 반대편(오른쪽·아래)은 더 어둡게 */
+function selOutline(cv: PixelCanvas): void {
+  const add: [number, number, number][] = [];
+  for (let y = 0; y < FRAME; y++)
+    for (let x = 0; x < FRAME; x++) {
+      if (cv.get(x, y) !== T) continue;
+      const L = cv.get(x - 1, y);
+      const U = cv.get(x, y - 1);
+      const R = cv.get(x + 1, y);
+      const D = cv.get(x, y + 1);
+      if (L === T && U === T && R === T && D === T) continue;
+      const shadowSide = L !== T || U !== T; // 바깥 픽셀이 형태의 오른쪽/아래
+      const n = L !== T ? L : U !== T ? U : R !== T ? R : D;
+      const deep = shift(n, -3);
+      add.push([x, y, shadowSide ? (deep === n ? INK : shift(deep, -1)) : shift(n, -2)]);
+    }
+  for (const [x, y, col] of add) cv.set(x, y, col);
+}
+
 const inCap = (x: number, y: number, rx = 24, ry = 18, cy = 40) => ((x - CX) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1;
 
 interface HairMasks {
@@ -98,8 +137,12 @@ function hairMasks(style: HairStyle): HairMasks {
       };
     case 'long':
       return {
-        back: (x, y) => x >= 37 && x <= 91 && y >= 40 && y <= 116 && (y < 82 || x < 50 || x > 78),
-        front: (x, y) => (inCap(x, y, 25, 19, 40) && y < 43 + ((x >> 3) % 2)) || (y >= 40 && y <= 96 && ((x >= 39 && x <= 46) || (x >= 82 && x <= 89))),
+        back: (x, y) => x >= 37 && x <= 91 && y >= 40 && y <= 114 - ((x * 5) % 9) - Math.abs(x - CX) / 6 && (y < 82 || x < 50 || x > 78),
+        front: (x, y) => {
+          const taper = Math.max(0, (y - 78) / 5);
+          const end = 96 - ((x * 7) % 6);
+          return (inCap(x, y, 25, 19, 40) && y < 43 + ((x >> 3) % 2)) || (y >= 40 && y <= end && ((x >= 39 + taper / 2 && x <= 46 - taper / 2) || (x >= 82 + taper / 2 && x <= 89 - taper / 2)));
+        },
       };
     case 'ponytail':
       return {
@@ -127,36 +170,85 @@ function hairMasks(style: HairStyle): HairMasks {
   }
 }
 
-function fillHair(cv: PixelCanvas, mask: (x: number, y: number) => boolean, t: Tone4, back: boolean): void {
+function fillHair(cv: PixelCanvas, mask: (x: number, y: number) => boolean, t: Tone4, back: boolean, strands = true): void {
+  const D = depthMap(mask);
+  const dep = (x: number, y: number) => (x < 0 || y < 0 || x >= FRAME || y >= FRAME ? 0 : D[y * FRAME + x]!);
   for (let y = 0; y < FRAME; y++)
     for (let x = 0; x < FRAME; x++) {
-      if (!mask(x, y)) continue;
+      const d = dep(x, y);
+      if (!d) continue;
+      const side = (x - CX) / 26 + (y - 40) / 90; // 왼쪽 위 광원
       let col = back ? t[1] : t[2];
-      const r = Math.hypot(x - CX + 6, y - 36);
-      if (!back && x < CX + 4 && r > 12 && r < 15.5 && y < 42) col = t[3]; // 엔젤링 하이라이트
-      if (x > CX + 10 + (y - 30) / 3) col = shift(col, -1); // 오른쪽 그림자
-      if ((x * 3 + y * 5) % 17 === 0 && !back && y < 40) col = t[1]; // 머리결
+      if (!back && (side > 0.42 || (side > 0.3 && dith(x, y, (side - 0.3) / 0.12)))) col = t[1];
+      if (back && side > 0.35) col = t[0];
+      if (back && d >= 2 && (x * 7 + (y >> 3)) % 9 === 0) col = shift(col, -1); // 뒷머리 결
+      if (!back && d >= 2 && y > 50 && (x * 5) % 7 === 0) col = t[1]; // 옆머리 결
+      if (d === 1) col = !mask(x, y + 1) ? t[0] : back ? t[0] : t[1];
+      else if (d === 2 && !mask(x, y + 2)) col = shift(col, -1); // 머리끝 쪽 어둡게
       cv.set(x, y, col);
     }
-  // 머리카락 끝 안쪽 경계선
-  const edges: [number, number][] = [];
-  for (let y = 0; y < FRAME; y++)
-    for (let x = 0; x < FRAME; x++) {
-      if (!mask(x, y)) continue;
-      if (!mask(x, y + 1) || !mask(x - 1, y) || !mask(x + 1, y)) edges.push([x, y]);
+  if (back) return;
+  // 가닥: 정수리에서 앞머리 끝으로 — 간격·길이·휘어짐을 다르게, 중간중간 끊김
+  const STRANDS = [
+    [-17, 0.9, 1],
+    [-10, 0.75, -1],
+    [-4, 1, 1],
+    [3, 0.6, 1],
+    [9, 0.85, -1],
+    [15, 0.7, 1],
+  ] as const;
+  for (const [dx, len, bend] of strands ? STRANDS : []) {
+    const n = Math.round(26 * len);
+    for (let i = 0; i <= n; i++) {
+      const f = i / 26;
+      const x = Math.round(CX - 2 + dx * 0.35 + (dx * 0.65 + bend * 3 * Math.sin(f * Math.PI)) * f);
+      const y = 21 + i;
+      if (i % 7 === 5) continue;
+      if (dep(x, y) >= 2) cv.set(x, y, t[1]);
+      if (dx < 0 && i % 5 === 1 && dep(x + 1, y) >= 2 && cv.get(x + 1, y) === t[2]) cv.set(x + 1, y, t[3]);
     }
-  for (const [x, y] of edges) cv.set(x, y, t[0]);
+  }
+  // 하이라이트 링 — 덩어리로 끊어지게
+  for (let y = 20; y < 46; y++)
+    for (let x = 36; x < CX + 8; x++) {
+      if (dep(x, y) < 2) continue;
+      const r = Math.hypot(x - (CX - 3), (y - 41) * 1.3);
+      if (Math.abs(r - 18) < 1.1 && (((x + 1) >> 2) + (y >> 3)) % 3 !== 0) cv.set(x, y, t[3]);
+      else if (Math.abs(r - 18) < 1.8 && dith(x, y, 0.35)) cv.set(x, y, t[3]);
+    }
+}
+
+/** 앞머리가 이마에 드리우는 그림자 */
+function hairShadow(cv: PixelCanvas, front: (x: number, y: number) => boolean, skinBase: number, skinHi: number): void {
+  const todo: [number, number][] = [];
+  for (let y = 20; y < 70; y++)
+    for (let x = 36; x < 92; x++) {
+      if (!front(x, y) || front(x, y + 1) || !inHead(x, y + 1)) continue;
+      for (const [dy, p] of [
+        [1, 1],
+        [2, 0.5],
+      ] as const) {
+        const v = cv.get(x, y + dy);
+        if ((v === skinBase || v === skinHi) && (p === 1 || dith(x, y + dy, p))) todo.push([x, y + dy]);
+      }
+    }
+  for (const [x, y] of todo) cv.set(x, y, shift(skinBase, -1));
 }
 
 // ───────────── 몸/의상 ─────────────
 function drawOutfit(cv: PixelCanvas, s: CharacterSpec): void {
   const t = s.outfitTone;
+  const TD = depthMap(inTorso);
   for (let y = 80; y < FRAME; y++)
     for (let x = 0; x < FRAME; x++) {
       if (!inTorso(x, y)) continue;
+      const d = TD[y * FRAME + x]!;
       let col = t[2];
-      if (x > 84 || (x > 70 && y > 112)) col = t[1];
-      if (x < 34 && y < 104) col = t[3];
+      if (x > 87 || (x > 83 && dith(x, y, (x - 83) / 4))) col = t[1];
+      if (y > 118 && x > 72 && x <= 87 && dith(x, y, (y - 118) / 8)) col = t[1];
+      if (d <= 2 && x < 56 && y < 104 && !inTorso(x, y - d - 1)) col = t[3]; // 왼쪽 어깨 윤곽 하이라이트
+      else if (d === 3 && x < 46 && y < 102 && !inTorso(x, y - 4) && dith(x, y, 0.5)) col = t[3];
+      if (y < 90 && Math.abs(x - CX) < 15 && dith(x, y, 1 - (y - 82) / 9)) col = shift(col, -1); // 턱·목 그림자
       cv.set(x, y, col);
     }
   // 겨드랑이/팔 접힘선
@@ -237,22 +329,30 @@ function drawHead(cv: PixelCanvas, s: CharacterSpec): void {
   const base = s.skin === 'light' ? c('skin3') : c('skin2');
   const dark = shift(base, -1);
   const hi = shift(base, 1);
-  // 목
-  cv.rect(57, 66, 14, 20, dark).rect(57, 66, 14, 5, shift(dark, -1));
-  // 귀
+  // 목 (턱 아래 그림자 → 밝아짐, 오른쪽 그림자)
+  for (let y = 66; y < 86; y++)
+    for (let x = 57; x < 71; x++) {
+      let col = y < 70 || (y < 73 && dith(x, y, 0.5)) ? shift(dark, -1) : dark;
+      if (x > 67) col = shift(dark, -1);
+      if (x === 57 && y > 74) col = base;
+      cv.set(x, y, col);
+    }
+  // 귀 (안쪽 음영)
   cv.ellipse(43, 54, 3, 5, base).ellipse(85, 54, 3, 5, dark);
-  cv.vline(43, 52, 56, dark).vline(85, 52, 56, shift(dark, -1));
+  cv.vline(43, 52, 57, dark).set(44, 51, dark).vline(85, 52, 57, shift(dark, -1)).set(84, 51, shift(dark, -1));
   for (let y = 20; y < 80; y++)
     for (let x = 36; x < 92; x++) {
       if (!inHead(x, y)) continue;
       const d = x - CX;
       let col = base;
-      if (d > 12 || (d > 10 && (x + y) % 2 === 0)) col = dark;
-      if (d === -11 && (y === 58 || y === 59)) col = hi; // 왼쪽 볼 하이라이트
+      if (d > 13 || (d > 11 && dith(x, y, (d - 11) / 2))) col = dark;
+      if (y > 70 && d > 2) col = dark; // 턱 아래쪽 그림자
+      if (d < -12 && y > 56 && y < 64 && dith(x, y, 0.5)) col = hi; // 왼쪽 볼 반사광
       cv.set(x, y, col);
     }
-  // 코
-  cv.set(CX + 1, 58, dark).set(CX + 1, 59, dark).set(CX + 1, 60, dark).set(CX, 61, dark).set(CX - 1, 58, hi);
+  // 코: 콧대 하이라이트 + 오른쪽 그림자 + 콧볼
+  cv.set(CX - 1, 56, hi).set(CX - 1, 57, hi);
+  cv.set(CX + 1, 57, dark).set(CX + 1, 58, dark).set(CX + 2, 59, dark).set(CX + 1, 60, dark).set(CX - 1, 60, dark).set(CX, 61, shift(dark, -1));
   if (s.age === 'old' || s.age === 'mid') {
     cv.set(48, 54, dark).set(48, 55, dark).set(80, 54, dark).set(80, 55, dark);
     if (s.age === 'old') cv.hline(58, 70, 38, dark).set(60, 67, dark).set(68, 67, dark);
@@ -264,7 +364,7 @@ function drawHead(cv: PixelCanvas, s: CharacterSpec): void {
 }
 
 function eye(cv: PixelCanvas, cx: number, kind: string, s: CharacterSpec, right: boolean): void {
-  const iris = s.iris ?? c('ink1');
+  const iris = s.iris ?? c('wood1');
   const y = EYE_Y;
   if (s.shadowFace) {
     if (kind === 'closed') return void cv.hline(cx - 3, cx + 3, y, c('red1'));
@@ -272,15 +372,20 @@ function eye(cv: PixelCanvas, cx: number, kind: string, s: CharacterSpec, right:
     if (kind === 'angry') cv.hline(cx - 3, cx + 3, y + 1, c('red3'));
     return;
   }
+  const outer = right ? cx + 4 : cx - 4;
+  const lash = () => cv.hline(cx - 4, cx + 4, y - 3, INK).hline(cx - 3, cx + 3, y - 4, INK).set(right ? cx + 5 : cx - 5, y - 4, INK).set(outer, y - 2, INK);
   switch (kind) {
     case 'open':
     case 'down':
     case 'angry': {
-      cv.rect(cx - 3, y - 2, 7, 5, WHITE);
+      cv.rect(cx - 3, y - 2, 7, 5, WHITE).hline(cx - 3, cx + 3, y - 2, c('gray4'));
       const iy = kind === 'down' ? y : y - 1;
       cv.rect(cx - 1, iy - 1, 4, 5, iris).rect(cx - 1, iy - 1, 4, 1, INK);
-      cv.set(cx, iy, WHITE);
-      cv.hline(cx - 4, cx + 4, y - 3, INK).set(right ? cx + 4 : cx - 4, y - 2, INK);
+      cv.rect(cx, iy + 1, 2, 2, INK); // 동공
+      cv.hline(cx - 1, cx + 2, iy + 3, shift(iris, 1)); // 아래쪽 밝은 홍채
+      cv.set(cx - 1, iy, WHITE).set(cx, iy, WHITE).set(cx + 2, iy + 2, c('gray5')); // 하이라이트
+      cv.set(outer, y + 2, s.skin === 'light' ? c('skin1') : c('skin0'));
+      lash();
       if (kind === 'angry') {
         if (right) cv.line(cx - 4, y - 4, cx + 1, y - 2, INK).rect(cx - 3, y - 3, 3, 1, INK);
         else cv.line(cx + 4, y - 4, cx - 1, y - 2, INK).rect(cx + 1, y - 3, 3, 1, INK);
@@ -293,16 +398,18 @@ function eye(cv: PixelCanvas, cx: number, kind: string, s: CharacterSpec, right:
       cv.rect(cx - 1, y - 1, 2, 2, iris);
       break;
     }
-    case 'half': {
-      cv.rect(cx - 3, y, 7, 3, WHITE).rect(cx - 1, y, 4, 3, iris).set(cx, y + 1, WHITE);
-      cv.hline(cx - 4, cx + 4, y - 1, INK).hline(cx - 3, cx + 3, y - 2, INK);
+    case 'half':
+    case 'halfblink': {
+      cv.rect(cx - 3, y, 7, 3, WHITE).rect(cx - 1, y, 4, 3, iris).rect(cx, y + 1, 2, 2, INK).set(cx - 1, y, WHITE);
+      cv.hline(cx - 4, cx + 4, y - 1, INK).hline(cx - 3, cx + 3, y - 2, kind === 'half' ? INK : s.skin === 'light' ? c('skin2') : c('skin1'));
+      cv.set(right ? cx + 5 : cx - 5, y - 2, INK);
       break;
     }
     case 'happy':
       cv.set(cx - 4, y + 1, INK).set(cx - 3, y, INK).set(cx - 2, y - 1, INK).hline(cx - 1, cx + 1, y - 2, INK).set(cx + 2, y - 1, INK).set(cx + 3, y, INK).set(cx + 4, y + 1, INK);
       break;
     case 'closed':
-      cv.hline(cx - 3, cx + 3, y + 1, INK).set(cx - 4, y, INK).set(cx + 4, y, INK);
+      cv.hline(cx - 3, cx + 3, y + 1, INK).set(cx - 4, y, INK).set(cx + 4, y, INK).set(right ? cx + 5 : cx - 5, y - 1, INK);
       break;
   }
 }
@@ -313,7 +420,13 @@ function brow(cv: PixelCanvas, cx: number, kind: string, col: number, right: boo
   const inner = cx + 4 * o;
   const outer = cx - 4 * o;
   const L = (x0: number, y0: number, x1: number, y1: number, thick = 2) => {
-    for (let k = 0; k < thick; k++) cv.line(x0, y0 + k, x1, y1 + k, col);
+    cv.line(x0, y0, x1, y1, col);
+    if (thick > 1) {
+      // 안쪽 절반만 두껍게 (끝이 가늘어지는 눈썹)
+      const mx = Math.round((x0 + x1) / 2);
+      const my = Math.round((y0 + y1) / 2);
+      cv.line(mx, my + 1, x1, y1 + 1, col);
+    }
   };
   switch (kind) {
     case 'angry':
@@ -345,7 +458,11 @@ function mouth(cv: PixelCanvas, kind: string, s: CharacterSpec): void {
   }
   switch (kind) {
     case 'neutral':
-      return void cv.hline(61, 67, y, line);
+      cv.hline(61, 67, y, line).hline(62, 66, y + 2, s.skin === 'light' ? c('skin2') : c('skin1'));
+      return;
+    case 'open-smile-small':
+      cv.rect(60, y, 9, 2, inside).rect(61, y, 7, 1, WHITE).hline(59, 69, y - 1, line).hline(61, 67, y + 2, line);
+      return;
     case 'flat':
       return void cv.hline(62, 66, y, line);
     case 'smile':
@@ -385,16 +502,18 @@ interface FaceDef {
   brows: string;
   mouth: string;
   talk: string;
+  talkHalf: string;
   blink: string;
+  blinkHalf: string;
 }
 
 const FACES: Record<Expression, FaceDef> = {
-  normal: { eyes: 'open', brows: 'flat', mouth: 'neutral', talk: 'open', blink: 'closed' },
-  happy: { eyes: 'happy', brows: 'relaxed', mouth: 'smile', talk: 'open-smile', blink: 'happy' },
-  tired: { eyes: 'half', brows: 'tired', mouth: 'flat', talk: 'small-open', blink: 'closed' },
-  frustrated: { eyes: 'down', brows: 'sad', mouth: 'wavy', talk: 'sad-open', blink: 'closed' },
-  flustered: { eyes: 'wide', brows: 'raised', mouth: 'o', talk: 'o-big', blink: 'closed' },
-  angry: { eyes: 'angry', brows: 'angry', mouth: 'grit', talk: 'shout', blink: 'closed' },
+  normal: { eyes: 'open', brows: 'flat', mouth: 'neutral', talk: 'open', talkHalf: 'small-open', blink: 'closed', blinkHalf: 'halfblink' },
+  happy: { eyes: 'happy', brows: 'relaxed', mouth: 'smile', talk: 'open-smile', talkHalf: 'open-smile-small', blink: 'happy', blinkHalf: 'happy' },
+  tired: { eyes: 'half', brows: 'tired', mouth: 'flat', talk: 'small-open', talkHalf: 'flat', blink: 'closed', blinkHalf: 'closed' },
+  frustrated: { eyes: 'down', brows: 'sad', mouth: 'wavy', talk: 'sad-open', talkHalf: 'small-open', blink: 'closed', blinkHalf: 'halfblink' },
+  flustered: { eyes: 'wide', brows: 'raised', mouth: 'o', talk: 'o-big', talkHalf: 'o', blink: 'closed', blinkHalf: 'halfblink' },
+  angry: { eyes: 'angry', brows: 'angry', mouth: 'grit', talk: 'shout', talkHalf: 'grit', blink: 'closed', blinkHalf: 'halfblink' },
 };
 
 function glasses(cv: PixelCanvas, s: CharacterSpec): void {
@@ -472,14 +591,18 @@ export function renderFrame(s: CharacterSpec, expr: Expression, frame: FrameKind
     brow(cv, EYE_L, f.brows, browCol, false);
     brow(cv, EYE_R, f.brows, browCol, true);
   }
-  const eyeKind = frame === 'blink' ? f.blink : f.eyes;
+  const eyeKind = frame === 'blink' ? f.blink : frame === 'blink-half' ? f.blinkHalf : f.eyes;
   eye(cv, EYE_L, eyeKind, s, false);
   eye(cv, EYE_R, eyeKind, s, true);
-  mouth(cv, frame === 'talk' ? f.talk : f.mouth, s);
+  mouth(cv, frame === 'talk' ? f.talk : frame === 'talk-half' ? f.talkHalf : f.mouth, s);
   extras(cv, expr, s);
-  fillHair(cv, masks.front, s.hairTone, false);
+  fillHair(cv, masks.front, s.hairTone, false, s.hair !== 'hood');
+  if (!s.shadowFace) {
+    const base = s.skin === 'light' ? c('skin3') : c('skin2');
+    hairShadow(cv, masks.front, base, shift(base, 1));
+  }
   glasses(cv, s);
-  cv.outline(INK);
+  selOutline(cv);
   overlay(cv, expr, s);
   return cv;
 }
