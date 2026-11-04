@@ -1,0 +1,516 @@
+import type { ContentPack } from '@grad-sim/content';
+import { rollEvent } from './events';
+import {
+  createThesis,
+  discardIdeas,
+  experimentFailChoices,
+  exploreIdeas,
+  log,
+  pickTopic,
+  progressResearch,
+  resolveExperimentFail,
+} from './research';
+import { attendCost, findVenue, queueRebuttals, rebuttalChoices, resolveRebuttal, resolveReviews, submitPaper } from './review';
+import { Rng } from './rng';
+import { acceptedCount, careerOffers, computeEnding } from './scoring';
+import { applyEffects, checkPlan, getLab } from './stats';
+import {
+  clamp,
+  clone,
+  GAME_VERSION,
+  type Background,
+  type GameState,
+  type InboxItem,
+  type StartTerm,
+  type WeeklyPlan,
+} from './state';
+import { dateOf, formatDate, isMonthStart, isSemesterEnd, masterDeadlineWeek, ongoingConferences, upcomingDeadlines } from './time';
+
+export const MAX_CONTACTS = 4;
+
+const BACKGROUND_STATS: Record<Background, { research: number; label: string }> = {
+  cs: { research: 30, label: '컴퓨터공학' },
+  math: { research: 27, label: '수학' },
+  ee: { research: 25, label: '전자공학' },
+  other: { research: 16, label: '비전공' },
+};
+
+export function backgroundLabel(b: Background): string {
+  return BACKGROUND_STATS[b].label;
+}
+
+export interface NewGameOptions {
+  name: string;
+  background: Background;
+  startTerm: StartTerm;
+  seed?: string;
+  startYear?: number;
+}
+
+export function newGame(pack: ContentPack, opts: NewGameOptions): GameState {
+  const seed = opts.seed?.trim() || `${Date.now().toString(36)}`;
+  const rng = Rng.fromSeed(seed);
+  const state: GameState = {
+    version: GAME_VERSION,
+    seed,
+    rngState: {},
+    major: pack.major,
+    phase: 'contact',
+    player: { name: opts.name.trim() || '김석사', background: opts.background },
+    startYear: opts.startYear ?? 2027,
+    startMonth: opts.startTerm,
+    week: 0,
+    stats: { research: BACKGROUND_STATS[opts.background].research, stress: 20, stamina: 80, luck: rng.int(20, 80), money: pack.balance.startMoney },
+    hidden: { trust: 50, relation: 50, network: 5, sleepDebt: 0, highStressWeeks: 0, maxStressWeeks: 0, leaveTaken: 0, lastCounselingAlert: -99, stressSum: 0, sleepSum: 0 },
+    labId: null,
+    contacts: [],
+    credits: 0,
+    semesterDeadlineWeek: masterDeadlineWeek(pack),
+    extended: false,
+    papers: [],
+    ideaCandidates: null,
+    exploredWeek: -1,
+    attendedConference: null,
+    inbox: [],
+    firedEvents: [],
+    log: [],
+    lastPlan: null,
+    nextId: 1,
+    ending: null,
+  };
+  state.rngState = rng.save();
+  log(state, `${state.player.name}, ${state.startYear}년 ${state.startMonth}월 입학을 목표로 연구실 컨택을 시작한다.`, 'info');
+  return state;
+}
+
+/** 엔진의 모든 공개 액션: 상태를 복제 → 변경 → RNG 상태 저장 (원본 불변) */
+function act(state: GameState, fn: (s: GameState, rng: Rng) => void): GameState {
+  const s = clone(state);
+  const rng = Rng.restore(s.rngState);
+  fn(s, rng);
+  s.rngState = rng.save();
+  return s;
+}
+
+// ───────────────────────── 컨택 & 면접 ─────────────────────────
+
+export const MAIL_PARTS = {
+  interest: [
+    { label: '교수님 최근 논문을 구체적으로 언급한다', value: 0.2 },
+    { label: '연구실 분야 전반에 관심을 표현한다', value: 0.05 },
+    { label: '"어떤 연구든 열심히 하겠습니다"', value: -0.15 },
+  ],
+  pitch: [
+    { label: '구현 프로젝트와 깃허브를 첨부한다', value: 0.1 },
+    { label: '학부 성적과 수상 경력을 강조한다', value: 0.05 },
+    { label: '열정과 성실함을 어필한다', value: 0 },
+  ],
+  question: [
+    { label: '학부 연구생 인턴이 가능한지 묻는다', value: 0.1 },
+    { label: '인건비가 얼마인지 먼저 묻는다', value: -0.1 },
+    { label: '평균 졸업 기간을 묻는다', value: -0.05 },
+  ],
+} as const;
+
+export interface MailDraft {
+  interest: number;
+  pitch: number;
+  question: number;
+}
+
+export function contactProbability(pack: ContentPack, state: GameState, labId: string, mail: MailDraft): number {
+  const lab = getLab(pack, labId);
+  if (!lab) return 0;
+  const v =
+    0.55 +
+    (MAIL_PARTS.interest[mail.interest]?.value ?? 0) +
+    (MAIL_PARTS.pitch[mail.pitch]?.value ?? 0) +
+    (mail.pitch === 0 ? state.stats.research / 300 : 0) +
+    (MAIL_PARTS.question[mail.question]?.value ?? 0) -
+    lab.admissionCut / 200;
+  return clamp(v, 0.05, 0.95);
+}
+
+export function contactLab(pack: ContentPack, state: GameState, labId: string, mail: MailDraft): GameState {
+  return act(state, (s, rng) => {
+    if (s.phase !== 'contact') throw new Error('컨택 기간이 아닙니다.');
+    if (s.contacts.some((c) => c.labId === labId)) throw new Error('이미 컨택한 연구실입니다.');
+    if (s.contacts.length >= MAX_CONTACTS) throw new Error('컨택 기회를 모두 사용했습니다.');
+    const lab = getLab(pack, labId);
+    if (!lab) throw new Error('없는 연구실입니다.');
+    const replied = rng.chance(contactProbability(pack, s, labId, mail));
+    s.contacts.push({ labId, replied, interviewed: false, admitted: false });
+    log(s, replied ? `${lab.professor}님에게서 답장이 왔다! 면접을 보자고 하신다.` : `${lab.professor}님에게서 답장이 없다... (읽음 표시도 없다)`, replied ? 'good' : 'bad');
+  });
+}
+
+export const INTERVIEW_QUESTIONS = [
+  {
+    q: '"우리 연구실에서 어떤 연구를 하고 싶나요?"',
+    options: [
+      { label: '연구실 최근 논문의 한계를 짚고 개선 방향을 말한다', value: 12 },
+      { label: '요즘 핫한 키워드를 나열한다', value: 4 },
+      { label: '"아직 잘 모르지만 배우고 싶습니다"', value: 0 },
+    ],
+  },
+  {
+    q: '"트랜스포머의 어텐션 복잡도를 줄이는 방법을 아나요?"',
+    options: [
+      { label: '선형 어텐션·희소 어텐션을 비교해 설명한다', value: 10 },
+      { label: '"GPU를 더 쓰면 됩니다"', value: -4 },
+      { label: '모르는 부분은 솔직히 인정하고 추론해본다', value: 6 },
+    ],
+  },
+  {
+    q: '"힘든 시기가 오면 어떻게 버틸 건가요?"',
+    options: [
+      { label: '운동·수면 루틴과 도움 요청 방법을 말한다', value: 8 },
+      { label: '"밤새는 건 자신 있습니다!"', value: 2 },
+      { label: '"버티는 건 잘 못하지만 노력하겠습니다"', value: 3 },
+    ],
+  },
+] as const;
+
+export function interview(pack: ContentPack, state: GameState, labId: string, answers: number[]): GameState {
+  return act(state, (s, rng) => {
+    const c = s.contacts.find((x) => x.labId === labId);
+    const lab = getLab(pack, labId);
+    if (!c || !lab || !c.replied || c.interviewed) throw new Error('면접 대상이 아닙니다.');
+    const answerScore = INTERVIEW_QUESTIONS.reduce((sum, q, i) => sum + (q.options[answers[i] ?? -1]?.value ?? 0), 0);
+    const score = s.stats.research + answerScore + s.stats.luck / 10 + rng.normal(0, 6);
+    c.interviewed = true;
+    c.admitted = score >= lab.admissionCut;
+    log(s, c.admitted ? `${lab.name} 합격! 🎉` : `${lab.name} 불합격... 다른 연구실을 알아보자.`, c.admitted ? 'good' : 'bad');
+  });
+}
+
+/** 컨택 기회를 다 쓰고도 합격이 없으면: 추가 모집(입학 커트 최저 연구실) */
+export function fallbackLabId(pack: ContentPack, state: GameState): string | null {
+  const exhausted = state.contacts.length >= MAX_CONTACTS && state.contacts.every((c) => !c.replied || c.interviewed);
+  if (!exhausted || state.contacts.some((c) => c.admitted)) return null;
+  return [...pack.labs].sort((a, b) => a.admissionCut - b.admissionCut)[0]!.id;
+}
+
+export function enroll(pack: ContentPack, state: GameState, labId: string): GameState {
+  return act(state, (s) => {
+    const ok = s.contacts.some((c) => c.labId === labId && c.admitted) || fallbackLabId(pack, s) === labId;
+    if (!ok || s.phase !== 'contact') throw new Error('입학할 수 없는 연구실입니다.');
+    const lab = getLab(pack, labId)!;
+    s.labId = labId;
+    s.phase = 'semester';
+    log(s, `${formatDate(dateOf(s, 0))}, ${lab.name}(${lab.professor})에 입학했다. 대학원 생활 시작!`, 'good');
+  });
+}
+
+// ───────────────────────── 주간 진행 ─────────────────────────
+
+/** 학회 참석은 12주에 한 번 (시간·예산 제약) */
+export const CONFERENCE_COOLDOWN_WEEKS = 12;
+export function canAttendConference(state: GameState): boolean {
+  return !state.attendedConference || state.week - state.attendedConference.week >= CONFERENCE_COOLDOWN_WEEKS;
+}
+
+export function defaultPlan(state: GameState): WeeklyPlan {
+  return state.lastPlan ? { ...state.lastPlan, attendConferenceId: null, counseling: false } : { sleepPerDay: 7, research: 30, study: 10, rest: 10, focusPaperId: null, counseling: false, attendConferenceId: null };
+}
+
+export function advanceWeek(pack: ContentPack, state: GameState, plan: WeeklyPlan): GameState {
+  if (state.phase !== 'semester') throw new Error('학기 중이 아닙니다.');
+  if (state.inbox.length > 0) throw new Error('먼저 처리할 일이 있습니다.');
+  const check = checkPlan(pack, state, plan);
+  if (!check.ok) throw new Error(check.errors.join(' '));
+
+  return act(state, (s, rng) => {
+    const b = pack.balance;
+    const lab = getLab(pack, s.labId)!;
+    const st = s.stats;
+    const h = s.hidden;
+    const { forced } = check;
+
+    // 학회 참석
+    if (plan.attendConferenceId) {
+      const conf = ongoingConferences(pack, s).find((d) => d.venueId === plan.attendConferenceId);
+      const v = pack.venues.find((x) => x.id === plan.attendConferenceId);
+      if (conf && v && canAttendConference(s)) {
+        const cost = attendCost(pack, s, v.id);
+        const presenting = cost === 0;
+        applyEffects(s, { money: -cost, research: 1.5, network: presenting ? 8 : 4, stamina: -4, stress: v.abroad ? -8 : -3 });
+        s.attendedConference = { venueId: v.id, week: s.week };
+        log(s, `${v.displayName} 참석${presenting ? ' (발표, 연구실 지원)' : ''}. 세상은 넓고 똑똑한 사람은 많다.`, 'good');
+      }
+    }
+
+    // 체력 · 수면
+    const sleep = plan.sleepPerDay;
+    h.sleepDebt = Math.max(0, h.sleepDebt + (6 - sleep) * 7);
+    const workload = plan.research + plan.study + forced.class + forced.project + forced.chores;
+    let dStamina = (sleep - 6) * b.staminaPerSleepHourOver6 + plan.rest * b.staminaPerRestHour;
+    dStamina -= Math.max(0, workload - b.overworkThreshold) * b.staminaPerOverworkHour;
+    if (h.sleepDebt > 20) dStamina -= 3;
+
+    // 스트레스 (데드라인 3주 이내 + 작성 중이면 압박)
+    const writing = s.papers.some((p) => p.stage === 'writing' && p.kind === 'paper');
+    const deadlinePressure = writing && upcomingDeadlines(pack, s, 3).length > 0 ? b.stressDeadline : 0;
+    const sleepStress = sleep < 6 ? (6 - sleep) * b.stressPerSleepDeficitHour : -(sleep - 6) * b.stressReliefPerSleepHourOver6;
+    let dStress =
+      b.stressPerWeek +
+      deadlinePressure +
+      sleepStress +
+      forced.chores * b.stressPerChoreHour +
+      (5 - lab.humanity) * b.stressPerMissingHumanity -
+      plan.rest * b.stressReliefPerRestHour;
+    if (st.money < 0) dStress += 5;
+    if (lab.style === 'micro') dStress += 1.5;
+    if (plan.counseling) {
+      dStress -= b.counselingStressRelief;
+      st.money -= b.counselingCost;
+    }
+
+    // 연구력 (수확 체감은 applyEffects에서 적용)
+    const labMeeting = lab.track * b.labMeetingPerTrackStar;
+    const dResearch = plan.study * b.researchPerStudyHour + plan.research * b.researchPerResearchHour + labMeeting + forced.project * 0.004;
+
+    applyEffects(s, { stamina: dStamina, stress: dStress, research: dResearch });
+    if (plan.research > 0) h.trust = clamp(h.trust + 0.3, 0, 100);
+    else h.trust = clamp(h.trust - 1.5, 0, 100);
+
+    // 연구 진척
+    progressResearch(pack, s, plan, rng);
+
+    // 월급/고정비
+    if (isMonthStart(s.week)) {
+      const income = lab.salary + lab.projectLoad * b.projectStipendPerStar;
+      st.money += income - b.livingCostPerMonth;
+      log(s, `월급 ${income.toLocaleString()}원 입금, 생활비 ${b.livingCostPerMonth.toLocaleString()}원 지출.`, 'info');
+    }
+
+    // 심사
+    queueRebuttals(pack, s, rng);
+    resolveReviews(pack, s, rng);
+
+    // 학점
+    if (isSemesterEnd(s.week + 1) && forced.class > 0) {
+      s.credits = Math.min(b.requiredCredits, s.credits + b.creditsPerSemester);
+      log(s, `학기 종료. 이수 학점 ${s.credits}/${b.requiredCredits}`, 'info');
+    }
+
+    // 체력 0 → 입원
+    if (st.stamina <= 0) {
+      st.stamina = 35;
+      applyEffects(s, { money: -300000, stress: 5, trust: -3 });
+      s.inbox.push({ kind: 'notice', title: '과로로 쓰러졌다', text: '응급실에서 수액을 맞았다. 의사 선생님이 "잠 좀 주무세요"라고 했다. (진료비 30만 원)' });
+    }
+
+    // 멘탈 — 도움 받기는 항상 좋은 선택으로 설계
+    h.highStressWeeks = st.stress >= b.counselingAlertStress ? h.highStressWeeks + 1 : 0;
+    h.maxStressWeeks = st.stress >= 100 ? h.maxStressWeeks + 1 : 0;
+    if (h.highStressWeeks >= b.counselingAlertWeeks && s.week - h.lastCounselingAlert >= 8) {
+      h.lastCounselingAlert = s.week;
+      s.inbox.push({ kind: 'counseling' });
+    }
+
+    h.stressSum += st.stress;
+    h.sleepSum += sleep;
+    s.lastPlan = { ...plan };
+
+    rollEvent(pack, s, rng);
+
+    // 다음 주로
+    s.week += 1;
+    if (s.week >= s.semesterDeadlineWeek - 16) createThesis(s);
+    if (h.maxStressWeeks >= b.dropoutStressWeeks) {
+      // 번아웃 한계: 첫 번째는 휴학 권유, 휴학 후 재발 시 중도 포기
+      h.maxStressWeeks = 0;
+      if (h.leaveTaken >= MAX_LEAVES) {
+        log(s, '몸과 마음이 더는 버티지 못했다. 학교를 떠나기로 했다.', 'bad');
+        finish(pack, s, null);
+        return;
+      }
+      s.inbox.unshift({ kind: 'leave' });
+    }
+    if (s.week >= s.semesterDeadlineWeek) graduationReview(pack, s);
+  });
+}
+
+export const LEAVE_WEEKS = 4;
+export const MAX_LEAVES = 2;
+
+/** 휴학(한 달): 시간은 흐르고 월급은 없지만 몸과 마음이 회복된다 */
+function takeLeave(pack: ContentPack, s: GameState): void {
+  const from = s.week;
+  s.week += LEAVE_WEEKS;
+  s.hidden.leaveTaken += 1;
+  s.stats.stress = 30;
+  s.stats.stamina = 85;
+  s.hidden.sleepDebt = 0;
+  s.stats.money -= pack.balance.livingCostPerMonth;
+  // 휴학 중 발표된 심사 결과는 복학 주에 확인
+  for (const p of s.papers) if (p.stage === 'review' && p.resultWeek !== undefined && p.resultWeek < s.week) p.resultWeek = s.week;
+  for (let w = from; w < s.week; w++) {
+    s.hidden.stressSum += 40;
+    s.hidden.sleepSum += 8;
+    // 한 달 병가는 학기를 포기하지 않는다: 그 사이 학기가 끝나면 학점 인정
+    if (isSemesterEnd(w + 1) && s.credits < pack.balance.requiredCredits) {
+      s.credits = Math.min(pack.balance.requiredCredits, s.credits + pack.balance.creditsPerSemester);
+    }
+  }
+  if (s.week >= s.semesterDeadlineWeek - 16) createThesis(s);
+  log(s, `한 달간 휴학했다. 늦잠과 산책, 그리고 엄마 밥. 다시 해볼 힘이 생겼다.`, 'good');
+}
+
+export interface GraduationCheck {
+  credits: boolean;
+  thesis: boolean;
+  paper: boolean;
+}
+
+export function graduationStatus(pack: ContentPack, state: GameState): GraduationCheck {
+  return {
+    credits: state.credits >= pack.balance.requiredCredits,
+    thesis: state.papers.some((p) => p.kind === 'thesis' && p.stage === 'accepted'),
+    paper: acceptedCount(state) >= 1,
+  };
+}
+
+function graduationReview(pack: ContentPack, s: GameState): void {
+  const g = graduationStatus(pack, s);
+  if (g.credits && g.thesis && g.paper) {
+    s.phase = 'career';
+    s.inbox = [];
+    log(s, '🎓 학위 심사 통과! 이제 진로를 선택하자.', 'good');
+  } else if (!s.extended) {
+    s.extended = true;
+    s.semesterDeadlineWeek += 24;
+    s.inbox.push({
+      kind: 'notice',
+      title: '졸업 연기',
+      text: `졸업 요건 미충족 (학점 ${g.credits ? '✓' : '✗'} / 학위논문 ${g.thesis ? '✓' : '✗'} / 논문 게재 ${g.paper ? '✓' : '✗'}). 한 학기 연장된다.`,
+    });
+    log(s, '졸업이 한 학기 연기되었다.', 'bad');
+  } else {
+    log(s, '연장 학기에도 졸업 요건을 채우지 못했다. 수료로 마무리한다.', 'bad');
+    finish(pack, s, null);
+  }
+}
+
+function finish(pack: ContentPack, s: GameState, careerId: string | null): void {
+  s.phase = 'ended';
+  s.inbox = [];
+  s.ending = computeEnding(pack, s, careerId);
+}
+
+export function chooseCareer(pack: ContentPack, state: GameState, careerId: string): GameState {
+  return act(state, (s) => {
+    if (s.phase !== 'career') throw new Error('진로 선택 단계가 아닙니다.');
+    if (!careerOffers(pack, s).some((c) => c.id === careerId)) throw new Error('받지 못한 오퍼입니다.');
+    finish(pack, s, careerId);
+    log(s, `진로 결정: ${s.ending!.title}`, 'good');
+  });
+}
+
+// ───────────────────────── 연구 액션 래퍼 ─────────────────────────
+
+export const explore = (pack: ContentPack, state: GameState, sourceId: string) => act(state, (s, rng) => exploreIdeas(pack, s, sourceId, rng));
+export const chooseTopic = (pack: ContentPack, state: GameState, topicId: string) => act(state, (s, rng) => void pickTopic(pack, s, topicId, rng));
+export const dropIdeas = (state: GameState) => act(state, (s) => discardIdeas(s));
+export const submit = (pack: ContentPack, state: GameState, paperId: string, venueId: string) =>
+  act(state, (s, rng) => submitPaper(pack, s, paperId, venueId, rng));
+
+// ───────────────────────── 인박스(이벤트·판정) ─────────────────────────
+
+export interface InboxView {
+  title: string;
+  speaker?: string;
+  text: string;
+  choices: { label: string; hint?: string }[];
+}
+
+export function describeInbox(pack: ContentPack, state: GameState, item: InboxItem): InboxView {
+  switch (item.kind) {
+    case 'event': {
+      const e = pack.events.find((x) => x.id === item.eventId)!;
+      return { title: e.title, speaker: e.speaker, text: e.text, choices: e.choices.map((c) => ({ label: c.label })) };
+    }
+    case 'rebuttal': {
+      const p = state.papers.find((x) => x.id === item.paperId)!;
+      const v = p.venueId ? findVenue(pack, p.venueId) : null;
+      return {
+        title: `리버탈 — ${v?.displayName ?? ''}`,
+        text: `「${p.title}」 예비 리뷰 점수: ${item.scores.map((x, i) => `R${i + 1} ${x}`).join(' · ')}. Reviewer 2는 "novelty가 부족하다"고 한다.`,
+        choices: rebuttalChoices(),
+      };
+    }
+    case 'experiment-fail': {
+      const p = state.papers.find((x) => x.id === item.paperId)!;
+      return { title: '실험 실패', text: `「${p.title}」 베이스라인을 못 넘었다. 어떻게 할까?`, choices: experimentFailChoices() };
+    }
+    case 'counseling':
+      return {
+        title: '마음 건강 알림',
+        speaker: '학생상담센터',
+        text: '스트레스가 높은 상태가 몇 주째 이어지고 있어요. 상담을 받아보는 건 어떨까요? 도움을 받는 것도 연구를 잘하는 방법 중 하나예요.',
+        choices: [
+          { label: '상담을 예약한다', hint: `스트레스 크게↓ (${pack.balance.counselingCost.toLocaleString()}원)` },
+          { label: '조금 더 지켜본다', hint: '주간 계획에서 언제든 상담을 켤 수 있어요' },
+        ],
+      };
+    case 'notice':
+      return { title: item.title, text: item.text, choices: [{ label: '확인' }] };
+    case 'leave':
+      return {
+        title: '번아웃',
+        speaker: '학생상담센터',
+        text: '몇 주째 한계 상태예요. 잠시 멈추는 것도 용기예요. 한 달 휴학하고 회복한 뒤 돌아오는 건 어떨까요?',
+        choices: [
+          { label: '한 달 휴학한다', hint: `스트레스·체력 회복, ${LEAVE_WEEKS}주 경과, 월급 없음` },
+          { label: '그래도 버틴다', hint: '스트레스 소폭↓ — 다시 한계에 오면 휴학을 권유받는다' },
+          { label: '학교를 그만둔다', hint: '중도 포기 엔딩' },
+        ],
+      };
+  }
+}
+
+export function resolveInbox(pack: ContentPack, state: GameState, choice: number): GameState {
+  return act(state, (s) => {
+    const item = s.inbox.shift();
+    if (!item) return;
+    switch (item.kind) {
+      case 'event': {
+        const e = pack.events.find((x) => x.id === item.eventId)!;
+        const c = e.choices[choice] ?? e.choices[0]!;
+        applyEffects(s, c.effects);
+        log(s, `[${e.title}] ${c.result}`, 'info');
+        break;
+      }
+      case 'rebuttal':
+        resolveRebuttal(s, item.paperId, choice);
+        break;
+      case 'experiment-fail':
+        resolveExperimentFail(s, item.paperId, choice);
+        break;
+      case 'counseling':
+        if (choice === 0) {
+          applyEffects(s, { stress: -18, money: -pack.balance.counselingCost });
+          log(s, '상담 선생님과 이야기를 나눴다. 마음이 한결 가벼워졌다.', 'good');
+        }
+        break;
+      case 'notice':
+        break;
+      case 'leave':
+        if (choice === 0) {
+          takeLeave(pack, s);
+          if (s.week >= s.semesterDeadlineWeek) graduationReview(pack, s);
+        }
+        else if (choice === 1) {
+          applyEffects(s, { stress: -10 });
+          log(s, '이를 악물었다. 주간 플래너에서 상담과 휴식을 꼭 챙기자.', 'info');
+        } else {
+          log(s, '대학원을 떠나기로 했다. 새로운 길도 길이다.', 'info');
+          finish(pack, s, null);
+        }
+        break;
+    }
+  });
+}
+
+export { careerOffers };

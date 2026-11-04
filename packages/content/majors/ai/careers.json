@@ -1,0 +1,9 @@
+[
+  { "id": "phd", "name": "박사 진학", "description": "\"한 번 더 해보자.\" 석박통합의 문이 열린다. (v0.2 예정)", "score": 120, "req": { "minResearch": 45, "minTrust": 55 } },
+  { "id": "research-scientist", "name": "빅테크 리서치 사이언티스트", "description": "탑티어 1저자의 위엄. 사원증에 무지개 로고가 박혔다.", "score": 300, "req": { "minTopTier": 1, "minResearch": 60, "minNetwork": 20 } },
+  { "id": "ml-engineer", "name": "빅테크/대기업 ML 엔지니어", "description": "구현력과 과제 경험으로 당당히 입사.", "score": 200, "req": { "minResearch": 40, "minPaperScore": 20 } },
+  { "id": "startup", "name": "AI 스타트업 합류 / 창업", "description": "\"우리 회사 시리즈 A 받았어!\" 운과 패기의 길.", "score": 170, "req": { "minNetwork": 15, "minIndustryLab": 3 } },
+  { "id": "institute", "name": "국책 연구소 연구원", "description": "저널과 과제 경험을 살려 안정적인 연구자의 길로.", "score": 180, "req": { "minPaperScore": 25, "minResearch": 45 } },
+  { "id": "company", "name": "일반 기업 데이터 직군", "description": "석사 학위와 함께 무난한 첫 출근.", "score": 120, "req": {} },
+  { "id": "outside", "name": "전혀 다른 길", "description": "졸업식 다음 날, 제주도에 카페를 차렸다. 매일 8시간 잔다.", "score": 150, "hidden": true, "req": { "maxStress": 30, "minMoney": 3000000 } }
+]

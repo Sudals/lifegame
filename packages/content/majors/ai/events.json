@@ -1,0 +1,164 @@
+[
+  {
+    "id": "weekend-meeting", "title": "갑작스러운 주말 미팅", "speaker": "교수", "weight": 3,
+    "text": "\"토요일 오전에 잠깐 미팅 가능하죠? 진행 상황 보고 싶어서요.\"",
+    "when": { "maxHumanity": 3 },
+    "choices": [
+      { "label": "\"네! 준비해 가겠습니다.\"", "effects": { "trust": 4, "stress": 6, "stamina": -5, "research": 0.5 }, "result": "주말이 사라졌지만 교수님 표정이 밝다." },
+      { "label": "\"월요일 아침 첫 타임은 어떠세요?\"", "effects": { "trust": -2, "stress": -2 }, "result": "교수님이 잠시 생각하더니 수락했다. 주말은 지켰다." }
+    ]
+  },
+  {
+    "id": "praise", "title": "교수님의 칭찬", "speaker": "교수", "weight": 2,
+    "text": "\"요즘 실험 정리를 잘하네요. 이 방향 좋아요.\"",
+    "when": { "minHumanity": 3 },
+    "choices": [ { "label": "(속으로 환호한다)", "effects": { "stress": -8, "trust": 3 }, "result": "오늘은 퇴근길 편의점 아이스크림이 더 달다." } ]
+  },
+  {
+    "id": "compare", "title": "다른 학생과의 비교", "speaker": "교수", "weight": 2,
+    "text": "\"옆 랩 OO씨는 벌써 NeurIPS 냈다던데...\"",
+    "when": { "maxHumanity": 3 },
+    "choices": [
+      { "label": "자극받아 이번 주 더 달린다", "effects": { "stress": 8, "research": 1, "stamina": -6 }, "result": "모니터 앞에서 새벽을 맞이했다." },
+      { "label": "\"저는 제 속도로 가겠습니다.\"", "effects": { "stress": 2, "trust": -1 }, "result": "멘탈은 지켰다. 아마도." }
+    ]
+  },
+  {
+    "id": "prof-trip", "title": "교수님 해외 출장", "weight": 2,
+    "text": "교수님이 2주간 해외 출장을 가셨다. 연구실에 평화가 찾아왔다.",
+    "choices": [
+      { "label": "이 기회에 밀린 논문을 읽는다", "effects": { "research": 1.5, "stress": -3 }, "result": "오랜만에 집중해서 논문 5편을 읽었다." },
+      { "label": "조금 일찍 퇴근한다", "effects": { "stress": -10, "stamina": 6 }, "result": "해가 떠 있을 때 퇴근하는 기분, 잊고 있었다." }
+    ]
+  },
+  {
+    "id": "server-down", "title": "서버 다운", "weight": 2,
+    "text": "학습 중이던 서버가 갑자기 꺼졌다. 체크포인트는... 3일 전 것이 마지막이다.",
+    "when": { "hasPaperStage": "experiment" },
+    "choices": [
+      { "label": "울면서 다시 돌린다", "effects": { "stress": 8, "stamina": -4 }, "result": "체크포인트 주기를 1시간으로 바꿨다." },
+      { "label": "이참에 코드 리팩토링", "effects": { "stress": 3, "research": 1 }, "result": "다시 돌린 실험이 오히려 빨라졌다." }
+    ]
+  },
+  {
+    "id": "gpu-war", "title": "GPU 쟁탈전", "weight": 2,
+    "text": "데드라인 시즌, 연구실 GPU 예약표가 피바다다.",
+    "when": { "hasPaperStage": "experiment" },
+    "choices": [
+      { "label": "새벽 3시에 예약 선점", "effects": { "stamina": -8, "relation": -2, "research": 0.5 }, "result": "GPU를 얻고, 동기의 눈총도 얻었다." },
+      { "label": "클라우드 크레딧을 자비로 결제", "effects": { "money": -300000, "stress": -3 }, "result": "카드 명세서는 나중에 생각하기로 했다." },
+      { "label": "동기에게 양보한다", "effects": { "relation": 4, "stress": 3 }, "result": "동기가 커피를 사줬다. 다음엔 돌려받자." }
+    ]
+  },
+  {
+    "id": "lab-dinner", "title": "연구실 회식", "weight": 2,
+    "text": "\"오늘 랩 회식이에요! 교수님이 쏘신대요.\"",
+    "choices": [
+      { "label": "참석한다", "effects": { "relation": 5, "stress": -5, "stamina": -2 }, "result": "선배에게 졸업 꿀팁을 잔뜩 들었다." },
+      { "label": "실험이 바빠서 패스", "effects": { "relation": -2, "research": 0.5 }, "result": "단톡방에 올라온 고기 사진이 야속하다." }
+    ]
+  },
+  {
+    "id": "senior-help", "title": "선배의 도움", "speaker": "선배", "weight": 2,
+    "text": "\"이 코드 구조 좀 이상한데? 내가 30분만 봐줄게.\"",
+    "choices": [ { "label": "감사합니다 선배님!", "effects": { "research": 1.5, "relation": 2, "stress": -3 }, "result": "30분이 3시간이 됐지만 버그 5개를 잡았다." } ]
+  },
+  {
+    "id": "freshman-mentor", "title": "신입 사수 역할", "weight": 1, "when": { "minWeek": 30 },
+    "text": "새로 들어온 학부 인턴의 사수가 되었다.",
+    "choices": [
+      { "label": "열심히 가르친다", "effects": { "relation": 4, "stamina": -5, "research": 0.5 }, "result": "가르치다 보니 나도 정리가 됐다." },
+      { "label": "최소한만 챙긴다", "effects": { "relation": -2, "stress": -1 }, "result": "인턴이 조용히 혼자 깃허브를 뒤지고 있다." }
+    ]
+  },
+  {
+    "id": "equipment-broken", "title": "장비 고장", "weight": 1,
+    "text": "연구실 프린터와 에어컨이 동시에 고장났다. 수리 담당은... 당신이다.",
+    "choices": [ { "label": "행정실에 전화를 돌린다", "effects": { "stress": 5, "stamina": -3, "trust": 1 }, "result": "반나절이 사라졌지만 에어컨은 돌아왔다." } ]
+  },
+  {
+    "id": "part-time", "title": "알바 제안", "weight": 1, "when": { "maxMoney": 1500000 },
+    "text": "학부 후배가 과외 알바를 소개해줬다. 주 4시간, 월 60만 원.",
+    "choices": [
+      { "label": "한다 (이번 달 수입)", "effects": { "money": 600000, "stamina": -6, "stress": 3 }, "result": "통장이 숨을 쉬기 시작했다." },
+      { "label": "연구에 집중한다", "effects": { "stress": 2 }, "result": "라면 박스를 하나 더 샀다." }
+    ]
+  },
+  {
+    "id": "scholarship", "title": "뜻밖의 장학금", "weight": 1,
+    "text": "학과 사무실에서 연락이 왔다. 성적 우수 장학금 대상자란다!",
+    "choices": [ { "label": "감사히 받는다", "effects": { "money": 1000000, "stress": -6 }, "result": "오늘 저녁은 삼겹살이다." } ]
+  },
+  {
+    "id": "laptop-broken", "title": "노트북 고장", "weight": 1,
+    "text": "노트북에 커피를 쏟았다. 화면이 깜빡이더니 꺼졌다.",
+    "choices": [
+      { "label": "새로 산다", "effects": { "money": -1500000, "stress": 4 }, "result": "새 노트북은 빠르다. 통장은 가볍다." },
+      { "label": "수리 맡기고 연구실 PC로 버틴다", "effects": { "money": -300000, "stress": 8, "stamina": -3 }, "result": "연구실 PC는 2015년산이다." }
+    ]
+  },
+  {
+    "id": "health-check", "title": "건강검진", "weight": 1, "when": { "maxStamina": 40 },
+    "text": "학교 건강검진 결과지에 빨간 글씨가 몇 개 보인다.",
+    "choices": [
+      { "label": "운동을 시작한다", "effects": { "stamina": 10, "stress": -3 }, "result": "헬스장 3개월권을 끊었다. 이번엔 진짜다." },
+      { "label": "못 본 척한다", "effects": { "stress": 3 }, "result": "결과지는 서랍 깊숙이 들어갔다." }
+    ]
+  },
+  {
+    "id": "family-event", "title": "가족 행사", "weight": 1,
+    "text": "할머니 생신이라 고향에 내려가야 한다. \"그래서 졸업은 언제 하니?\"",
+    "choices": [
+      { "label": "내려간다", "effects": { "stress": -6, "stamina": 2, "money": -150000 }, "result": "질문 공세는 힘들었지만 집밥은 최고였다." },
+      { "label": "영상통화로 대신한다", "effects": { "stress": 2 }, "result": "화면 너머 할머니가 손을 흔드셨다." }
+    ]
+  },
+  {
+    "id": "date", "title": "소개팅 제안", "weight": 1,
+    "text": "친구가 소개팅을 주선하겠다고 한다. \"대학원생이라고 하면 괜찮아해.\"",
+    "choices": [
+      { "label": "나간다", "effects": { "stress": -7, "money": -80000, "luck": 1 }, "result": "연구 얘기를 30분 해버렸지만 상대가 웃어줬다." },
+      { "label": "논문 마감 끝나고...", "effects": { "stress": 1 }, "result": "마감은 끝나지 않는다는 걸 우리 모두 알고 있다." }
+    ]
+  },
+  {
+    "id": "intern-offer", "title": "인턴 제안", "weight": 1, "when": { "minWeek": 20 },
+    "text": "빅테크 리서치 팀에서 여름 인턴 제안 메일이 왔다!",
+    "choices": [
+      { "label": "지원한다 (교수님께 허락 구하기)", "effects": { "network": 8, "trust": -3, "money": 2000000, "stress": 4 }, "result": "인턴을 마치고 돌아오니 링크드인 알림이 폭발했다." },
+      { "label": "연구실에 남는다", "effects": { "trust": 3 }, "result": "교수님이 은근히 흐뭇해하신다." }
+    ]
+  },
+  {
+    "id": "scooped", "title": "선점당함(Scooped)", "weight": 1, "when": { "hasPaperStage": "experiment" },
+    "text": "arXiv 새 논문 알림... 제목이 내 아이디어와 거의 같다.",
+    "choices": [
+      { "label": "차별점을 찾아 방향을 튼다", "effects": { "stress": 10, "research": 1 }, "result": "밤새 비교표를 만들었다. 아직 살아있다." },
+      { "label": "인용하고 확장 연구로 포지셔닝", "effects": { "stress": 5 }, "result": "\"concurrent work\"라는 마법의 단어를 배웠다." }
+    ]
+  },
+  {
+    "id": "reviewer-invite", "title": "리뷰어 초대", "weight": 1, "when": { "minWeek": 40 },
+    "text": "학회 서브 리뷰어로 초대받았다. 내가... 리뷰어 2가 될 차례인가?",
+    "choices": [
+      { "label": "성실하게 리뷰한다", "effects": { "research": 1.5, "stamina": -3, "network": 2 }, "result": "남의 논문을 보니 내 논문의 약점이 보인다." },
+      { "label": "정중히 거절한다", "effects": {}, "result": "받은편지함이 조금 가벼워졌다." }
+    ]
+  },
+  {
+    "id": "convenience-night", "title": "새벽 편의점", "weight": 2, "when": { "minStress": 60 },
+    "text": "새벽 2시, 편의점 앞 벤치. 삼각김밥이 유난히 짜다.",
+    "choices": [
+      { "label": "오늘은 그만 들어가서 잔다", "effects": { "stamina": 6, "stress": -5 }, "result": "오랜만에 7시간을 잤다." },
+      { "label": "에너지 드링크를 하나 더 산다", "effects": { "stamina": -6, "research": 0.5, "stress": 3 }, "result": "심장이 연구보다 빨리 뛴다." }
+    ]
+  },
+  {
+    "id": "mt", "title": "연구실 MT", "weight": 1, "when": { "months": [7, 8, 1, 2] },
+    "text": "방학 맞이 연구실 MT! 교수님도 오신다고 한다.",
+    "choices": [
+      { "label": "즐긴다", "effects": { "relation": 6, "stress": -10, "stamina": -3, "money": -100000 }, "result": "교수님의 노래 실력은 비밀로 하기로 했다." },
+      { "label": "몸이 안 좋다고 빠진다", "effects": { "relation": -3, "stamina": 4 }, "result": "단톡방 사진을 보며 조금 아쉬웠다." }
+    ]
+  }
+]

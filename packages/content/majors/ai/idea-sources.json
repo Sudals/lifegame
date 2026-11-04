@@ -1,0 +1,11 @@
+[
+  { "id": "arxiv", "name": "최신 arXiv 정독", "description": "트렌디하지만 다들 같은 걸 보고 있다.", "cost": { "stamina": -8, "stress": 3 }, "draw": 3, "noveltyBias": 0, "trendBias": 2, "qualityBonus": 0 },
+  { "id": "classic", "name": "고전 논문 재해석", "description": "먼지 쌓인 명작에서 참신함을 캐낸다.", "cost": { "stamina": -6, "stress": 2 }, "draw": 3, "noveltyBias": 2, "trendBias": -1, "qualityBonus": 2 },
+  { "id": "professor", "name": "교수 미팅에서 하사받기", "description": "실적 보너스가 붙지만 자율성은 반납.", "cost": { "trust": -3, "stress": 4 }, "draw": 2, "noveltyBias": 1, "trendBias": 1, "qualityBonus": 6 },
+  { "id": "senior", "name": "선배 연구 확장", "description": "빠른 시작, 대신 공저(2저자)로 들어간다.", "cost": { "relation": -4 }, "draw": 2, "noveltyBias": -1, "trendBias": 0, "qualityBonus": 8, "coAuthor": true },
+  { "id": "project", "name": "과제에서 파생", "description": "데이터와 자원은 확보, 산업 응용 쪽으로 기운다.", "cost": { "stamina": -5, "trust": 1 }, "draw": 3, "noveltyBias": -1, "trendBias": 0, "qualityBonus": 3 },
+  { "id": "poster", "name": "학회 포스터 세션에서 영감", "description": "학회 참석 중에만 가능. 고품질 아이디어 확률↑", "cost": { "stamina": -4 }, "draw": 4, "noveltyBias": 2, "trendBias": 2, "qualityBonus": 5, "requiresConference": true },
+  { "id": "shower", "name": "샤워 중 번뜩임", "description": "운에 맡긴다. 가끔 대박.", "cost": { "stress": -3 }, "draw": 1, "noveltyBias": 3, "trendBias": 0, "qualityBonus": 0 },
+  { "id": "cross", "name": "다른 분야 융합", "description": "철도·의료·법률 × AI. 경쟁은 낮고 니치하다.", "cost": { "stamina": -7, "research": 1 }, "draw": 3, "noveltyBias": 2, "trendBias": -2, "qualityBonus": 1 },
+  { "id": "sns", "name": "커뮤니티/트위터 토론", "description": "시간은 적게 들지만 품질은 랜덤, 선점 리스크.", "cost": { "stress": 1 }, "draw": 3, "noveltyBias": 0, "trendBias": 3, "qualityBonus": -2 }
+]
