@@ -36,6 +36,7 @@ pnpm dev          # http://localhost:5173
 pnpm test                                  # 콘텐츠 스키마 + 엔진 단위테스트 + 몬테카를로 밸런스(전략 3종 × 150회)
 pnpm --filter @grad-sim/engine sim         # 밸런스 상세 리포트
 pnpm db:smoke                              # Neon 왕복 테스트
+pnpm test:e2e                              # npm start 후: 봇 1회차 → 클라우드 세이브/로드 → 랭킹 등록/조회 → 테스트 행 정리
 ```
 
 ## 배포 (Vercel)

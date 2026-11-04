@@ -6,5 +6,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": ["api", "scripts", "drizzle.config.ts", "neon.ts"]
+  "include": ["api", "scripts", "drizzle.config.ts", "neon.ts"],
+  "exclude": ["scripts/e2e-api.ts"]
 }

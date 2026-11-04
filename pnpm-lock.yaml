@@ -24,6 +24,12 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@grad-sim/content':
+        specifier: workspace:^
+        version: link:packages/content
+      '@grad-sim/engine':
+        specifier: workspace:^
+        version: link:packages/engine
       '@types/node':
         specifier: ^22.10.7
         version: 22.20.5
