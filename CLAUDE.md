@@ -8,7 +8,8 @@
 - 콘텐츠(연구실/주제/학회/이벤트)는 `packages/content/majors/<전공>/*.json`에 추가하고 zod 스키마 + 참조 무결성 통과 필수.
 - 밸런스 수치 하드코딩 금지 → `content/majors/ai/balance.json`. 수치 변경 후 `pnpm --filter @grad-sim/engine sim`으로 몬테카를로 리포트 확인.
 - 새 기능은 vitest 테스트 동반. `pnpm test` 통과 후 커밋.
-- 도트 에셋: 640x360 기준, palette.hex 외 색상 금지. 외부 에셋은 `docs/ASSETS_LICENSE.md`에 기록.
+- 도트 에셋: 640x360 기준, `apps/web/art/palette.ts`(→ palette.hex) 외 색상 금지. 에셋은 생성기(`apps/web/art/`)에서 만들고 `pnpm --filter web art`로 재생성 후 PNG·manifest 커밋. 결과는 `art:preview`로 확대해서 눈으로 확인.
+- 새 장면/캐릭터를 쓰는 이벤트는 events.json의 `scene`/`mood` 지정 (content 테스트가 manifest 존재 확인). 외부 에셋은 `docs/ASSETS_LICENSE.md`에 기록.
 - 세이브 포맷 변경 시 `GAME_VERSION`(engine/src/state.ts) 올리고 migrate 함수 추가.
 
 ## DB (Neon)

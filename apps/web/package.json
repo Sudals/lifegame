@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.json && vite build",
+    "build": "tsc -p tsconfig.json && tsc -p art/tsconfig.json && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json && tsc -p art/tsconfig.json",
+    "art": "tsx art/build.ts",
+    "art:preview": "tsx art/preview.ts"
   },
   "dependencies": {
     "@grad-sim/content": "workspace:*",
     "@grad-sim/engine": "workspace:*",
+    "galmuri": "2.40.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zustand": "^5.0.3"
@@ -22,6 +25,7 @@
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "~5.7.3",
-    "vite": "^6.0.11"
+    "vite": "^6.0.11",
+    "tsx": "^4.19.2"
   }
 }

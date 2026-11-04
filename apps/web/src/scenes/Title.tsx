@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { GameState } from '@grad-sim/engine';
-import { PixelSprite } from '../components/PixelSprite';
+import { Character } from '../art/Character';
+import { Sprite } from '../art/Sprite';
+import { Stage } from '../art/Stage';
 import { cloudList, cloudLoad, health, type CloudSaveMeta, type Health } from '../net/api';
 import { storage, type SaveMeta } from '../platform/SaveStorage';
 import { useGame } from '../store/gameStore';
@@ -31,16 +33,15 @@ export function Title() {
 
   return (
     <div className="title-screen">
-      <div className="title-window" aria-hidden>
-        <div className="moon" />
-        <div className="window-frame" />
-        <div className="desk">
-          <PixelSprite kind="player" mood="tired" size={120} />
+      <Stage sceneId="lab-dawn" fx={false} className="title-stage">
+        <div className="title-logo">
+          <p className="subtitle">대학원 시뮬레이션 · 인공지능학과</p>
+          <h1>졸업할 수 있을까?</h1>
         </div>
-      </div>
+        <Character id="player" expr="tired" x={430} />
+        <Sprite id="fx-zzz" fps={3} className="abs" style={{ left: 462, top: 150 }} />
+      </Stage>
       <div className="title-card">
-        <p className="subtitle">대학원 시뮬레이션 · 인공지능학과</p>
-        <h1>졸업할 수 있을까?</h1>
         <div className="menu">
           <button className="btn primary" onClick={() => go('new')}>
             새 게임

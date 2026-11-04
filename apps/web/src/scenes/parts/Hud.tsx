@@ -1,5 +1,8 @@
+import type React from 'react';
 import { useState } from 'react';
 import { dateOf, formatDate, getLab, inSemester, mentalState, upcomingDeadlines, type GameState } from '@grad-sim/engine';
+import { Icon } from '../../art/Sprite';
+import type { IconName } from '../../art/assets';
 import { StatBar, won } from '../../components/ui';
 import { cloudSave } from '../../net/api';
 import { pack, useGame } from '../../store/gameStore';
@@ -8,6 +11,30 @@ function luckHint(luck: number): string {
   if (luck >= 65) return '요즘 왠지 운이 좋다';
   if (luck <= 35) return '왠지 되는 일이 없다';
   return '평범한 운세';
+}
+
+/** 주간 진행 직후 스탯 변화가 위로 떠오른다 */
+function Delta({ k }: { k: string }) {
+  const d = useGame((st) => st.deltas.find((x) => x.key === k));
+  if (!d) return null;
+  const up = d.value > 0;
+  const good = k === 'stress' ? !up : up;
+  const txt = k === 'money' ? `${up ? '+' : ''}${Math.round(d.value / 10000)}만` : `${up ? '+' : ''}${d.value.toFixed(1)}`;
+  return (
+    <span key={d.at} className={`delta ${good ? 'up' : 'down'}`}>
+      {txt}
+    </span>
+  );
+}
+
+function Stat({ icon, k, children }: { icon: IconName; k: string; children: React.ReactNode }) {
+  return (
+    <div className="stat-wrap">
+      <Icon name={icon} />
+      {children}
+      <Delta k={k} />
+    </div>
+  );
 }
 
 export function Hud({ game }: { game: GameState }) {
@@ -40,22 +67,38 @@ export function Hud({ game }: { game: GameState }) {
         </span>
       </div>
       <div className="hud-stats">
-        <StatBar label="연구력" value={s.research} tone="var(--c-research)" />
-        <StatBar label="스트레스" value={s.stress} tone="var(--c-stress)" hint={mentalState(pack, game)} />
-        <StatBar label="체력" value={s.stamina} tone="var(--c-stamina)" />
-        <div className="stat" title="운은 숨겨진 수치입니다">
-          <span className="stat-label">운</span>
-          <span className="luck">{luckHint(s.luck)}</span>
-        </div>
-        <div className={`stat money ${s.money < 0 ? 'bad' : ''}`}>
-          <span className="stat-label">돈</span>
-          <span>{won(s.money)}</span>
-        </div>
+        <Stat icon="research" k="research">
+          <StatBar label="연구력" value={s.research} tone="var(--c-research)" />
+        </Stat>
+        <Stat icon="stress" k="stress">
+          <StatBar label="스트레스" value={s.stress} tone="var(--c-stress)" hint={mentalState(pack, game)} />
+        </Stat>
+        <Stat icon="stamina" k="stamina">
+          <StatBar label="체력" value={s.stamina} tone="var(--c-stamina)" />
+        </Stat>
+        <Stat icon="luck" k="luck">
+          <div className="stat" title="운은 숨겨진 수치입니다">
+            <span className="stat-label">운</span>
+            <span className="luck">{luckHint(s.luck)}</span>
+          </div>
+        </Stat>
+        <Stat icon="money" k="money">
+          <div className={`stat money ${s.money < 0 ? 'bad' : ''}`}>
+            <span className="stat-label">돈</span>
+            <span>{won(s.money)}</span>
+          </div>
+        </Stat>
       </div>
       <div className="hud-sub">
-        <span>교수 신뢰 {Math.round(game.hidden.trust)}</span>
-        <span>랩 관계 {Math.round(game.hidden.relation)}</span>
-        <span>네트워크 {Math.round(game.hidden.network)}</span>
+        <span>
+          <Icon name="trust" size={12} /> 교수 신뢰 {Math.round(game.hidden.trust)}
+        </span>
+        <span>
+          <Icon name="relation" size={12} /> 랩 관계 {Math.round(game.hidden.relation)}
+        </span>
+        <span>
+          <Icon name="network" size={12} /> 네트워크 {Math.round(game.hidden.network)}
+        </span>
         <span className={`mental ${mentalState(pack, game)}`}>{mentalState(pack, game)}</span>
       </div>
       <div className="hud-deadlines">

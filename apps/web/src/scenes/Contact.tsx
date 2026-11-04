@@ -9,14 +9,47 @@ import {
   interview,
   MAIL_PARTS,
   MAX_CONTACTS,
+  type GameState,
   type MailDraft,
 } from '@grad-sim/engine';
-import { PixelSprite } from '../components/PixelSprite';
+import { professorSprite } from '../art/assets';
+import { Character } from '../art/Character';
+import { useFx } from '../art/fx';
+import { DialogueBox, Stage } from '../art/Stage';
+import { Typewriter } from '../art/Typewriter';
 import { Panel, Stars, won } from '../components/ui';
 import { pack, useGame } from '../store/gameStore';
 import { LogFeed } from './parts/LogFeed';
 
 const STYLE_LABEL = { handsoff: '방임형', micro: '마이크로매니징', collab: '협업형' } as const;
+
+/** 컨택 무대: 자취방에서 메일 → 교수실 면접 */
+function ContactStage({ game, labId }: { game: GameState; labId: string }) {
+  const [typing, setTyping] = useState(false);
+  const lab = pack.labs.find((l) => l.id === labId)!;
+  const record = game.contacts.find((c) => c.labId === labId);
+  const interviewing = !!record?.replied && !record.interviewed;
+  const admitted = !!record?.admitted;
+  const rejected = !!record?.interviewed && !record.admitted;
+  const atOffice = interviewing || admitted || rejected;
+  const last = game.log.at(-1)?.text ?? '';
+  const text = interviewing ? `${lab.professor}: "어서 와요. 앉아요. 몇 가지만 물어볼게요."` : atOffice ? last : record && !record.replied ? last : '어느 연구실에 메일을 보내볼까... 교수님 논문부터 읽어보자.';
+  return (
+    <Stage sceneId={atOffice ? 'office' : 'home'}>
+      {atOffice ? (
+        <>
+          <Character id="player" expr={admitted ? 'happy' : rejected ? 'frustrated' : 'flustered'} x={150} dim={typing && interviewing} enter="left" />
+          <Character id={professorSprite(labId)} expr={admitted ? 'happy' : 'normal'} talking={typing && interviewing} x={330} enter="right" />
+        </>
+      ) : (
+        <Character id="player" expr={record && !record.replied ? 'frustrated' : 'normal'} talking={typing} x={470} />
+      )}
+      <DialogueBox name={interviewing ? lab.professor : game.player.name}>
+        <Typewriter text={text} onTyping={setTyping} showCursor={false} />
+      </DialogueBox>
+    </Stage>
+  );
+}
 
 export function Contact() {
   const { game, run } = useGame();
@@ -56,8 +89,8 @@ export function Contact() {
       </Panel>
 
       <Panel title={lab.name} className="lab-detail" right={<span className="dim">{STYLE_LABEL[lab.style]}</span>}>
+        <ContactStage game={game} labId={labId} />
         <div className="lab-hero">
-          <PixelSprite kind="professor" size={88} />
           <div>
             <p>{lab.description}</p>
             <ul className="facts">
@@ -94,7 +127,7 @@ export function Contact() {
             ))}
             <div className="row between">
               <small className="dim">예상 답장 확률 약 {Math.round(pReply * 10) * 10}%</small>
-              <button className="btn primary" onClick={() => run((g) => contactLab(pack, g, labId, mail))}>
+              <button className="btn primary" onClick={() => run((g) => contactLab(pack, g, labId, mail)) && useFx.getState().play('mail', { x: 470, y: 190 })}>
                 메일 보내기
               </button>
             </div>
@@ -115,7 +148,11 @@ export function Contact() {
                 ))}
               </fieldset>
             ))}
-            <button className="btn primary" disabled={answers.includes(-1)} onClick={() => run((g) => interview(pack, g, labId, answers))}>
+            <button className="btn primary" disabled={answers.includes(-1)} onClick={() => {
+                const ok = run((g) => interview(pack, g, labId, answers));
+                const r = useGame.getState().game?.contacts.find((c) => c.labId === labId);
+                if (ok && r) useFx.getState().play(r.admitted ? 'pass' : 'reject', { x: 150, y: 140 });
+              }}>
               면접 마치기
             </button>
           </div>

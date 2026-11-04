@@ -107,6 +107,9 @@ export const GameEvent = z.object({
   text: z.string(),
   weight: z.number().positive(),
   once: z.boolean().default(false),
+  /** 연출: 배경 장면 id와 화자 표정 (apps/web/src/art/manifest.json) */
+  scene: z.string().optional(),
+  mood: z.enum(['normal', 'happy', 'tired', 'frustrated', 'flustered', 'angry']).optional(),
   when: z
     .object({
       months: z.array(z.number().int().min(1).max(12)),

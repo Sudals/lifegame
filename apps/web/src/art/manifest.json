@@ -1,0 +1,1087 @@
+{
+ "palette": [
+  "#0d0b1e",
+  "#1b1a33",
+  "#2b2a4c",
+  "#1a2140",
+  "#283b6e",
+  "#3a5a9b",
+  "#5b84c4",
+  "#8fb4e3",
+  "#cfe3f5",
+  "#3b2a52",
+  "#5a4178",
+  "#7f63a3",
+  "#b59bd6",
+  "#2e1b12",
+  "#4a2d1e",
+  "#6b4129",
+  "#8f5c38",
+  "#b47e4f",
+  "#d8a875",
+  "#6e4232",
+  "#9c6449",
+  "#c98d69",
+  "#e8b98f",
+  "#f8dcc0",
+  "#183b2e",
+  "#24604a",
+  "#36895e",
+  "#5cb874",
+  "#a6e3a1",
+  "#4d1626",
+  "#8a2639",
+  "#c43d52",
+  "#ef6b7f",
+  "#ffb3bd",
+  "#5e3c10",
+  "#9a6420",
+  "#d69a2d",
+  "#ffd166",
+  "#fff0b3",
+  "#0f3d45",
+  "#17676f",
+  "#2a9d8f",
+  "#4cc9f0",
+  "#b8f2ff",
+  "#2f3142",
+  "#4a4d62",
+  "#6c7088",
+  "#9498b0",
+  "#c2c6d8",
+  "#e6e8f1",
+  "#ffffff"
+ ],
+ "scene": {
+  "w": 640,
+  "h": 360
+ },
+ "scenes": {
+  "lab-day": {
+   "name": "연구실",
+   "time": "day",
+   "file": "/art/scene-lab-day.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     },
+     {
+      "x": 473,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "code": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "steam": [
+     {
+      "x": 416,
+      "y": 179
+     }
+    ],
+    "leds": [
+     {
+      "x": 260,
+      "y": 80,
+      "w": 6,
+      "h": 150
+     }
+    ],
+    "lamps": [
+     {
+      "x": 132,
+      "y": 15,
+      "w": 76,
+      "h": 3
+     },
+     {
+      "x": 432,
+      "y": 15,
+      "w": 76,
+      "h": 3
+     }
+    ],
+    "glow": [],
+    "window": {
+     "x": 26,
+     "y": 42,
+     "w": 176,
+     "h": 104
+    }
+   }
+  },
+  "lab-dusk": {
+   "name": "연구실",
+   "time": "dusk",
+   "file": "/art/scene-lab-dusk.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     },
+     {
+      "x": 473,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "code": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "steam": [
+     {
+      "x": 416,
+      "y": 179
+     }
+    ],
+    "leds": [
+     {
+      "x": 260,
+      "y": 80,
+      "w": 6,
+      "h": 150
+     }
+    ],
+    "lamps": [
+     {
+      "x": 132,
+      "y": 15,
+      "w": 76,
+      "h": 3
+     },
+     {
+      "x": 432,
+      "y": 15,
+      "w": 76,
+      "h": 3
+     }
+    ],
+    "glow": [],
+    "window": {
+     "x": 26,
+     "y": 42,
+     "w": 176,
+     "h": 104
+    }
+   }
+  },
+  "lab-night": {
+   "name": "연구실",
+   "time": "night",
+   "file": "/art/scene-lab-night.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     },
+     {
+      "x": 473,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "code": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     },
+     {
+      "x": 473,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "steam": [
+     {
+      "x": 416,
+      "y": 179
+     }
+    ],
+    "leds": [
+     {
+      "x": 260,
+      "y": 80,
+      "w": 6,
+      "h": 150
+     }
+    ],
+    "lamps": [],
+    "glow": [
+     {
+      "x": 596,
+      "y": 190,
+      "r": 34
+     }
+    ],
+    "window": {
+     "x": 26,
+     "y": 42,
+     "w": 176,
+     "h": 104
+    }
+   }
+  },
+  "lab-dawn": {
+   "name": "연구실",
+   "time": "dawn",
+   "file": "/art/scene-lab-dawn.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     },
+     {
+      "x": 473,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "code": [
+     {
+      "x": 335,
+      "y": 137,
+      "w": 58,
+      "h": 38
+     }
+    ],
+    "steam": [
+     {
+      "x": 416,
+      "y": 179
+     }
+    ],
+    "leds": [
+     {
+      "x": 260,
+      "y": 80,
+      "w": 6,
+      "h": 150
+     }
+    ],
+    "lamps": [],
+    "glow": [
+     {
+      "x": 596,
+      "y": 190,
+      "r": 34
+     }
+    ],
+    "window": {
+     "x": 26,
+     "y": 42,
+     "w": 176,
+     "h": 104
+    }
+   }
+  },
+  "office": {
+   "name": "교수실",
+   "time": "day",
+   "file": "/art/scene-office.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 399,
+      "y": 149,
+      "w": 52,
+      "h": 34
+     }
+    ],
+    "code": [],
+    "steam": [
+     {
+      "x": 350,
+      "y": 186
+     }
+    ],
+    "leds": [],
+    "lamps": [],
+    "glow": [],
+    "window": {
+     "x": 432,
+     "y": 36,
+     "w": 168,
+     "h": 110
+    }
+   }
+  },
+  "classroom": {
+   "name": "강의실",
+   "time": "day",
+   "file": "/art/scene-classroom.png",
+   "hotspots": {
+    "screens": [],
+    "code": [],
+    "steam": [],
+    "leds": [],
+    "lamps": [
+     {
+      "x": 102,
+      "y": 13,
+      "w": 76,
+      "h": 3
+     },
+     {
+      "x": 282,
+      "y": 13,
+      "w": 76,
+      "h": 3
+     },
+     {
+      "x": 462,
+      "y": 13,
+      "w": 76,
+      "h": 3
+     }
+    ],
+    "glow": []
+   }
+  },
+  "home": {
+   "name": "자취방",
+   "time": "night",
+   "file": "/art/scene-home.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 469,
+      "y": 161,
+      "w": 42,
+      "h": 25
+     }
+    ],
+    "code": [
+     {
+      "x": 469,
+      "y": 161,
+      "w": 42,
+      "h": 25
+     }
+    ],
+    "steam": [
+     {
+      "x": 564,
+      "y": 176
+     }
+    ],
+    "leds": [],
+    "lamps": [
+     {
+      "x": 11,
+      "y": 19,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 33,
+      "y": 21,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 55,
+      "y": 22,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 77,
+      "y": 22,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 99,
+      "y": 20,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 121,
+      "y": 18,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 143,
+      "y": 16,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 165,
+      "y": 15,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 187,
+      "y": 14,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 209,
+      "y": 15,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 231,
+      "y": 16,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 253,
+      "y": 18,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 275,
+      "y": 20,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 297,
+      "y": 22,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 319,
+      "y": 22,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 341,
+      "y": 21,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 363,
+      "y": 19,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 385,
+      "y": 17,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 407,
+      "y": 15,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 429,
+      "y": 14,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 451,
+      "y": 14,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 473,
+      "y": 15,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 495,
+      "y": 17,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 517,
+      "y": 19,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 539,
+      "y": 21,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 561,
+      "y": 22,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 583,
+      "y": 22,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 605,
+      "y": 20,
+      "w": 3,
+      "h": 3
+     },
+     {
+      "x": 627,
+      "y": 18,
+      "w": 3,
+      "h": 3
+     }
+    ],
+    "glow": [
+     {
+      "x": 490,
+      "y": 175,
+      "r": 60
+     }
+    ],
+    "window": {
+     "x": 268,
+     "y": 48,
+     "w": 112,
+     "h": 92
+    }
+   }
+  },
+  "conference": {
+   "name": "학회장",
+   "time": "day",
+   "file": "/art/scene-conference.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 148,
+      "y": 28,
+      "w": 344,
+      "h": 132
+     }
+    ],
+    "code": [],
+    "steam": [],
+    "leds": [],
+    "lamps": [
+     {
+      "x": 148,
+      "y": 28,
+      "w": 344,
+      "h": 22
+     }
+    ],
+    "glow": [
+     {
+      "x": 320,
+      "y": 96,
+      "r": 180
+     }
+    ]
+   }
+  },
+  "cafe": {
+   "name": "카페",
+   "time": "day",
+   "file": "/art/scene-cafe.png",
+   "hotspots": {
+    "screens": [],
+    "code": [],
+    "steam": [
+     {
+      "x": 217,
+      "y": 170
+     },
+     {
+      "x": 474,
+      "y": 247
+     },
+     {
+      "x": 524,
+      "y": 247
+     }
+    ],
+    "leds": [],
+    "lamps": [
+     {
+      "x": 324,
+      "y": 48,
+      "w": 12,
+      "h": 3
+     },
+     {
+      "x": 414,
+      "y": 40,
+      "w": 12,
+      "h": 3
+     },
+     {
+      "x": 514,
+      "y": 48,
+      "w": 12,
+      "h": 3
+     }
+    ],
+    "glow": [],
+    "window": {
+     "x": 380,
+     "y": 64,
+     "w": 230,
+     "h": 100
+    }
+   }
+  },
+  "counseling": {
+   "name": "상담실",
+   "time": "day",
+   "file": "/art/scene-counseling.png",
+   "hotspots": {
+    "screens": [],
+    "code": [],
+    "steam": [
+     {
+      "x": 372,
+      "y": 193
+     }
+    ],
+    "leds": [],
+    "lamps": [
+     {
+      "x": 612,
+      "y": 86,
+      "w": 16,
+      "h": 10
+     }
+    ],
+    "glow": [],
+    "window": {
+     "x": 44,
+     "y": 52,
+     "w": 140,
+     "h": 100
+    }
+   }
+  },
+  "store": {
+   "name": "편의점",
+   "time": "night",
+   "file": "/art/scene-store.png",
+   "hotspots": {
+    "screens": [
+     {
+      "x": 432,
+      "y": 64,
+      "w": 192,
+      "h": 168
+     }
+    ],
+    "code": [],
+    "steam": [],
+    "leds": [],
+    "lamps": [
+     {
+      "x": 62,
+      "y": 11,
+      "w": 76,
+      "h": 3
+     },
+     {
+      "x": 222,
+      "y": 11,
+      "w": 76,
+      "h": 3
+     },
+     {
+      "x": 382,
+      "y": 11,
+      "w": 76,
+      "h": 3
+     },
+     {
+      "x": 542,
+      "y": 11,
+      "w": 76,
+      "h": 3
+     }
+    ],
+    "glow": [],
+    "window": {
+     "x": 14,
+     "y": 66,
+     "w": 74,
+     "h": 166
+    }
+   }
+  }
+ },
+ "characters": {
+  "player": {
+   "name": "나",
+   "file": "/art/char-player.png",
+   "frame": 128
+  },
+  "prof-llm-kim": {
+   "name": "김교수",
+   "file": "/art/char-prof-llm-kim.png",
+   "frame": 128
+  },
+  "prof-vision-park": {
+   "name": "박교수",
+   "file": "/art/char-prof-vision-park.png",
+   "frame": 128
+  },
+  "prof-rl-lee": {
+   "name": "이교수",
+   "file": "/art/char-prof-rl-lee.png",
+   "frame": 128
+  },
+  "prof-eff-choi": {
+   "name": "최교수",
+   "file": "/art/char-prof-eff-choi.png",
+   "frame": 128
+  },
+  "prof-new-jung": {
+   "name": "정교수",
+   "file": "/art/char-prof-new-jung.png",
+   "frame": 128
+  },
+  "prof-ind-han": {
+   "name": "한교수",
+   "file": "/art/char-prof-ind-han.png",
+   "frame": 128
+  },
+  "prof-theory-yoon": {
+   "name": "윤교수",
+   "file": "/art/char-prof-theory-yoon.png",
+   "frame": 128
+  },
+  "senior": {
+   "name": "선배",
+   "file": "/art/char-senior.png",
+   "frame": 128
+  },
+  "counselor": {
+   "name": "상담 선생님",
+   "file": "/art/char-counselor.png",
+   "frame": 128
+  },
+  "reviewer": {
+   "name": "리뷰어 2",
+   "file": "/art/char-reviewer.png",
+   "frame": 128
+  }
+ },
+ "expressions": [
+  "normal",
+  "happy",
+  "tired",
+  "frustrated",
+  "flustered",
+  "angry"
+ ],
+ "frames": [
+  "idle",
+  "blink",
+  "talk"
+ ],
+ "sheets": {
+  "fx-steam": {
+   "file": "/art/fx-steam.png",
+   "w": 72,
+   "h": 22,
+   "frameW": 12,
+   "frameH": 22,
+   "frames": 6
+  },
+  "fx-code": {
+   "file": "/art/fx-code.png",
+   "w": 64,
+   "h": 64,
+   "frameW": 64,
+   "frameH": 64,
+   "frames": 1
+  },
+  "fx-rain": {
+   "file": "/art/fx-rain.png",
+   "w": 32,
+   "h": 32,
+   "frameW": 32,
+   "frameH": 32,
+   "frames": 1
+  },
+  "fx-zzz": {
+   "file": "/art/fx-zzz.png",
+   "w": 80,
+   "h": 20,
+   "frameW": 20,
+   "frameH": 20,
+   "frames": 4
+  },
+  "fx-sparkle": {
+   "file": "/art/fx-sparkle.png",
+   "w": 52,
+   "h": 13,
+   "frameW": 13,
+   "frameH": 13,
+   "frames": 4
+  },
+  "fx-firework": {
+   "file": "/art/fx-firework.png",
+   "w": 288,
+   "h": 48,
+   "frameW": 48,
+   "frameH": 48,
+   "frames": 6
+  },
+  "fx-cloud": {
+   "file": "/art/fx-cloud.png",
+   "w": 160,
+   "h": 30,
+   "frameW": 40,
+   "frameH": 30,
+   "frames": 4
+  },
+  "fx-mail": {
+   "file": "/art/fx-mail.png",
+   "w": 48,
+   "h": 18,
+   "frameW": 24,
+   "frameH": 18,
+   "frames": 2
+  },
+  "fx-wipe-0": {
+   "file": "/art/fx-wipe-0.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-1": {
+   "file": "/art/fx-wipe-1.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-2": {
+   "file": "/art/fx-wipe-2.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-3": {
+   "file": "/art/fx-wipe-3.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-4": {
+   "file": "/art/fx-wipe-4.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-5": {
+   "file": "/art/fx-wipe-5.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-6": {
+   "file": "/art/fx-wipe-6.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-7": {
+   "file": "/art/fx-wipe-7.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-wipe-8": {
+   "file": "/art/fx-wipe-8.png",
+   "w": 4,
+   "h": 4,
+   "frameW": 4,
+   "frameH": 4,
+   "frames": 1
+  },
+  "fx-glow": {
+   "file": "/art/fx-glow.png",
+   "w": 64,
+   "h": 64,
+   "frameW": 64,
+   "frameH": 64,
+   "frames": 1
+  },
+  "fx-calendar": {
+   "file": "/art/fx-calendar.png",
+   "w": 72,
+   "h": 80,
+   "frameW": 72,
+   "frameH": 80,
+   "frames": 1
+  },
+  "stamp-accept": {
+   "file": "/art/stamp-accept.png",
+   "w": 90,
+   "h": 34,
+   "frameW": 90,
+   "frameH": 34,
+   "frames": 1
+  },
+  "stamp-reject": {
+   "file": "/art/stamp-reject.png",
+   "w": 90,
+   "h": 34,
+   "frameW": 90,
+   "frameH": 34,
+   "frames": 1
+  },
+  "stamp-oral": {
+   "file": "/art/stamp-oral.png",
+   "w": 78,
+   "h": 34,
+   "frameW": 78,
+   "frameH": 34,
+   "frames": 1
+  },
+  "stamp-major": {
+   "file": "/art/stamp-major.png",
+   "w": 126,
+   "h": 34,
+   "frameW": 126,
+   "frameH": 34,
+   "frames": 1
+  },
+  "stamp-minor": {
+   "file": "/art/stamp-minor.png",
+   "w": 126,
+   "h": 34,
+   "frameW": 126,
+   "frameH": 34,
+   "frames": 1
+  },
+  "stamp-pass": {
+   "file": "/art/stamp-pass.png",
+   "w": 66,
+   "h": 34,
+   "frameW": 66,
+   "frameH": 34,
+   "frames": 1
+  },
+  "icons": {
+   "file": "/art/icons.png",
+   "w": 256,
+   "h": 16,
+   "frameW": 16,
+   "frameH": 16,
+   "frames": 16
+  },
+  "ui-dialog": {
+   "file": "/art/ui-dialog.png",
+   "w": 24,
+   "h": 24,
+   "frameW": 24,
+   "frameH": 24,
+   "frames": 1
+  },
+  "ui-panel": {
+   "file": "/art/ui-panel.png",
+   "w": 24,
+   "h": 24,
+   "frameW": 24,
+   "frameH": 24,
+   "frames": 1
+  },
+  "ui-paper": {
+   "file": "/art/ui-paper.png",
+   "w": 24,
+   "h": 24,
+   "frameW": 24,
+   "frameH": 24,
+   "frames": 1
+  },
+  "ui-button": {
+   "file": "/art/ui-button.png",
+   "w": 24,
+   "h": 24,
+   "frameW": 24,
+   "frameH": 24,
+   "frames": 1
+  }
+ },
+ "icons": [
+  "research",
+  "stress",
+  "stamina",
+  "luck",
+  "money",
+  "trust",
+  "relation",
+  "network",
+  "calendar",
+  "mail",
+  "paper",
+  "gpu",
+  "trophy",
+  "coffee",
+  "sleep",
+  "brain"
+ ]
+}

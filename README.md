@@ -9,6 +9,8 @@
 
 ```
 apps/web          Vite + React 게임 본체 (Vercel 정적 배포)
+  art/            도트 그래픽 생성기 (팔레트·캐릭터·배경·이펙트 → public/art/*.png)
+  src/art/        무대(640x360)·캐릭터·타자기 대사·이펙트 런타임
 api/              Vercel Functions — health / players / saves / runs(랭킹)
   _db/            Drizzle 스키마 + Neon 클라이언트
 packages/engine   순수 TS 게임 로직 (시드 RNG, 주간 턴, 연구 파이프라인, 심사, 이벤트, 스코어, 밸런스 봇)
@@ -30,6 +32,20 @@ pnpm dev          # http://localhost:5173
 
 프로덕션 빌드 확인: `npm run build && npm start` → http://localhost:4173
 
+## 그래픽
+
+외부 이미지 없이 코드로 생성한 HD 도트 (고정 팔레트 51색, 640x360 무대 정수/비율 확대).
+
+```bash
+pnpm --filter web art                         # public/art/*.png + src/art/manifest.json 재생성
+pnpm --filter web art:preview <폴더> characters|scenes|fx   # 확대 미리보기
+```
+
+- 배경 11종 · 캐릭터 11명(표정 6 × 기본/눈깜빡/말하기) · 이펙트/도장/아이콘/UI 9-slice
+- 애니메이션: 숨쉬기, 랜덤 눈깜빡임, 말할 때 입 모양, 타자기 대사, 모니터 코드 스크롤·깜빡임, 김, 서버 LED, 형광등 깜빡임,
+  창밖 비/별, 디더 장면 전환, 주간 달력 넘김, 스탯 증감 팝업, 채택(도장+꽃가루)/리젝(도장+먹구름+흔들림), 졸업 불꽃놀이, 번아웃 비네트
+- 라이선스: [docs/ASSETS_LICENSE.md](docs/ASSETS_LICENSE.md)
+
 ## 테스트
 
 ```bash
@@ -37,6 +53,7 @@ pnpm test                                  # 콘텐츠 스키마 + 엔진 단위
 pnpm --filter @grad-sim/engine sim         # 밸런스 상세 리포트
 pnpm db:smoke                              # Neon 왕복 테스트
 pnpm test:e2e                              # npm start 후: 봇 1회차 → 클라우드 세이브/로드 → 랭킹 등록/조회 → 테스트 행 정리
+pnpm exec tsx scripts/ui-walkthrough.ts <폴더>   # npm start 후: 설치된 Chrome으로 실제 UI 플레이 + 스크린샷
 ```
 
 ## 배포 (Vercel)

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   careerOffers,
   chooseCareer,
@@ -7,7 +7,12 @@ import {
   paperScore,
   type GameState,
 } from '@grad-sim/engine';
-import { PixelSprite } from '../components/PixelSprite';
+import { professorSprite } from '../art/assets';
+import { Character } from '../art/Character';
+import { useFx } from '../art/fx';
+import { DialogueBox, Stage } from '../art/Stage';
+import { Typewriter } from '../art/Typewriter';
+import { Icon } from '../art/Sprite';
 import { Panel, won } from '../components/ui';
 import { submitRun } from '../net/api';
 import { pack, useGame } from '../store/gameStore';
@@ -16,10 +21,21 @@ export function Career({ game }: { game: GameState }) {
   const { run } = useGame();
   const offers = careerOffers(pack, game);
   const locked = pack.careers.filter((c) => !c.hidden && !offers.includes(c));
+  const lab = getLab(pack, game.labId);
+  useEffect(() => {
+    useFx.getState().play('pass');
+    useFx.getState().play('firework', { delay: 600 });
+  }, []);
   return (
     <div className="center-screen">
       <Panel title="🎓 학위 수여 — 진로 선택" className="form-panel">
-        <p>심사위원들이 고개를 끄덕였다. 이제 어디로 갈까?</p>
+        <Stage sceneId="office">
+          <Character id="player" expr="happy" x={170} enter="left" />
+          <Character id={professorSprite(game.labId)} expr="happy" x={330} talking enter="right" />
+          <DialogueBox name={lab?.professor}>
+            <Typewriter text={`"수고 많았어요, ${game.player.name}씨. 심사위원 전원 통과입니다. 이제 어디로 갈 건가요?"`} showCursor={false} />
+          </DialogueBox>
+        </Stage>
         <div className="choice-grid">
           {offers.map((c) => (
             <button key={c.id} className="card-btn" onClick={() => run((g) => chooseCareer(pack, g, c.id))}>
@@ -51,6 +67,14 @@ export function Ending({ game }: { game: GameState }) {
   const lab = getLab(pack, game.labId);
   const accepted = game.papers.filter((p) => p.kind === 'paper' && p.stage === 'accepted');
 
+  const graduated = !!e.careerId;
+  useEffect(() => {
+    if (graduated) {
+      useFx.getState().play('firework');
+      useFx.getState().play('firework', { delay: 2400 });
+    }
+  }, [graduated]);
+
   const register = async () => {
     try {
       await submitRun(game, nickname);
@@ -64,8 +88,13 @@ export function Ending({ game }: { game: GameState }) {
   return (
     <div className="center-screen">
       <Panel title="이력서" className="form-panel resume">
+        <Stage sceneId={graduated ? 'conference' : 'store'}>
+          <Character id="player" expr={graduated ? 'happy' : 'tired'} x={320} />
+          <DialogueBox name={game.player.name}>
+            <Typewriter text={graduated ? `「${e.epithet}」 — ${e.title}. 길고 긴 대학원 생활이 끝났다.` : '새벽 편의점. 삼각김밥을 들고 생각했다. 다시 시작하면 되지.'} showCursor={false} />
+          </DialogueBox>
+        </Stage>
         <div className="resume-head">
-          <PixelSprite kind="player" mood={e.careerId ? 'happy' : 'tired'} size={112} />
           <div>
             <h2>{game.player.name}</h2>
             <p>
@@ -76,9 +105,11 @@ export function Ending({ game }: { game: GameState }) {
               진로: <strong>{e.title}</strong>
             </p>
           </div>
-          <div className={`grade grade-${e.grade}`}>{e.grade}</div>
+          <div className={`grade grade-${e.grade} slam`}>{e.grade}</div>
         </div>
-        <h3>Publications</h3>
+        <h3>
+          <Icon name="paper" /> Publications
+        </h3>
         {accepted.length === 0 ? (
           <p className="dim">없음</p>
         ) : (
@@ -91,7 +122,9 @@ export function Ending({ game }: { game: GameState }) {
             ))}
           </ol>
         )}
-        <h3>최종 점수 {e.score}</h3>
+        <h3>
+          <Icon name="trophy" /> 최종 점수 {e.score}
+        </h3>
         <table className="breakdown">
           <tbody>
             {Object.entries(e.breakdown).map(([k, v]) => (

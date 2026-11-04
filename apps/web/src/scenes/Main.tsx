@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { getLab, mentalState, type GameState } from '@grad-sim/engine';
-import { PixelSprite } from '../components/PixelSprite';
+import { useEffect, useMemo, useState } from 'react';
+import { getLab, type GameState } from '@grad-sim/engine';
+import { Character } from '../art/Character';
+import { isRainy, labScene, playerMood } from '../art/direction';
+import { Sprite } from '../art/Sprite';
+import { DialogueBox, Stage } from '../art/Stage';
+import { Typewriter } from '../art/Typewriter';
 import { Panel } from '../components/ui';
-import { pack } from '../store/gameStore';
+import { pack, useGame } from '../store/gameStore';
 import { Calendar } from './parts/Calendar';
 import { Hud } from './parts/Hud';
 import { InboxModal } from './parts/InboxModal';
@@ -12,29 +16,47 @@ import { ResearchBoard } from './parts/ResearchBoard';
 
 type Tab = 'research' | 'calendar' | 'log';
 
+/** 연구실 무대: 지난 한 주의 일을 대사로 넘겨본다 */
+function LabStage({ game }: { game: GameState }) {
+  const plan = useGame((s) => s.plan);
+  const lines = useMemo(() => {
+    const week = game.log.filter((l) => l.week === game.week - 1 || (game.week === 0 && l.week === 0));
+    return week.length ? week : game.log.slice(-1);
+  }, [game.log, game.week]);
+  const [idx, setIdx] = useState(0);
+  const [typing, setTyping] = useState(false);
+  useEffect(() => setIdx(0), [game.week, lines.length]);
+  const line = lines[Math.min(idx, lines.length - 1)];
+  const lab = getLab(pack, game.labId);
+  const mood = playerMood(game, line);
+  const tired = game.stats.stamina < 30 || plan.sleepPerDay < 5;
+
+  return (
+    <Stage sceneId={labScene(pack, game, plan)} rain={isRainy(game)} vignette={game.stats.stress >= pack.balance.burnoutStress}>
+      <span className="stage-title">{lab?.name}</span>
+      <Character id="player" expr={mood} talking={typing} x={320} />
+      {tired && !typing && <Sprite id="fx-zzz" fps={3} className="abs" style={{ left: 352, top: 150 }} />}
+      <DialogueBox name={game.player.name} onClick={() => !typing && setIdx((i) => Math.min(lines.length - 1, i + 1))}>
+        <Typewriter text={line?.text ?? '…'} onTyping={setTyping} showCursor={idx < lines.length - 1} />
+        {lines.length > 1 && (
+          <span className="stage-page">
+            {idx + 1}/{lines.length}
+          </span>
+        )}
+      </DialogueBox>
+    </Stage>
+  );
+}
+
 export function Main({ game }: { game: GameState }) {
   const [tab, setTab] = useState<Tab>('research');
-  const lab = getLab(pack, game.labId);
-  const mental = mentalState(pack, game);
-  const mood = mental === '번아웃' ? 'tired' : mental === '피로' ? 'tired' : game.stats.stress < 30 ? 'happy' : 'normal';
-  const latest = game.log.at(-1);
-
   return (
     <div className="game-screen">
       <Hud game={game} />
       <div className="game-body">
         <Planner game={game} />
         <div className="center-col">
-          <div className={`scene-bg ${mental === '번아웃' ? 'night' : ''}`}>
-            <div className="scene-label">{lab?.name} · 연구실</div>
-            <div className="scene-chars">
-              <PixelSprite kind="player" mood={mood} size={128} />
-            </div>
-            <div className="dialogue-box">
-              <span className="nameplate">{game.player.name}</span>
-              <p>{latest?.text ?? '...'}</p>
-            </div>
-          </div>
+          <LabStage game={game} />
           <Panel className="tabs-panel">
             <nav className="tabs">
               {(

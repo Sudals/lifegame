@@ -221,3 +221,35 @@ input[type='checkbox'], input[type='radio'] { width: auto; accent-color: var(--a
   .title-screen, .contact-screen, .game-body { grid-template-columns: 1fr; }
   .hud { grid-template-columns: 1fr; grid-template-areas: 'date' 'stats' 'sub' 'deadlines' 'actions'; position: static; }
 }
+
+/* ───────── 도트 UI 프레임 (art/fx.ts 에서 생성한 9-slice) ───────── */
+.panel, .btn.primary, .topic-card, .lab-card, .card-btn, .paper, .idea-btn, .toast { image-rendering: pixelated; }
+.panel { border: 8px solid transparent; border-image: url(/art/ui-panel.png) 8 fill stretch; box-shadow: none; background: none; padding: 6px 8px; }
+.btn.primary { border: 8px solid transparent; border-image: url(/art/ui-button.png) 8 fill stretch; background: none; box-shadow: none; padding: 1px 10px; }
+.btn.primary:active:not(:disabled) { transform: translateY(2px); }
+.topic-card { border: 8px solid transparent; border-image: url(/art/ui-paper.png) 8 fill stretch; background: none; box-shadow: none; padding: 2px 4px; }
+.topic-card:hover { transform: translateY(-2px); }
+.toast { border: 8px solid transparent; border-image: url(/art/ui-dialog.png) 8 fill stretch; background: none; }
+h1, h2, h3, .btn.primary, .stage-name, strong { font-family: 'Galmuri11 Bold', 'Galmuri11', sans-serif; }
+
+.stage-outer { border: 3px solid var(--line); box-shadow: 0 4px 0 #0b0b1a; }
+.lab-detail .stage-outer, .form-panel .stage-outer { margin-bottom: 10px; }
+.stat-wrap { position: relative; display: flex; align-items: center; gap: 4px; }
+.hud-sub span { display: inline-flex; align-items: center; gap: 3px; }
+
+/* 타이틀 */
+.title-screen { display: block; max-width: 1100px; margin: 0 auto; padding: 16px; min-height: auto; }
+.title-logo { position: absolute; left: 20px; top: 24px; z-index: 20; padding: 4px 10px 6px; border: 8px solid transparent; border-image: url(/art/ui-dialog.png) 8 fill stretch; image-rendering: pixelated; animation: char-up 0.4s steps(4); }
+.title-logo h1 { font-size: 24px; line-height: 30px; margin: 0; color: #ffd166; text-shadow: 2px 2px 0 #8a2639; }
+.title-logo .subtitle { margin: 0 0 2px; font-size: 12px; color: #b59bd6; }
+.title-card { margin-top: 14px; }
+.title-card h1 { display: none; }
+
+/* 컷신 */
+.cutscene-backdrop { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: #0b0b1acc; animation: fade-in 0.2s steps(3); }
+.cutscene { width: min(1280px, 100%); }
+@keyframes fade-in { from { opacity: 0; } }
+
+/* 엔딩 등급 도장 */
+.grade.slam { animation: grade-slam 0.5s steps(5) 0.4s both; }
+@keyframes grade-slam { from { transform: scale(3) rotate(-20deg); opacity: 0; } }
