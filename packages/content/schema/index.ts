@@ -101,7 +101,7 @@ export const FlagDef = z.object({
   id: z.string(),
   name: z.string(),
   monthly: z.number().int().default(0), // +수입 / -지출 (원/월)
-  weeklyHours: z.number().default(0), // 주당 고정 시간
+  weeklyHours: z.number().default(0), // 주당 고정 시간 (음수면 업무 면제로 시간이 생긴다)
   weekly: Effects.default({}), // 매주 효과
   efficiency: z.number().positive().default(1), // 연구 효율 배수
   hidden: z.boolean().default(false),
@@ -115,7 +115,7 @@ const Schedule = z.object({ eventId: z.string(), weeks: z.number().int().positiv
 export const Outcome = z.object({
   p: z.number().positive().default(1), // 가중치
   luck: z.boolean().default(false), // true면 운이 높을수록 이 결과 확률↑
-  skill: z.enum(['research', 'network', 'trust']).optional(), // 해당 수치가 높을수록 확률↑
+  skill: z.enum(['research', 'network', 'trust', 'humanity']).optional(), // 해당 수치(humanity=연구실 인간성)가 높을수록 확률↑
   tone: z.enum(['good', 'bad', 'info']).optional(),
   effects: Effects.default({}),
   result: z.string(),
@@ -216,6 +216,30 @@ export const Career = z.object({
 });
 export type Career = z.infer<typeof Career>;
 
+/** 컨택 메일·면접: 선택지 값 = value + research×연구력 + industry×(연구실 산학 등급−3) */
+const ContactOption = z.object({ label: z.string(), value: z.number(), research: z.number().optional(), industry: z.number().optional() });
+export type ContactOption = z.infer<typeof ContactOption>;
+export const Contact = z.object({
+  mail: z.array(z.object({ id: z.string(), label: z.string(), options: z.array(ContactOption).min(2) })).min(1),
+  /** 답장 없는 연구실에 한 번 보내는 리마인드 메일 확률 */
+  followUp: z.object({ base: z.number(), luck: z.number(), research: z.number(), cut: z.number(), max: z.number() }),
+  /** 면접 질문 풀: fields가 있으면 그 분야 연구실에서만 나온다. 첫 선택지가 모범 답안(화면에선 섞어서 보여준다) */
+  interview: z.array(z.object({ id: z.string(), q: z.string(), fields: z.array(z.string()).optional(), options: z.array(ContactOption).min(2) })).min(3),
+});
+export type Contact = z.infer<typeof Contact>;
+
+/** 주간 플래너의 상담 종류 */
+export const CounselingOption = z.object({
+  id: z.string(),
+  name: z.string(),
+  hours: z.number().positive(),
+  cost: z.number().int().nonnegative(),
+  effects: Effects,
+  note: z.string(),
+  result: z.string(),
+});
+export type CounselingOption = z.infer<typeof CounselingOption>;
+
 export const Landing = z.object({
   /** 높은 순서. 점수(0~100)가 min 이상이면 해당 단계 — 마지막이 가장 낮은 단계 */
   tiers: z.array(z.object({ min: z.number(), label: z.string() })).length(5),
@@ -276,9 +300,6 @@ export const Balance = z.object({
   projectStipendPerStar: z.number(),
   livingCostPerMonth: z.number(),
   startMoney: z.number(),
-  counselingCost: z.number(),
-  counselingHours: z.number(),
-  counselingStressRelief: z.number(),
   counselingMinSleep: z.number(), // 이보다 적게 자면 상담 효과가 줄어든다
   counselingPoorSleepFactor: z.number(),
   stressPerWeek: z.number(),
@@ -334,6 +355,11 @@ export const Balance = z.object({
   moneyScoreMin: z.number(),
   moneyScoreMax: z.number(),
   landingScoreScale: z.number(), // (안착도-50) × 이 값 = 정착 점수
+  /** 번아웃 휴학 후 회복치: 한 달 휴학 / 2주 병가 */
+  leaveStress: z.number(),
+  leaveStamina: z.number(),
+  sickLeaveStress: z.number(),
+  sickLeaveStamina: z.number(),
 });
 export type Balance = z.infer<typeof Balance>;
 
@@ -350,6 +376,8 @@ export const ContentPack = z.object({
   shop: z.array(ShopItem),
   activities: z.array(Activity),
   landing: Landing,
+  contact: Contact,
+  counseling: z.array(CounselingOption).min(1),
   balance: Balance,
 });
 export type ContentPack = z.infer<typeof ContentPack>;
@@ -413,6 +441,9 @@ export function checkIntegrity(pack: ContentPack): string[] {
     for (const f of [...a.requireFlags, ...a.notFlags]) if (!flagIds.has(f)) errors.push(`activity ${a.id}: 없는 플래그 "${f}"`);
   }
   for (const c of pack.careers) if (!Object.keys(c.landing.weights).length) errors.push(`career ${c.id}: 안착도 가중치 없음`);
+  dup('interview', pack.contact.interview.map((q) => q.id));
+  dup('counseling', pack.counseling.map((c) => c.id));
+  for (const q of pack.contact.interview) for (const f of q.fields ?? []) if (!fields.has(f)) errors.push(`interview ${q.id}: 없는 분야 "${f}"`);
   for (const v of [...pack.venues, ...pack.journals]) {
     for (const f of v.fields) if (!fields.has(f)) errors.push(`${v.id}: 주제 카드가 없는 분야 "${f}"`);
   }

@@ -47,6 +47,7 @@ export function inboxDirection(pack: ContentPack, g: GameState, item: InboxItem)
       const mood = (e.mood as Expression | undefined) ?? 'normal';
       if (e.speaker === '교수') return { scene, speaker: prof, name: lab?.professor ?? '교수님', mood, withPlayer: true };
       if (e.speaker === '선배') return { scene, speaker: 'senior', name: '선배', mood, withPlayer: true };
+      if (e.speaker === '상담 선생님') return { scene, speaker: 'counselor', name: '상담 선생님', mood, withPlayer: true };
       if (e.id === 'reviewer-invite') return { scene, speaker: 'reviewer', name: '리뷰어 2', mood, withPlayer: true };
       return { scene, mood, ...me };
     }
@@ -54,7 +55,6 @@ export function inboxDirection(pack: ContentPack, g: GameState, item: InboxItem)
       return { scene: 'lab-night', speaker: 'reviewer', name: 'Reviewer 2', mood: 'angry', withPlayer: true };
     case 'experiment-fail':
       return { scene: 'lab-night', mood: 'frustrated', ...me };
-    case 'counseling':
     case 'leave':
       return { scene: 'counseling', speaker: 'counselor', name: '상담 선생님', mood: 'happy', withPlayer: true };
     case 'loan':

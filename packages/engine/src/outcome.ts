@@ -51,11 +51,12 @@ export function borrowMoney(pack: ContentPack, s: GameState, amount: number): nu
   return got;
 }
 
-function outcomeWeight(s: GameState, o: Outcome): number {
+function outcomeWeight(pack: ContentPack, s: GameState, o: Outcome): number {
   let w = o.p;
   if (o.luck) w *= s.stats.luck / 50; // 1 = 평균
   if (o.skill) {
-    const v = o.skill === 'research' ? s.stats.research : o.skill === 'network' ? s.hidden.network * 2 : s.hidden.trust;
+    const humanity = (pack.labs.find((l) => l.id === s.labId)?.humanity ?? 3) * 20;
+    const v = o.skill === 'research' ? s.stats.research : o.skill === 'network' ? s.hidden.network * 2 : o.skill === 'humanity' ? humanity : s.hidden.trust;
     w *= Math.max(0.2, v / 50);
   }
   return w;
@@ -74,7 +75,7 @@ export function applyChoice(pack: ContentPack, s: GameState, c: ChoiceLike, rng:
     if (got < c.borrow) result += got > 0 ? ` (대출 한도 때문에 ${got.toLocaleString()}원만 받았다)` : ' (대출 한도를 다 써서 받지 못했다)';
   }
   if (c.outcomes?.length) {
-    const o = rng.weighted(c.outcomes, (x) => outcomeWeight(s, x));
+    const o = rng.weighted(c.outcomes, (x) => outcomeWeight(pack, s, x));
     applyAll(pack, s, o.effects);
     for (const f of o.setFlags) turnOnFlag(pack, s, f.id, f.weeks);
     for (const f of o.clearFlags) turnOffFlag(s, f);

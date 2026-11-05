@@ -1,9 +1,9 @@
-import type { ContentPack } from '@grad-sim/content';
-import { eventText, rollEvent } from './events';
+import type { Contact, ContactOption, ContentPack, Lab } from '@grad-sim/content';
+import { eventText, pushEvent, rollEvent } from './events';
 import { runActivities } from './activities';
 import { doBorrow, doBuy, doRepay, monthlyInterest, suggestedLoan } from './economy';
 import { activeFlags, applyFlagWeekly, expireFlags, flagMonthly, hasFlag } from './flags';
-import { applyChoice, borrowMoney, RELATIONSHIP_FLAG, turnOffFlag } from './outcome';
+import { applyChoice, borrowMoney, RELATIONSHIP_FLAG, turnOffFlag, turnOnFlag } from './outcome';
 import {
   addEventPaper,
   createThesis,
@@ -16,9 +16,9 @@ import {
   resolveExperimentFail,
 } from './research';
 import { attendCost, findVenue, queueRebuttals, rebuttalChoices, resolveRebuttal, resolveReviews, submitPaper } from './review';
-import { Rng } from './rng';
+import { hashString, Rng } from './rng';
 import { acceptedCount, careerOffers, computeEnding } from './scoring';
-import { applyEffects, checkPlan, getLab, normalizePlan } from './stats';
+import { applyEffects, checkPlan, counselingOption, getLab, normalizePlan } from './stats';
 import { fillTemplate } from './text';
 import {
   clamp,
@@ -121,41 +121,42 @@ function act(state: GameState, fn: (s: GameState, rng: Rng) => void): GameState 
 
 // ───────────────────────── 컨택 & 면접 ─────────────────────────
 
-export const MAIL_PARTS = {
-  interest: [
-    { label: '교수님 최근 논문을 구체적으로 언급한다', value: 0.2 },
-    { label: '연구실 분야 전반에 관심을 표현한다', value: 0.05 },
-    { label: '"어떤 연구든 열심히 하겠습니다"', value: -0.15 },
-  ],
-  pitch: [
-    { label: '구현 프로젝트와 깃허브를 첨부한다', value: 0.1 },
-    { label: '학부 성적과 수상 경력을 강조한다', value: 0.05 },
-    { label: '열정과 성실함을 어필한다', value: 0 },
-  ],
-  question: [
-    { label: '학부 연구생 인턴이 가능한지 묻는다', value: 0.1 },
-    { label: '인건비가 얼마인지 먼저 묻는다', value: -0.1 },
-    { label: '평균 졸업 기간을 묻는다', value: -0.05 },
-  ],
-} as const;
+/** 메일 초안: 항목 id → 선택지 번호 (content/contact.json). 빠진 항목은 0번 */
+export type MailDraft = Record<string, number>;
 
-export interface MailDraft {
-  interest: number;
-  pitch: number;
-  question: number;
+function optionValue(o: ContactOption | undefined, state: GameState, lab: Lab): number {
+  if (!o) return 0;
+  return o.value + (o.research ?? 0) * state.stats.research + (o.industry ?? 0) * (lab.industry - 3);
 }
 
 export function contactProbability(pack: ContentPack, state: GameState, labId: string, mail: MailDraft): number {
   const lab = getLab(pack, labId);
   if (!lab) return 0;
-  const v =
-    0.55 +
-    (MAIL_PARTS.interest[mail.interest]?.value ?? 0) +
-    (MAIL_PARTS.pitch[mail.pitch]?.value ?? 0) +
-    (mail.pitch === 0 ? state.stats.research / 300 : 0) +
-    (MAIL_PARTS.question[mail.question]?.value ?? 0) -
-    lab.admissionCut / 200;
-  return clamp(v, 0.05, 0.95);
+  const parts = pack.contact.mail.reduce((sum, part) => sum + optionValue(part.options[mail[part.id] ?? 0], state, lab), 0);
+  return clamp(0.5 + parts - lab.admissionCut / 200, 0.05, 0.95);
+}
+
+/** 답장 없는 연구실에 한 번 보내는 리마인드 메일 */
+export function followUpProbability(pack: ContentPack, state: GameState, labId: string): number {
+  const lab = getLab(pack, labId);
+  if (!lab) return 0;
+  const f = pack.contact.followUp;
+  return clamp(f.base + f.luck * state.stats.luck + f.research * state.stats.research - f.cut * lab.admissionCut, 0.03, f.max);
+}
+
+export function followUp(pack: ContentPack, state: GameState, labId: string): GameState {
+  return act(state, (s, rng) => {
+    const c = s.contacts.find((x) => x.labId === labId);
+    const lab = getLab(pack, labId);
+    if (s.phase !== 'contact' || !c || !lab || c.replied || c.followedUp) throw new Error('리마인드 메일을 보낼 수 없습니다.');
+    c.followedUp = true;
+    c.replied = rng.chance(followUpProbability(pack, s, labId));
+    log(
+      s,
+      c.replied ? `"메일을 늦게 봤네요, 미안해요." ${lab.professor}님이 면접을 보자고 하신다!` : `리마인드 메일에도 ${lab.professor}님은 답이 없다. 인연이 아닌가 보다.`,
+      c.replied ? 'good' : 'bad',
+    );
+  });
 }
 
 export function contactLab(pack: ContentPack, state: GameState, labId: string, mail: MailDraft): GameState {
@@ -171,39 +172,25 @@ export function contactLab(pack: ContentPack, state: GameState, labId: string, m
   });
 }
 
-export const INTERVIEW_QUESTIONS = [
-  {
-    q: '"우리 연구실에서 어떤 연구를 하고 싶나요?"',
-    options: [
-      { label: '연구실 최근 논문의 한계를 짚고 개선 방향을 말한다', value: 12 },
-      { label: '요즘 핫한 키워드를 나열한다', value: 4 },
-      { label: '"아직 잘 모르지만 배우고 싶습니다"', value: 0 },
-    ],
-  },
-  {
-    q: '"트랜스포머의 어텐션 복잡도를 줄이는 방법을 아나요?"',
-    options: [
-      { label: '선형 어텐션·희소 어텐션을 비교해 설명한다', value: 10 },
-      { label: '"GPU를 더 쓰면 됩니다"', value: -4 },
-      { label: '모르는 부분은 솔직히 인정하고 추론해본다', value: 6 },
-    ],
-  },
-  {
-    q: '"힘든 시기가 오면 어떻게 버틸 건가요?"',
-    options: [
-      { label: '운동·수면 루틴과 도움 요청 방법을 말한다', value: 8 },
-      { label: '"밤새는 건 자신 있습니다!"', value: 2 },
-      { label: '"버티는 건 잘 못하지만 노력하겠습니다"', value: 3 },
-    ],
-  },
-] as const;
+/** 연구실마다 면접 질문 3개: 분야 질문 1개(있으면) + 공통 질문. 같은 회차·연구실이면 항상 같다 */
+export function interviewQuestions(pack: ContentPack, state: GameState, labId: string): Contact['interview'] {
+  const lab = getLab(pack, labId);
+  const pool = pack.contact.interview;
+  const h = (k: string) => hashString(`${state.seed}:${labId}:${k}`);
+  const byHash = <T extends { id: string }>(xs: T[]) => [...xs].sort((a, b) => h(a.id) - h(b.id));
+  const fieldQs = byHash(pool.filter((q) => q.fields?.some((f) => lab?.fields.includes(f))));
+  const general = byHash(pool.filter((q) => !q.fields));
+  const picked = [...fieldQs.slice(0, 1), ...general].slice(0, 3);
+  // 첫 질문은 늘 "어떤 연구를 하고 싶나요?" 류가 자연스럽다
+  return picked.sort((a, b) => (a.id === 'plan' ? -1 : b.id === 'plan' ? 1 : 0));
+}
 
 export function interview(pack: ContentPack, state: GameState, labId: string, answers: number[]): GameState {
   return act(state, (s, rng) => {
     const c = s.contacts.find((x) => x.labId === labId);
     const lab = getLab(pack, labId);
     if (!c || !lab || !c.replied || c.interviewed) throw new Error('면접 대상이 아닙니다.');
-    const answerScore = INTERVIEW_QUESTIONS.reduce((sum, q, i) => sum + (q.options[answers[i] ?? -1]?.value ?? 0), 0);
+    const answerScore = interviewQuestions(pack, s, labId).reduce((sum, q, i) => sum + optionValue(q.options[answers[i] ?? -1], s, lab), 0);
     const score = s.stats.research + answerScore + s.stats.luck / 10 + rng.normal(0, 6);
     c.interviewed = true;
     c.admitted = score >= lab.admissionCut;
@@ -299,10 +286,11 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
     dStamina += food.stamina;
     dStress += food.stress;
     if (lab.style === 'micro') dStress += 1.5;
-    if (plan.counseling) {
+    const counsel = plan.counseling ? counselingOption(pack, plan.counselingId) : null;
+    if (counsel) {
       // 잠을 못 자면 상담만으로는 회복이 더디다
-      dStress -= b.counselingStressRelief * (sleep < b.counselingMinSleep ? b.counselingPoorSleepFactor : 1);
-      st.money -= b.counselingCost;
+      dStress += (counsel.effects.stress ?? 0) * (sleep < b.counselingMinSleep ? b.counselingPoorSleepFactor : 1);
+      st.money -= counsel.cost;
     }
 
     // 생활시간(식사·이동)을 줄이면 체력·스트레스, 늘리면 여유
@@ -328,6 +316,11 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
     const dResearch = plan.study * b.researchPerStudyHour + plan.research * b.researchPerResearchHour + labMeeting + forced.project * 0.004;
 
     applyEffects(s, { stamina: dStamina, stress: dStress, research: dResearch });
+    if (counsel) {
+      const { stress: _stress, ...rest } = counsel.effects;
+      applyEffects(s, rest);
+      log(s, `[${counsel.name}] ${counsel.result}${counsel.cost ? ` (-${counsel.cost.toLocaleString()}원)` : ''}`, 'good');
+    }
     applyFlagWeekly(pack, s);
     runActivities(pack, s, plan.activities, rng);
     updateRelationship(pack, s);
@@ -397,7 +390,7 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
     h.maxStressWeeks = st.stress >= 100 ? h.maxStressWeeks + 1 : 0;
     if (h.highStressWeeks >= b.counselingAlertWeeks && s.week - h.lastCounselingAlert >= 8) {
       h.lastCounselingAlert = s.week;
-      s.inbox.push({ kind: 'counseling' });
+      pushEvent(pack, s, 'counseling-alert', rng);
     }
 
     h.stressSum += st.stress;
@@ -440,17 +433,20 @@ function updateRelationship(pack: ContentPack, s: GameState): void {
 }
 
 export const LEAVE_WEEKS = 4;
+export const SICK_LEAVE_WEEKS = 2;
 export const MAX_LEAVES = 2;
 
-/** 휴학(한 달): 시간은 흐르고 월급은 없지만 몸과 마음이 회복된다 */
-function takeLeave(pack: ContentPack, s: GameState): void {
+/** 휴학(한 달) / 병가(2주): 시간은 흐르고 월급은 없지만 몸과 마음이 회복된다 */
+function takeLeave(pack: ContentPack, s: GameState, weeks = LEAVE_WEEKS): void {
+  const b = pack.balance;
   const from = s.week;
-  s.week += LEAVE_WEEKS;
+  const full = weeks >= LEAVE_WEEKS;
+  s.week += weeks;
   s.hidden.leaveTaken += 1;
-  s.stats.stress = 30;
-  s.stats.stamina = 85;
+  s.stats.stress = full ? b.leaveStress : b.sickLeaveStress;
+  s.stats.stamina = full ? b.leaveStamina : b.sickLeaveStamina;
   s.hidden.sleepDebt = 0;
-  s.stats.money -= pack.balance.livingCostPerMonth;
+  s.stats.money -= Math.round((b.livingCostPerMonth * weeks) / LEAVE_WEEKS);
   // 휴학 중 발표된 심사 결과는 복학 주에 확인
   for (const p of s.papers) if (p.stage === 'review' && p.resultWeek !== undefined && p.resultWeek < s.week) p.resultWeek = s.week;
   for (let w = from; w < s.week; w++) {
@@ -462,7 +458,7 @@ function takeLeave(pack: ContentPack, s: GameState): void {
     }
   }
   if (s.week >= s.semesterDeadlineWeek - 16) createThesis(s);
-  log(s, `한 달간 휴학했다. 늦잠과 산책, 그리고 엄마 밥. 다시 해볼 힘이 생겼다.`, 'good');
+  log(s, full ? '한 달간 휴학했다. 늦잠과 산책, 그리고 엄마 밥. 다시 해볼 힘이 생겼다.' : '2주 병가를 냈다. 휴대폰을 끄고 잠만 잤다. 조금 살 것 같다.', 'good');
 }
 
 export interface GraduationCheck {
@@ -572,16 +568,6 @@ export function describeInbox(pack: ContentPack, state: GameState, item: InboxIt
       const p = state.papers.find((x) => x.id === item.paperId)!;
       return { title: '실험 실패', text: `「${p.title}」 베이스라인을 못 넘었다. 어떻게 할까?`, choices: experimentFailChoices() };
     }
-    case 'counseling':
-      return {
-        title: '마음 건강 알림',
-        speaker: '학생상담센터',
-        text: '스트레스가 높은 상태가 몇 주째 이어지고 있어요. 상담을 받아보는 건 어떨까요? 도움을 받는 것도 연구를 잘하는 방법 중 하나예요.',
-        choices: [
-          { label: '상담을 예약한다', hint: `스트레스 크게↓ (${pack.balance.counselingCost.toLocaleString()}원)` },
-          { label: '조금 더 지켜본다', hint: '주간 계획에서 언제든 상담을 켤 수 있어요' },
-        ],
-      };
     case 'notice':
       return { title: item.title, text: item.text, choices: [{ label: '확인' }] };
     case 'loan':
@@ -598,9 +584,11 @@ export function describeInbox(pack: ContentPack, state: GameState, item: InboxIt
       return {
         title: '번아웃',
         speaker: '학생상담센터',
-        text: '몇 주째 한계 상태예요. 잠시 멈추는 것도 용기예요. 한 달 휴학하고 회복한 뒤 돌아오는 건 어떨까요?',
+        text: '몇 주째 한계 상태예요. 잠시 멈추는 것도 용기예요. 휴학이나 병가로 회복하고 돌아오는 건 어떨까요?',
         choices: [
-          { label: '한 달 휴학한다', hint: `스트레스·체력 회복, ${LEAVE_WEEKS}주 경과, 월급 없음` },
+          { label: '한 달 휴학한다', hint: `스트레스·체력 크게 회복, ${LEAVE_WEEKS}주 경과, 월급 없음` },
+          { label: '2주 병가를 낸다', hint: `절반쯤 회복, ${SICK_LEAVE_WEEKS}주 경과 · 휴학 횟수에 포함` },
+          { label: '교수님과 면담해 업무를 줄인다', hint: '스트레스↓ · 6주간 업무 조정(주 4시간 면제) · 교수 신뢰↓' },
           { label: '그래도 버틴다', hint: '스트레스 소폭↓ — 다시 한계에 오면 휴학을 권유받는다' },
           { label: '학교를 그만둔다', hint: '중도 포기 엔딩' },
         ],
@@ -633,12 +621,6 @@ export function resolveInbox(pack: ContentPack, state: GameState, choice: number
       case 'experiment-fail':
         resolveExperimentFail(s, item.paperId, choice);
         break;
-      case 'counseling':
-        if (choice === 0) {
-          applyEffects(s, { stress: -18, money: -pack.balance.counselingCost });
-          log(s, '상담 선생님과 이야기를 나눴다. 마음이 한결 가벼워졌다.', 'good');
-        }
-        break;
       case 'notice':
         break;
       case 'loan':
@@ -648,11 +630,14 @@ export function resolveInbox(pack: ContentPack, state: GameState, choice: number
         } else log(s, '대출 없이 버텨보기로 했다. 알바 공고를 뒤적인다.', 'info');
         break;
       case 'leave':
-        if (choice === 0) {
-          takeLeave(pack, s);
+        if (choice === 0 || choice === 1) {
+          takeLeave(pack, s, choice === 0 ? LEAVE_WEEKS : SICK_LEAVE_WEEKS);
           if (s.week >= s.semesterDeadlineWeek) graduationReview(pack, s);
-        }
-        else if (choice === 1) {
+        } else if (choice === 2) {
+          applyEffects(s, { stress: -20, trust: -3 });
+          turnOnFlag(pack, s, 'light-duty', 6);
+          log(s, '"그동안 많이 무리했네요." 6주간 과제와 잡무를 줄여주시기로 했다.', 'good');
+        } else if (choice === 3) {
           applyEffects(s, { stress: -10 });
           log(s, '이를 악물었다. 주간 플래너에서 상담과 휴식을 꼭 챙기자.', 'info');
         } else {

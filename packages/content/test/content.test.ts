@@ -24,6 +24,15 @@ describe('AI 콘텐츠 팩', () => {
     for (const id of ['proposal-nrf', 'proposal-industry', 'proposal-ict', 'annual-report', 'contest-notice', 'short-gig']) expect(aiPack.events.some((e) => e.id === id)).toBe(true);
     expect(aiPack.flags.filter((f) => f.grant).length).toBeGreaterThanOrEqual(3);
   });
+  it('컨택·상담 선택지 볼륨', () => {
+    expect(aiPack.contact.mail.length).toBeGreaterThanOrEqual(5);
+    for (const part of aiPack.contact.mail) expect(part.options.length).toBeGreaterThanOrEqual(4);
+    expect(aiPack.contact.interview.length).toBeGreaterThanOrEqual(12);
+    for (const q of aiPack.contact.interview) expect(q.options.length).toBeGreaterThanOrEqual(4);
+    expect(aiPack.counseling.length).toBeGreaterThanOrEqual(6);
+    expect(aiPack.events.find((e) => e.id === 'counseling-alert')!.choices.length).toBeGreaterThanOrEqual(7);
+    expect(aiPack.flags.some((f) => f.id === 'light-duty')).toBe(true); // 번아웃 업무 조정 (엔진에서 사용)
+  });
   it('모든 연구실 분야에 주제 카드가 3장 이상 있다', () => {
     for (const lab of aiPack.labs)
       for (const f of lab.fields) expect(aiPack.topics.filter((t) => t.field === f).length).toBeGreaterThanOrEqual(3);

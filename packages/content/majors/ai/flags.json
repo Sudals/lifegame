@@ -37,6 +37,10 @@
   { "id": "plant", "name": "책상 화분", "weekly": { "stress": -0.3 } },
   { "id": "console", "name": "게임기", "weekly": { "stress": -0.8 }, "efficiency": 0.98 },
 
+  { "id": "therapy", "name": "정기 상담", "weeklyHours": 2, "weekly": { "stress": -2 } },
+  { "id": "light-duty", "name": "업무 조정", "weeklyHours": -4, "weekly": { "stress": -1.5 } },
+  { "id": "meditation", "name": "명상 습관", "weekly": { "stress": -0.8 } },
+
   { "id": "dating", "name": "썸", "hidden": true },
   { "id": "intern-applied", "name": "인턴 지원", "hidden": true },
   { "id": "intern-done", "name": "빅테크 인턴 경력", "weekly": { "network": 0.05 } },

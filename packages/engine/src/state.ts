@@ -1,6 +1,6 @@
 import type { RngState } from './rng';
 
-export const GAME_VERSION = '0.3.0';
+export const GAME_VERSION = '0.3.1';
 
 export type Background = 'cs' | 'math' | 'ee' | 'other';
 export type StartTerm = 3 | 9;
@@ -80,7 +80,6 @@ export type InboxItem =
   | { kind: 'event'; eventId: string; variant?: number; vars?: Record<string, string> }
   | { kind: 'rebuttal'; paperId: string; scores: number[] }
   | { kind: 'experiment-fail'; paperId: string }
-  | { kind: 'counseling' }
   | { kind: 'leave' }
   | { kind: 'loan'; amount: number }
   | { kind: 'notice'; title: string; text: string };
@@ -96,6 +95,7 @@ export interface ContactRecord {
   replied: boolean;
   interviewed: boolean;
   admitted: boolean;
+  followedUp?: boolean; // 리마인드 메일을 보냈는가
 }
 
 export interface WeeklyPlan {
@@ -111,6 +111,7 @@ export interface WeeklyPlan {
   projectRatio: number; // 과제 시간 배율 0.5~1.5
   choreRatio: number; // 잡무 처리 비율 0~1
   counseling: boolean;
+  counselingId: string; // 상담 종류 (content/counseling.json)
   attendConferenceId: string | null; // 개최 중 학회 참석
   food: number; // 식비 수준 0 절약 · 1 보통 · 2 여유
   activities: string[]; // 이번 주 활동 id
@@ -181,7 +182,7 @@ export interface GameState {
 
 export const PERMANENT = 1_000_000;
 
-export const PLAN_DEFAULTS: Pick<WeeklyPlan, 'secondFocusPaperId' | 'split' | 'living' | 'projectRatio' | 'choreRatio' | 'food' | 'activities'> = Object.freeze({
+export const PLAN_DEFAULTS: Pick<WeeklyPlan, 'secondFocusPaperId' | 'split' | 'living' | 'projectRatio' | 'choreRatio' | 'food' | 'activities' | 'counselingId'> = Object.freeze({
   secondFocusPaperId: null,
   split: 0.5,
   living: 28,
@@ -189,6 +190,7 @@ export const PLAN_DEFAULTS: Pick<WeeklyPlan, 'secondFocusPaperId' | 'split' | 'l
   choreRatio: 1,
   food: 1,
   activities: Object.freeze([]) as unknown as string[],
+  counselingId: 'clinic',
 });
 
 /** v0.3에서 이름이 바뀐 id */
@@ -215,6 +217,8 @@ export function migrate(state: GameState): GameState {
   if (s.labId && RENAMED_LABS[s.labId]) s.labId = RENAMED_LABS[s.labId]!;
   for (const c of s.contacts) c.labId = RENAMED_LABS[c.labId] ?? c.labId;
   for (const p of s.papers) p.topicId = RENAMED_TOPICS[p.topicId] ?? p.topicId;
+  // v0.3.0: 상담 권유는 이제 선택지가 많은 이벤트
+  s.inbox = s.inbox.map((i) => ((i as { kind: string }).kind === 'counseling' ? { kind: 'event', eventId: 'counseling-alert', variant: 0, vars: {} } : i));
   if (s.ideaCandidates) s.ideaCandidates.topicIds = s.ideaCandidates.topicIds.map((t) => RENAMED_TOPICS[t] ?? t);
   if (s.lastPlan) s.lastPlan = { ...PLAN_DEFAULTS, ...s.lastPlan, activities: s.lastPlan.activities ?? [] };
   s.version = GAME_VERSION;

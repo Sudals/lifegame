@@ -10,9 +10,6 @@
   "projectStipendPerStar": 50000,
   "livingCostPerMonth": 500000,
   "startMoney": 3000000,
-  "counselingCost": 50000,
-  "counselingHours": 3,
-  "counselingStressRelief": 12,
   "stressPerWeek": 3,
   "stressDeadline": 4,
   "stressPerChoreHour": 0.4,
@@ -102,5 +99,9 @@
   "moneyScoreMax": 60,
   "landingScoreScale": 1.6,
   "counselingMinSleep": 6,
-  "counselingPoorSleepFactor": 0.5
+  "counselingPoorSleepFactor": 0.5,
+  "leaveStress": 30,
+  "leaveStamina": 85,
+  "sickLeaveStress": 45,
+  "sickLeaveStamina": 75
 }

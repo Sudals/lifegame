@@ -45,9 +45,9 @@ function Cutscene({ game, item, rest, onAfter }: { game: GameState; item: InboxI
         {rest > 0 && <span className="stage-page">+{rest}</span>}
       </DialogueBox>
       {ready && (
-        <div className="stage-choices">
+        <div className={`stage-choices ${view.choices.length > 4 ? 'many' : ''}`}>
           {view.choices.map((c, i) => (
-            <button key={c.label} className="stage-choice" disabled={c.disabled} style={{ animationDelay: `${i * 0.06}s` }} onClick={() => choose(i)}>
+            <button key={c.label} className="stage-choice" disabled={c.disabled} title={c.hint} style={{ animationDelay: `${i * 0.06}s` }} onClick={() => choose(i)}>
               ▸ {c.label}
               {c.hint && <small>{c.hint}</small>}
             </button>

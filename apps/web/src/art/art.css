@@ -118,3 +118,7 @@
 .stage-choice { transition: transform 0.08s steps(2); }
 .stage-choice:hover, .stage-choice:focus-visible { transform: translateX(-4px); }
 .stage-choice:active { transform: translateX(-4px) translateY(1px); }
+/* 선택지가 많을 때(5개+): 대화창을 가리지 않게 한 줄 힌트로 압축 */
+.stage-choices.many { top: 10px; right: 8px; width: 336px; gap: 2px; }
+.stage-choices.many .stage-choice { border-width: 4px; padding: 0 4px; font-size: 12px; line-height: 15px; }
+.stage-choices.many .stage-choice small { font-size: 10px; line-height: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

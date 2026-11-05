@@ -1,4 +1,4 @@
-import type { ContentPack, Effects, GpuGrade, Lab } from '@grad-sim/content';
+import type { ContentPack, CounselingOption, Effects, GpuGrade, Lab } from '@grad-sim/content';
 import { inSemester } from './time';
 import { flagEfficiency, flagHours } from './flags';
 import { activityStatus } from './activities';
@@ -10,6 +10,11 @@ export const CONFERENCE_HOURS = 20;
 export function getLab(pack: ContentPack, id: string | null): Lab | null {
   if (!id) return null;
   return pack.labs.find((l) => l.id === id) ?? null;
+}
+
+/** 플래너 상담 종류 (없는 id면 첫 번째) */
+export function counselingOption(pack: ContentPack, id: string | undefined): CounselingOption {
+  return pack.counseling.find((c) => c.id === id) ?? pack.counseling[0]!;
 }
 
 export function applyEffects(state: GameState, fx: Effects): void {
@@ -47,6 +52,7 @@ export function normalizePlan(pack: ContentPack, plan: WeeklyPlan): WeeklyPlan {
     choreRatio: clamp(p.choreRatio, 0, 1),
     split: clamp(p.split, 0.2, 0.8),
     food: clamp(Math.round(p.food ?? 1), 0, 2),
+    counselingId: counselingOption(pack, p.counselingId).id,
     activities: [...new Set((p.activities ?? []).filter((id) => pack.activities.some((a) => a.id === id)))],
   };
 }
@@ -90,7 +96,7 @@ export function checkPlan(pack: ContentPack, state: GameState, rawPlan: WeeklyPl
   const forced = forcedHours(pack, state, plan);
   const sleepHours = Math.round(plan.sleepPerDay * 7);
   const flagH = forced.extra.reduce((a, x) => a + x.hours, 0);
-  const extraHours = flagH + (plan.counseling ? pack.balance.counselingHours : 0) + (plan.attendConferenceId ? CONFERENCE_HOURS : 0);
+  const extraHours = flagH + (plan.counseling ? counselingOption(pack, plan.counselingId).hours : 0) + (plan.attendConferenceId ? CONFERENCE_HOURS : 0);
   const acts = plan.activities.map((id) => pack.activities.find((a) => a.id === id)!);
   const activityHours = acts.reduce((a, x) => a + x.hours, 0);
   const activityCost = acts.reduce((a, x) => a + x.cost, 0);

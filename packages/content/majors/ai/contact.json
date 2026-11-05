@@ -1,0 +1,164 @@
+{
+  "mail": [
+    {
+      "id": "subject", "label": "메일 제목",
+      "options": [
+        { "label": "[대학원 진학 문의] 이름 / 관심 분야 / 학부", "value": 0.05 },
+        { "label": "교수님, 연구실 진학 관련 문의드립니다", "value": 0.02 },
+        { "label": "안녕하세요!! 교수님!!", "value": -0.05 },
+        { "label": "(제목 없음)", "value": -0.12 }
+      ]
+    },
+    {
+      "id": "interest", "label": "관심 주제",
+      "options": [
+        { "label": "교수님 최근 논문을 구체적으로 언급한다", "value": 0.2 },
+        { "label": "연구실 공개 코드를 돌려보고 궁금한 점을 덧붙인다", "value": 0.1, "research": 0.002 },
+        { "label": "교수님 수업을 들었던 인연을 언급한다", "value": 0.08 },
+        { "label": "연구실 분야 전반에 관심을 표현한다", "value": 0.05 },
+        { "label": "\"어떤 연구든 열심히 하겠습니다\"", "value": -0.15 }
+      ]
+    },
+    {
+      "id": "pitch", "label": "자기 어필",
+      "options": [
+        { "label": "구현 프로젝트와 깃허브를 첨부한다", "value": 0.1, "research": 0.0033 },
+        { "label": "학부연구생 경험과 포스터 발표를 소개한다", "value": 0.08, "research": 0.0015 },
+        { "label": "산학 프로젝트·인턴 경험을 강조한다", "value": 0.02, "industry": 0.03 },
+        { "label": "학부 성적과 수상 경력을 강조한다", "value": 0.05 },
+        { "label": "열정과 성실함을 어필한다", "value": 0 }
+      ]
+    },
+    {
+      "id": "question", "label": "질문",
+      "options": [
+        { "label": "학부 연구생 인턴이 가능한지 묻는다", "value": 0.1 },
+        { "label": "면담 가능한 시간을 여쭌다", "value": 0.08 },
+        { "label": "연구실 방문(랩 투어)이 가능한지 묻는다", "value": 0.06 },
+        { "label": "평균 졸업 기간을 묻는다", "value": -0.05 },
+        { "label": "인건비가 얼마인지 먼저 묻는다", "value": -0.1 },
+        { "label": "주말 출근 여부를 묻는다", "value": -0.12 }
+      ]
+    },
+    {
+      "id": "timing", "label": "보내는 시간",
+      "options": [
+        { "label": "평일 오전 9시 (예약 발송)", "value": 0.05 },
+        { "label": "평일 오후", "value": 0.02 },
+        { "label": "금요일 밤 11시", "value": -0.03 },
+        { "label": "새벽 3시 (쓰자마자 바로)", "value": -0.06 }
+      ]
+    }
+  ],
+  "followUp": { "base": 0.2, "luck": 0.0025, "research": 0.002, "cut": 0.0025, "max": 0.5 },
+  "interview": [
+    {
+      "id": "plan", "q": "\"우리 연구실에서 어떤 연구를 하고 싶나요?\"",
+      "options": [
+        { "label": "연구실 최근 논문의 한계를 짚고 개선 방향을 말한다", "value": 12 },
+        { "label": "학부 때 했던 프로젝트와 연결해 설명한다", "value": 6, "research": 0.05 },
+        { "label": "요즘 핫한 키워드를 나열한다", "value": 4 },
+        { "label": "\"아직 잘 모르지만 배우고 싶습니다\"", "value": 0 }
+      ]
+    },
+    {
+      "id": "grit", "q": "\"힘든 시기가 오면 어떻게 버틸 건가요?\"",
+      "options": [
+        { "label": "운동·수면 루틴과 도움 요청 방법을 말한다", "value": 8 },
+        { "label": "동료들과 고민을 나누며 버틴다고 말한다", "value": 6 },
+        { "label": "\"버티는 건 잘 못하지만 노력하겠습니다\"", "value": 3 },
+        { "label": "\"밤새는 건 자신 있습니다!\"", "value": 2 }
+      ]
+    },
+    {
+      "id": "stuck", "q": "\"실험이 몇 달째 안 되면 어떻게 할 건가요?\"",
+      "options": [
+        { "label": "가설을 쪼개 작은 실험부터 다시 검증한다", "value": 10 },
+        { "label": "선행 연구 코드를 재현해 원인을 찾는다", "value": 5, "research": 0.08 },
+        { "label": "될 때까지 하이퍼파라미터를 돌린다", "value": 2 },
+        { "label": "교수님께 주제를 바꾸자고 말씀드린다", "value": 0 }
+      ]
+    },
+    {
+      "id": "career", "q": "\"졸업하고 나서는 뭘 하고 싶어요?\"",
+      "options": [
+        { "label": "구체적인 목표와 석사 동안의 계획을 말한다", "value": 8 },
+        { "label": "박사 진학까지 생각하고 있다고 말한다", "value": 6 },
+        { "label": "\"솔직히 취업이 목표입니다\"", "value": 5 },
+        { "label": "\"일단 들어와서 생각해보겠습니다\"", "value": 1 }
+      ]
+    },
+    {
+      "id": "reading", "q": "\"최근에 인상 깊게 읽은 논문이 있어요?\"",
+      "options": [
+        { "label": "핵심 기여와 한계를 요약하고 후속 아이디어를 말한다", "value": 10 },
+        { "label": "직접 재구현해본 경험을 이야기한다", "value": 4, "research": 0.1 },
+        { "label": "Abstract와 그림 위주로 읽었다고 솔직히 말한다", "value": 3 },
+        { "label": "유튜브 리뷰 영상으로 봤다고 말한다", "value": 1 }
+      ]
+    },
+    {
+      "id": "conflict", "q": "\"공동연구자와 의견이 부딪치면 어떻게 하죠?\"",
+      "options": [
+        { "label": "작은 실험으로 근거를 맞춰보자고 제안한다", "value": 8 },
+        { "label": "교수님께 판단을 부탁드린다", "value": 4 },
+        { "label": "일단 상대 의견을 따른다", "value": 3 },
+        { "label": "내 방법이 맞다고 끝까지 설득한다", "value": 0 }
+      ]
+    },
+    {
+      "id": "attention", "q": "\"트랜스포머의 어텐션 복잡도를 줄이는 방법을 아나요?\"", "fields": ["llm", "multimodal", "safety"],
+      "options": [
+        { "label": "선형 어텐션·희소 어텐션을 비교해 설명한다", "value": 10 },
+        { "label": "KV 캐시와 플래시 어텐션 같은 시스템 최적화까지 말한다", "value": 6, "research": 0.07 },
+        { "label": "모르는 부분은 솔직히 인정하고 추론해본다", "value": 6 },
+        { "label": "\"GPU를 더 쓰면 됩니다\"", "value": -4 }
+      ]
+    },
+    {
+      "id": "diffusion", "q": "\"디퓨전 모델과 GAN의 차이를 설명해볼래요?\"", "fields": ["vision", "diffusion"],
+      "options": [
+        { "label": "학습 안정성·다양성·샘플링 속도를 비교한다", "value": 10 },
+        { "label": "forward/reverse 과정을 수식으로 설명한다", "value": 5, "research": 0.08 },
+        { "label": "모르는 부분은 인정하고 직관적으로 설명한다", "value": 6 },
+        { "label": "\"디퓨전이 더 최신이라 더 좋습니다\"", "value": 1 }
+      ]
+    },
+    {
+      "id": "explore", "q": "\"강화학습에서 탐험과 활용의 균형은 어떻게 잡죠?\"", "fields": ["rl", "robotics"],
+      "options": [
+        { "label": "ε-greedy부터 엔트로피 보너스·UCB까지 비교한다", "value": 10 },
+        { "label": "시뮬레이터에서 실험해본 경험을 이야기한다", "value": 5, "research": 0.07 },
+        { "label": "모르는 부분은 인정하고 예시로 추론한다", "value": 6 },
+        { "label": "\"보상을 크게 주면 됩니다\"", "value": -2 }
+      ]
+    },
+    {
+      "id": "compress", "q": "\"모델을 가볍게 만드는 방법을 아는 대로 말해볼래요?\"", "fields": ["efficiency", "federated"],
+      "options": [
+        { "label": "양자화·가지치기·지식 증류의 장단점을 비교한다", "value": 10 },
+        { "label": "다중 출구 같은 조기 종료 기법과 실제 지연시간 측정을 말한다", "value": 5, "research": 0.08 },
+        { "label": "모르는 부분은 인정하고 직관적으로 설명한다", "value": 6 },
+        { "label": "\"작은 모델을 쓰면 됩니다\"", "value": 0 }
+      ]
+    },
+    {
+      "id": "realdata", "q": "\"현업 데이터는 벤치마크 데이터와 뭐가 다를까요?\"", "fields": ["timeseries", "xai", "recsys", "speech"],
+      "options": [
+        { "label": "결측·편향·분포 변화와 비즈니스 지표까지 이야기한다", "value": 10 },
+        { "label": "도메인 전문가와 협업해 해석 가능성을 높여야 한다고 말한다", "value": 8 },
+        { "label": "\"훨씬 지저분합니다\"", "value": 3 },
+        { "label": "\"전처리만 잘 하면 똑같습니다\"", "value": 1 }
+      ]
+    },
+    {
+      "id": "generalize", "q": "\"일반화 오차를 이론적으로 어떻게 분석할 수 있을까요?\"", "fields": ["theory", "graph", "ai4science"],
+      "options": [
+        { "label": "VC 차원·Rademacher 복잡도로 설명한다", "value": 10 },
+        { "label": "double descent 같은 최근 현상과 연결한다", "value": 5, "research": 0.07 },
+        { "label": "솔직히 모른다고 말하고 공부 계획을 밝힌다", "value": 6 },
+        { "label": "\"데이터를 늘리면 됩니다\"", "value": 1 }
+      ]
+    }
+  ]
+}

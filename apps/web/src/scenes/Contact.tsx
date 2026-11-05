@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FIELD_LABELS } from '@grad-sim/content';
 import {
   contactLab,
   contactProbability,
   enroll,
   fallbackLabId,
-  INTERVIEW_QUESTIONS,
+  followUp,
+  followUpProbability,
+  hashString,
   interview,
-  MAIL_PARTS,
+  interviewQuestions,
   MAX_CONTACTS,
   type GameState,
   type MailDraft,
@@ -22,6 +24,14 @@ import { pack, useGame } from '../store/gameStore';
 import { LogFeed } from './parts/LogFeed';
 
 const STYLE_LABEL = { handsoff: '방임형', micro: '마이크로매니징', collab: '협업형' } as const;
+
+/** 선택지 표시 순서를 회차·연구실마다 섞는다 (모범 답안이 늘 첫 줄에 있지 않게) */
+function shuffled<T>(items: readonly T[], key: string): { item: T; index: number }[] {
+  return items.map((item, index) => ({ item, index })).sort((a, b) => hashString(`${key}:${a.index}`) - hashString(`${key}:${b.index}`));
+}
+
+/** 처음 보여줄 메일 초안: 각 항목의 무난한 중간 선택지 */
+const initialDraft = (): MailDraft => Object.fromEntries(pack.contact.mail.map((p) => [p.id, Math.floor(p.options.length / 2)]));
 
 /** 컨택 무대: 자취방에서 메일 → 교수실 면접 */
 function ContactStage({ game, labId }: { game: GameState; labId: string }) {
@@ -54,8 +64,9 @@ function ContactStage({ game, labId }: { game: GameState; labId: string }) {
 export function Contact() {
   const { game, run } = useGame();
   const [labId, setLabId] = useState(pack.labs[1]!.id);
-  const [mail, setMail] = useState<MailDraft>({ interest: 1, pitch: 2, question: 2 });
+  const [mail, setMail] = useState<MailDraft>(initialDraft);
   const [answers, setAnswers] = useState<number[]>([-1, -1, -1]);
+  const questions = useMemo(() => (game ? interviewQuestions(pack, game, labId) : []), [game?.seed, labId]);
   if (!game) return null;
 
   const lab = pack.labs.find((l) => l.id === labId)!;
@@ -113,12 +124,12 @@ export function Contact() {
         {!record && left > 0 && (
           <div className="mail">
             <h3>✉ 컨택 메일 작성</h3>
-            {(Object.keys(MAIL_PARTS) as (keyof typeof MAIL_PARTS)[]).map((part) => (
-              <label key={part} className="field">
-                <span>{{ interest: '관심 주제', pitch: '자기 어필', question: '질문' }[part]}</span>
-                <select value={mail[part]} onChange={(e) => setMail({ ...mail, [part]: Number(e.target.value) })}>
-                  {MAIL_PARTS[part].map((o, i) => (
-                    <option key={o.label} value={i}>
+            {pack.contact.mail.map((part) => (
+              <label key={part.id} className="field">
+                <span>{part.label}</span>
+                <select value={mail[part.id] ?? 0} onChange={(e) => setMail({ ...mail, [part.id]: Number(e.target.value) })}>
+                  {shuffled(part.options, `${game.seed}:${part.id}`).map(({ item: o, index }) => (
+                    <option key={o.label} value={index}>
                       {o.label}
                     </option>
                   ))}
@@ -134,13 +145,26 @@ export function Contact() {
           </div>
         )}
 
+        {record && !record.replied && !record.followedUp && (
+          <div className="mail">
+            <h3>✉ 리마인드 메일</h3>
+            <p className="dim small">메일함에 묻혔을지도 모른다. 정중하게 한 번 더 보내볼까? (연구실당 1회, 컨택 기회는 쓰지 않음)</p>
+            <div className="row between">
+              <small className="dim">예상 답장 확률 약 {Math.round(followUpProbability(pack, game, labId) * 10) * 10}%</small>
+              <button className="btn" onClick={() => run((g) => followUp(pack, g, labId)) && useFx.getState().play('mail', { x: 470, y: 190 })}>
+                리마인드 보내기
+              </button>
+            </div>
+          </div>
+        )}
+
         {record?.replied && !record.interviewed && (
           <div className="interview">
             <h3>🎤 면접</h3>
-            {INTERVIEW_QUESTIONS.map((q, qi) => (
-              <fieldset key={q.q} className="field">
+            {questions.map((q, qi) => (
+              <fieldset key={q.id} className="field">
                 <legend>{q.q}</legend>
-                {q.options.map((o, oi) => (
+                {shuffled(q.options, `${game.seed}:${labId}:${q.id}`).map(({ item: o, index: oi }) => (
                   <label key={o.label} className="radio">
                     <input type="radio" name={`q${qi}`} checked={answers[qi] === oi} onChange={() => setAnswers(answers.map((a, i) => (i === qi ? oi : a)))} />
                     {o.label}

@@ -47,6 +47,13 @@ function fire(pack: ContentPack, state: GameState, e: GameEvent, rng: Rng): void
   state.inbox.push({ kind: 'event', eventId: e.id, variant: rng.int(0, variants.length - 1), vars: eventVars(pack, state, rng) });
 }
 
+/** 엔진이 직접 띄우는 이벤트 (상담 권유 등) */
+export function pushEvent(pack: ContentPack, state: GameState, eventId: string, rng: Rng): void {
+  const e = pack.events.find((x) => x.id === eventId);
+  if (!e) throw new Error(`없는 이벤트: ${eventId}`);
+  fire(pack, state, e, rng);
+}
+
 /** 예약 이벤트(분기 후속) 먼저, 그다음 조건 기반 랜덤 이벤트 (주당 최대 1개) */
 export function rollEvent(pack: ContentPack, state: GameState, rng: Rng): void {
   const due = state.scheduled.filter((x) => x.week <= state.week);

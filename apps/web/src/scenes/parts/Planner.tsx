@@ -231,8 +231,27 @@ export function Planner({ game }: { game: GameState }) {
 
       <label className="check">
         <input type="checkbox" checked={plan.counseling} onChange={(e) => fit({ counseling: e.target.checked })} />
-        상담/정신건강의학과 ({b.counselingHours}h, {won(b.counselingCost)}) — 스트레스↓{plan.sleepPerDay < b.counselingMinSleep && <span className="bad"> (수면 {b.counselingMinSleep}h 미만: 효과 절반)</span>}
+        이번 주 상담 받기 — 스트레스↓{plan.sleepPerDay < b.counselingMinSleep && <span className="bad"> (수면 {b.counselingMinSleep}h 미만: 효과 절반)</span>}
       </label>
+      {plan.counseling && (
+        <label className="field counsel-pick">
+          <select value={plan.counselingId} onChange={(e) => fit({ counselingId: e.target.value })}>
+            {pack.counseling.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.cost ? `${c.cost / 10000}만` : '무료'})
+              </option>
+            ))}
+          </select>
+          {(() => {
+            const c = pack.counseling.find((x) => x.id === plan.counselingId)!;
+            return (
+              <small className="dim">
+                {c.hours}h · 스트레스 {c.effects.stress} — {c.note}
+              </small>
+            );
+          })()}
+        </label>
+      )}
 
       {conferences.length > 0 && (
         <label className="field">

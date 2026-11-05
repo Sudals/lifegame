@@ -32,7 +32,7 @@ export function activeFlags(pack: ContentPack, state: GameState): ActiveFlag[] {
 /** 플래그로 생긴 주당 고정 시간 (조교·과제·외주 등) */
 export function flagHours(pack: ContentPack, state: GameState): { name: string; hours: number }[] {
   return activeFlags(pack, state)
-    .filter((f) => f.def.weeklyHours > 0)
+    .filter((f) => f.def.weeklyHours !== 0)
     .map((f) => ({ name: f.def.name, hours: f.def.weeklyHours }));
 }
 

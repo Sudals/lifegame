@@ -3,6 +3,10 @@ import { aiPack as pack } from '@grad-sim/content';
 import {
   advanceWeek,
   borrow,
+  contactProbability,
+  describeInbox,
+  followUp,
+  interviewQuestions,
   buy,
   checkPlan,
   chooseCareer,
@@ -230,5 +234,109 @@ describe('무대 대사 · 세이브', () => {
     expect(m.papers.at(-1)!.topicId).toBe('dbi-credit');
     expect(m.hidden.affection).toBe(0);
     expect(advanceWeek(pack, m, plan(m)).week).toBe(m.week + 1);
+  });
+});
+
+describe('컨택 · 면접 선택지', () => {
+  const fresh = () => newGame(pack, { name: '컨택', background: 'cs', startTerm: 3, seed: 'contact-x' });
+  it('메일 5개 항목 모두 답장 확률에 영향을 준다', () => {
+    const s = fresh();
+    const best = Object.fromEntries(pack.contact.mail.map((p) => [p.id, 0]));
+    const worst = Object.fromEntries(pack.contact.mail.map((p) => [p.id, p.options.length - 1]));
+    expect(pack.contact.mail.length).toBe(5);
+    expect(contactProbability(pack, s, 'vision-park', best)).toBeGreaterThan(contactProbability(pack, s, 'vision-park', worst) + 0.4);
+    // 확률이 0.05~0.95로 잘리지 않는 무난한 초안에서 항목 하나씩 바꿔본다
+    const mid = { subject: 1, interest: 3, pitch: 3, question: 1, timing: 1 };
+    for (const part of pack.contact.mail) {
+      const good = contactProbability(pack, s, 'theory-yoon', { ...mid, [part.id]: 0 });
+      const bad = contactProbability(pack, s, 'theory-yoon', { ...mid, [part.id]: part.options.length - 1 });
+      expect(good).toBeGreaterThan(bad);
+    }
+  });
+  it('산학 경험 어필은 산학 등급이 높은 연구실에서 더 통한다', () => {
+    const s = fresh();
+    const i = pack.contact.mail.find((p) => p.id === 'pitch')!.options.findIndex((o) => o.industry);
+    const mid = { subject: 1, interest: 3, question: 1, timing: 1 };
+    const lift = (lab: string) => contactProbability(pack, s, lab, { ...mid, pitch: i }) - contactProbability(pack, s, lab, { ...mid, pitch: 4 });
+    expect(lift('ind-han')).toBeGreaterThan(lift('theory-yoon'));
+  });
+  it('면접 질문은 연구실 분야에 맞춰 3개, 같은 회차면 항상 같다', () => {
+    const s = fresh();
+    for (const lab of pack.labs) {
+      const qs = interviewQuestions(pack, s, lab.id);
+      expect(new Set(qs.map((q) => q.id)).size).toBe(3);
+      expect(qs.filter((q) => q.fields?.some((f) => lab.fields.includes(f)))).toHaveLength(1);
+      expect(interviewQuestions(pack, s, lab.id).map((q) => q.id)).toEqual(qs.map((q) => q.id));
+    }
+    expect(interviewQuestions(pack, s, 'theory-yoon').some((q) => q.id === 'generalize')).toBe(true);
+  });
+  it('답장이 없으면 리마인드 메일을 한 번 보낼 수 있다 (컨택 기회는 그대로)', () => {
+    let s = fresh();
+    let lab = '';
+    for (const l of pack.labs) {
+      s = contactLab(pack, s, l.id, Object.fromEntries(pack.contact.mail.map((p) => [p.id, p.options.length - 1])));
+      if (!s.contacts.at(-1)!.replied) {
+        lab = l.id;
+        break;
+      }
+    }
+    expect(lab).not.toBe('');
+    const used = s.contacts.length;
+    s = followUp(pack, s, lab);
+    expect(s.contacts.find((c) => c.labId === lab)!.followedUp).toBe(true);
+    expect(s.contacts.length).toBe(used);
+    expect(() => followUp(pack, s, lab)).toThrow();
+  });
+});
+
+describe('상담 선택지', () => {
+  it('플래너에서 상담 종류를 고르면 시간·비용·효과가 달라진다', () => {
+    const s = clear(enrolled('counsel-type'));
+    s.stats.stress = 70;
+    const run = (id: string) => advanceWeek(pack, s, plan(s, { counseling: true, counselingId: id }));
+    const none = advanceWeek(pack, s, plan(s));
+    expect(checkPlan(pack, s, plan(s, { counseling: true, counselingId: 'online' })).extraHours).toBe(1);
+    expect(none.stats.money - run('campus').stats.money).toBe(0);
+    expect(none.stats.money - run('private').stats.money).toBe(90000);
+    expect(run('private').stats.stress).toBeLessThan(run('online').stats.stress);
+    expect(run('campus').log.some((l) => l.text.startsWith('[학생상담센터]'))).toBe(true);
+  });
+  it('스트레스가 계속 높으면 7가지 선택지가 있는 상담 권유가 온다', () => {
+    let s = clear(enrolled('counsel-alert'));
+    for (let i = 0; i < 8 && !s.inbox.some((x) => x.kind === 'event' && x.eventId === 'counseling-alert'); i++) {
+      s.stats.stress = 95;
+      s = advanceWeek(pack, s, plan(s));
+      if (!s.inbox.some((x) => x.kind === 'event' && x.eventId === 'counseling-alert')) s = clear(s);
+    }
+    const item = s.inbox.find((x) => x.kind === 'event' && x.eventId === 'counseling-alert')!;
+    expect(item).toBeDefined();
+    expect(describeInbox(pack, s, item).choices.length).toBeGreaterThanOrEqual(7);
+  });
+  it('정기 상담을 시작하면 8주 뒤 종결 면담이 예약된다', () => {
+    let s = clear(enrolled('therapy'));
+    s.stats.money = 1_000_000;
+    s.inbox.push({ kind: 'event', eventId: 'counseling-alert', variant: 0, vars: {} });
+    s = resolveInbox(pack, s, 2);
+    expect(hasFlag(s, 'therapy')).toBe(true);
+    expect(s.scheduled.some((x) => x.eventId === 'therapy-review' && x.week === s.week + 8)).toBe(true);
+  });
+  it('번아웃: 2주 병가, 업무 조정(주 4시간 면제)도 고를 수 있다', () => {
+    const s = clear(enrolled('burnout-x'));
+    s.inbox.push({ kind: 'leave' });
+    expect(describeInbox(pack, s, s.inbox[0]!).choices).toHaveLength(5);
+    const sick = resolveInbox(pack, s, 1);
+    expect(sick.week).toBe(s.week + 2);
+    expect(sick.stats.stress).toBe(pack.balance.sickLeaveStress);
+    const light = resolveInbox(pack, s, 2);
+    expect(light.week).toBe(s.week);
+    expect(hasFlag(light, 'light-duty')).toBe(true);
+    expect(checkPlan(pack, light, plan(light)).freeHours - checkPlan(pack, s, plan(s)).freeHours).toBe(4);
+  });
+  it('v0.3.0 세이브의 상담 알림은 새 상담 이벤트로 바뀐다', () => {
+    const old = clear(enrolled('v030')) as GameState;
+    old.version = '0.3.0';
+    (old.inbox as unknown[]).push({ kind: 'counseling' });
+    const m = migrate(old);
+    expect(m.inbox[0]).toMatchObject({ kind: 'event', eventId: 'counseling-alert' });
   });
 });

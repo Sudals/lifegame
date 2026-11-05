@@ -11,6 +11,8 @@ import flags from './majors/ai/flags.json';
 import shop from './majors/ai/shop.json';
 import activities from './majors/ai/activities.json';
 import landing from './majors/ai/landing.json';
+import contact from './majors/ai/contact.json';
+import counseling from './majors/ai/counseling.json';
 
 export * from './schema/index';
 
@@ -35,6 +37,8 @@ export const aiPack: ContentPack = loadPack({
   shop,
   activities,
   landing,
+  contact,
+  counseling,
   balance,
 });
 
