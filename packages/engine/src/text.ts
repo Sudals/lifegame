@@ -1,6 +1,7 @@
 /** 상황에 따라 바뀌는 멘트: 템플릿 변수 + 주간 독백 */
 import type { ContentPack } from '@grad-sim/content';
 import { hashString, type Rng } from './rng';
+import { hasFlag } from './flags';
 import { activePapers } from './research';
 import { getLab } from './stats';
 import type { GameState } from './state';
@@ -84,6 +85,12 @@ export function weeklyMonologue(pack: ContentPack, state: GameState): { text: st
   if (s.money < 500000) pool.push(`통장 잔고 ${won(s.money)}. 이번 주는 학식 3,500원 정식으로 버틴다.`);
   if (s.stress >= 75) pool.push('오늘따라 모니터 글자가 흐릿하다. 상담이나 휴식이 필요할지도.', '아무 이유 없이 한숨이 나온다. 잠깐 산책이라도 할까.');
   if (s.stamina < 35) pool.push('계단 두 층에 숨이 찬다. 잠을 좀 더 자야겠다.');
+  if (hasFlag(state, 'relationship')) {
+    if (state.hidden.affection <= 30) pool.push('요즘 연락을 제대로 못 했다. 이번 주엔 데이트라도 해야 하는데...', '"바쁘지? 괜찮아." 그 말이 오히려 마음에 걸린다.');
+    else if (state.hidden.affection >= 70) pool.push('퇴근길 휴대폰에 "오늘도 고생했어"가 와 있었다. 힘이 난다.', '주말 약속이 있다는 것만으로 한 주를 버틸 수 있다.');
+  }
+  if (state.debt > 0 && s.money < 1_000_000) pool.push(`학자금 대출 잔액 ${won(state.debt)}. 알바라도 알아봐야 할까.`);
+  if (['grant-nrf', 'grant-ict', 'grant-industry'].some((f) => hasFlag(state, f))) pool.push('과제를 수주한 덕분에 인건비가 늘었다. 그만큼 보고서도 늘었다.');
   if (!inSemester(state.week)) pool.push('방학이라 캠퍼스가 조용하다. 연구하기엔 딱 좋은 때.', '학부생들이 없는 학식당은 줄이 짧아서 좋다.');
   const se = season(d.month);
   if (se === '봄') pool.push('창밖 공기가 따뜻해졌다. 연구실 창문을 조금 열어두었다.');

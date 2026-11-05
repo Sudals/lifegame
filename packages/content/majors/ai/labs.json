@@ -8,7 +8,7 @@
       "safety",
       "multimodal"
     ],
-    "salary": 1800000,
+    "salary": 1300000,
     "track": 5,
     "humanity": 2,
     "chores": 3,
@@ -34,7 +34,7 @@
       "diffusion",
       "multimodal"
     ],
-    "salary": 1400000,
+    "salary": 1000000,
     "track": 4,
     "humanity": 4,
     "chores": 2,
@@ -59,7 +59,7 @@
       "rl",
       "robotics"
     ],
-    "salary": 2300000,
+    "salary": 1600000,
     "track": 3,
     "humanity": 3,
     "chores": 4,
@@ -84,7 +84,7 @@
       "efficiency",
       "federated"
     ],
-    "salary": 1000000,
+    "salary": 800000,
     "track": 3,
     "humanity": 5,
     "chores": 1,
@@ -110,7 +110,7 @@
       "ai4science",
       "graph"
     ],
-    "salary": 800000,
+    "salary": 700000,
     "track": 2,
     "potential": 5,
     "humanity": 4,
@@ -137,7 +137,7 @@
       "timeseries",
       "speech"
     ],
-    "salary": 2100000,
+    "salary": 1400000,
     "track": 2,
     "humanity": 3,
     "chores": 3,
@@ -162,7 +162,7 @@
       "theory",
       "xai"
     ],
-    "salary": 1000000,
+    "salary": 800000,
     "track": 4,
     "humanity": 3,
     "chores": 1,
@@ -180,18 +180,17 @@
     "tuitionCover": 0.8
   },
   {
-    "id": "dbi-hanyang",
-    "name": "DBI 연구실 (한양대)",
+    "id": "dbi",
+    "name": "DBI 연구실",
     "professor": "김은찬 교수",
     "fields": [
       "efficiency",
       "xai",
       "vision",
-      "recsys",
       "timeseries",
       "speech"
     ],
-    "salary": 1700000,
+    "salary": 1200000,
     "track": 4,
     "potential": 5,
     "humanity": 4,
@@ -202,12 +201,12 @@
     "industry": 5,
     "admissionCut": 56,
     "tuitionCover": 1,
-    "description": "한양대학교 정보시스템학과 Data & Business Intelligence Lab. 금융·헬스케어·네트워크/보안 분야의 실제 산업 문제를 AI로 풀고, 데이터 유형(정형·텍스트·이미지)별 핵심 기술과 비즈니스 시사점까지 연구한다. 2024년 부임한 교수님과 함께 빠르게 성장 중인 랩.",
+    "description": "Data & Business Intelligence Lab. 금융·헬스케어·네트워크/보안 분야의 실제 산업 문제를 AI로 풀고, 데이터 유형(정형·텍스트·이미지)별 핵심 기술과 비즈니스 시사점까지 연구한다. 신임 교수님과 함께 빠르게 성장 중인 랩.",
     "rumors": [
-      "\"정부·기업 과제가 20건이 넘는대. 현대로템, 코레일 과제도 했대.\"",
+      "\"정부·기업 과제가 20건이 넘는대. 과제 수주가 많아서 인건비가 늘 때가 많대.\"",
       "\"교수님이 금융권·대기업 연구소 출신이라 산업 감각이 남다르셔.\"",
-      "\"작년에 NeurIPS 붙은 선배가 있대! 경량화 연구였다던데.\"",
-      "\"병원이랑 협업해서 의료 데이터 연구도 많이 해.\""
+      "\"병원이랑 협업해서 의료 데이터 연구도 많이 해.\"",
+      "\"현장 데이터로 실험하니까 졸업하면 바로 실무에 써먹을 수 있대.\""
     ]
   }
 ]

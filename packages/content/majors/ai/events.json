@@ -161,17 +161,17 @@
     "id": "anniversary", "title": "100일", "weight": 1, "once": true, "scene": "cafe", "mood": "happy", "when": { "flags": ["relationship"] },
     "text": "사귄 지 100일! 선물을 준비해야 한다.",
     "choices": [
-      { "label": "선물을 산다", "requireMoney": 150000, "effects": { "money": -150000, "stress": -6 }, "result": "선물을 받고 환하게 웃었다. 15만 원이 아깝지 않다." },
-      { "label": "손편지를 쓴다", "effects": { "stress": -3, "luck": 1 }, "result": "\"이런 거 처음 받아봐.\" 돈 안 드는 진심이 통했다." }
+      { "label": "선물을 산다", "requireMoney": 150000, "effects": { "money": -150000, "stress": -6, "affection": 12 }, "result": "선물을 받고 환하게 웃었다. 15만 원이 아깝지 않다." },
+      { "label": "손편지를 쓴다", "effects": { "stress": -3, "luck": 1, "affection": 8 }, "result": "\"이런 거 처음 받아봐.\" 돈 안 드는 진심이 통했다." }
     ]
   },
   {
-    "id": "relationship-crisis", "title": "서운함", "weight": 2, "scene": "cafe", "mood": "frustrated", "when": { "flags": ["relationship"], "minStress": 70 },
+    "id": "relationship-crisis", "title": "서운함", "weight": 4, "scene": "cafe", "mood": "frustrated", "when": { "flags": ["relationship"], "maxAffection": 30 },
     "text": "\"요즘 연구실에만 있네. 우리 얘기 좀 해.\"",
     "choices": [
-      { "label": "이번 주는 시간을 낸다", "effects": { "stress": -4, "trust": -2, "stamina": 3 }, "result": "오랜만에 산책을 했다. 서로 많이 지쳐 있었다는 걸 알았다." },
+      { "label": "이번 주는 시간을 낸다", "effects": { "stress": -4, "trust": -2, "stamina": 3, "affection": 18 }, "result": "오랜만에 산책을 했다. 서로 많이 지쳐 있었다는 걸 알았다." },
       { "label": "\"마감만 끝나면...\"", "outcomes": [
-        { "p": 1, "luck": true, "effects": { "stress": 3 }, "result": "\"알았어. 대신 끝나면 여행 가자.\" 겨우 넘겼다." },
+        { "p": 1, "luck": true, "effects": { "stress": 3, "affection": 5 }, "result": "\"알았어. 대신 끝나면 여행 가자.\" 겨우 넘겼다. (활동 탭에서 데이트를 챙기자)" },
         { "p": 1, "effects": { "stress": 15 }, "clearFlags": ["relationship"], "result": "\"우리 잠깐 생각할 시간을 갖자.\" 그리고 연락이 끊겼다." }
       ] }
     ]
@@ -349,10 +349,10 @@
     ]
   },
   {
-    "id": "loan-offer", "title": "잔고 부족", "weight": 4, "scene": "home", "mood": "frustrated", "when": { "maxMoney": 300000, "notFlags": ["loan", "parents-support"] },
+    "id": "loan-offer", "title": "잔고 부족", "weight": 4, "scene": "home", "mood": "frustrated", "when": { "maxMoney": 300000, "notFlags": ["parents-support"] },
     "text": "통장 잔고가 {money}. 카드값 날이 다가온다. 학자금 대출 안내 문자가 와 있다.",
     "choices": [
-      { "label": "학자금 대출을 받는다", "effects": { "money": 3000000, "stress": 3 }, "setFlags": [{ "id": "loan" }], "result": "300만 원이 들어왔다. 매달 15만 원씩 갚아야 한다." },
+      { "label": "학자금 대출을 받는다", "hint": "대출 300만 원 (연 1.7%, 졸업 때 순자산에서 차감)", "borrow": 3000000, "effects": { "stress": 2 }, "result": "300만 원이 들어왔다. 상점·은행 탭에서 언제든 갚을 수 있다." },
       { "label": "부모님께 연락한다", "outcomes": [
         { "p": 1, "luck": true, "effects": { "money": 500000, "stress": 4 }, "setFlags": [{ "id": "parents-support", "weeks": 16 }], "result": "\"밥은 잘 챙겨 먹어라.\" 부모님이 당분간 매달 용돈을 보내주시기로 했다." },
         { "p": 1, "effects": { "money": 300000, "stress": 6 }, "result": "한숨과 함께 30만 원을 받았다. \"알바라도 해야지...\"" }
@@ -511,7 +511,7 @@
   },
 
   {
-    "id": "dbi-industry-review", "title": "산학 과제 중간 보고", "speaker": "교수", "weight": 3, "scene": "office", "mood": "normal", "when": { "labIds": ["dbi-hanyang"], "semester": true },
+    "id": "dbi-industry-review", "title": "산학 과제 중간 보고", "speaker": "교수", "weight": 3, "scene": "office", "mood": "normal", "when": { "labIds": ["dbi"], "semester": true },
     "text": "\"다음 주 기업 과제 중간 보고예요. 논문 지표보다 현장에서 쓸 수 있는 결과인지가 제일 중요해요.\"",
     "variants": ["\"이번 과제는 현장 데이터가 생명이에요. 담당자분들이 실제로 쓰실 수 있게 정리해봅시다.\"", "\"보고 자료에 비즈니스 시사점 한 장 꼭 넣어주세요. 숫자만으로는 설득이 안 돼요.\""],
     "choices": [
@@ -520,7 +520,7 @@
     ]
   },
   {
-    "id": "dbi-hospital-data", "title": "병원 협업 데이터", "weight": 2, "scene": "lab-day", "mood": "flustered", "when": { "labIds": ["dbi-hanyang"], "minWeek": 6 },
+    "id": "dbi-hospital-data", "title": "병원 협업 데이터", "weight": 2, "scene": "lab-day", "mood": "flustered", "when": { "labIds": ["dbi"], "minWeek": 6 },
     "text": "협업 병원에서 비식별화된 데이터가 도착했다. 결측치와 표기 방식이 제각각이다.",
     "choices": [
       { "label": "전처리부터 꼼꼼히 한다", "effects": { "stamina": -5, "research": 1, "trust": 2 }, "result": "데이터 사전을 만들어 두니 실험이 훨씬 수월해졌다." },
@@ -531,12 +531,31 @@
     ]
   },
   {
-    "id": "dbi-media", "title": "교수님 언론 인터뷰", "weight": 1, "scene": "lab-day", "mood": "happy", "when": { "labIds": ["dbi-hanyang"] },
+    "id": "dbi-media", "title": "교수님 언론 인터뷰", "weight": 1, "scene": "lab-day", "mood": "happy", "when": { "labIds": ["dbi"] },
     "text": "{prof}님이 경제 방송에 AI 전문가로 출연하셨다. 연구실 단톡방이 들썩인다.",
     "variants": ["{prof}님이 신문에 AI 산업 칼럼을 기고하셨다. 링크가 단톡방에 올라왔다."],
     "choices": [
       { "label": "링크를 가족 단톡방에도 공유한다", "effects": { "relation": 3, "stress": -3 }, "result": "엄마: \"너네 교수님 TV 나오시네!\" 괜히 뿌듯하다." },
       { "label": "내용을 정리해 연구 아이디어로 메모한다", "effects": { "research": 0.5, "trust": 1 }, "result": "산업 현장의 고민이 곧 연구 주제라는 걸 다시 느꼈다." }
     ]
-  }
+  },
+
+  {"id": "proposal-nrf", "title": "연구재단 과제 공고", "speaker": "교수", "weight": 2, "scene": "office", "mood": "normal", "when": {"semester": true, "minWeek": 4, "notFlags": ["grant-nrf", "proposal-writing"]}, "text": "\"올해 연구재단 기초연구 공고가 떴어요. {name}씨가 제안서 초안 같이 써볼래요? 선정되면 인건비가 꽤 늘어요.\"", "variants": ["\"연구재단 과제 마감이 3주 남았어요. 연구 내용 파트를 {name}씨가 맡아주면 좋겠는데.\""], "choices": [{"label": "주말을 반납하고 도맡아 쓴다", "hint": "2주간 주 8시간 · 선정 확률↑", "effects": {"trust": 4, "stress": 3}, "setFlags": [{"id": "proposal-writing", "weeks": 2}], "schedule": {"eventId": "grant-nrf-result-strong", "weeks": 8}, "result": "연구 목표, 추진 전략, 기대 효과... 40쪽짜리 제안서가 완성됐다."}, {"label": "선배들과 나눠서 쓴다", "hint": "1주간 주 8시간", "effects": {"trust": 1, "relation": 3}, "setFlags": [{"id": "proposal-writing", "weeks": 1}], "schedule": {"eventId": "grant-nrf-result", "weeks": 8}, "result": "각자 파트를 나눠 하루 만에 초안을 합쳤다."}, {"label": "연구에 집중하겠다고 말씀드린다", "effects": {"trust": -3}, "result": "\"...그래요. 이번엔 다른 학생들이랑 할게요.\""}]},
+  {"id": "grant-nrf-result-strong", "title": "과제 선정 결과", "weight": 1, "random": false, "scene": "office", "mood": "flustered", "text": "연구재단 과제 선정 결과가 나왔다. {prof}님이 메일을 열어보신다...", "choices": [{"label": "두 손 모아 기다린다", "outcomes": [{"p": 1.7, "luck": true, "effects": {"trust": 5, "stress": -6}, "setFlags": [{"id": "grant-nrf", "weeks": 48}], "schedule": {"eventId": "grant-nrf-renewal", "weeks": 44}, "result": "선정! 다음 달부터 과제 인건비가 추가로 나온다. (월 +30만 원, 주 3시간)"}, {"p": 1, "effects": {"stress": 4}, "result": "아쉽게 탈락. 심사평엔 '연구 필요성이 불명확'이라고 적혀 있었다."}]}]},
+  {"id": "grant-nrf-result", "title": "과제 선정 결과", "weight": 1, "random": false, "scene": "office", "mood": "flustered", "text": "연구재단 과제 선정 결과가 나왔다. 연구실 단톡방이 조용하다...", "choices": [{"label": "결과를 확인한다", "outcomes": [{"p": 1, "luck": true, "effects": {"trust": 3, "stress": -4}, "setFlags": [{"id": "grant-nrf", "weeks": 48}], "schedule": {"eventId": "grant-nrf-renewal", "weeks": 44}, "result": "선정! 다음 달부터 과제 인건비가 나온다. (월 +30만 원, 주 3시간)"}, {"p": 1.2, "effects": {"stress": 3}, "result": "탈락했다. {prof}님이 \"내년에 다시 써봅시다\"라고 하셨다."}]}]},
+  {"id": "grant-nrf-renewal", "title": "2차년도 연장 평가", "weight": 1, "random": false, "scene": "office", "mood": "normal", "text": "연구재단 과제 1차년도가 끝나간다. 연차 실적으로 2차년도 연장이 결정된다.", "choices": [{"label": "실적 보고서를 꼼꼼히 쓴다", "effects": {"stamina": -5, "stress": 3}, "outcomes": [{"p": 2, "skill": "research", "tone": "good", "effects": {"trust": 3}, "setFlags": [{"id": "grant-nrf", "weeks": 48}], "result": "연장 확정! 과제 인건비가 1년 더 나온다."}, {"p": 1, "tone": "bad", "effects": {"stress": 4}, "result": "실적 부족으로 과제가 종료됐다."}]}, {"label": "있는 실적만 정리한다", "outcomes": [{"p": 1, "skill": "research", "tone": "good", "setFlags": [{"id": "grant-nrf", "weeks": 48}], "result": "간신히 연장됐다."}, {"p": 1, "tone": "bad", "effects": {"stress": 3}, "result": "연장 탈락. 과제비가 끊겼다."}]}]},
+  {"id": "proposal-industry", "title": "기업 과제 제안 발표", "speaker": "교수", "weight": 2, "scene": "office", "mood": "normal", "when": {"minWeek": 8, "minIndustry": 3, "notFlags": ["grant-industry"]}, "text": "\"다음 주에 기업 과제 제안 발표가 있어요. 데모를 보여주면 수주 확률이 확 올라갈 거예요.\"", "variants": ["\"옆 연구실도 같은 과제에 제안서를 냈대요. 이번엔 데모로 승부합시다.\""], "choices": [{"label": "밤새 데모를 만든다", "effects": {"stamina": -8, "stress": 4}, "outcomes": [{"p": 1.3, "skill": "research", "tone": "good", "effects": {"trust": 5, "network": 3}, "setFlags": [{"id": "grant-industry", "weeks": 24}], "result": "담당 임원이 데모를 보고 고개를 끄덕였다. 수주 성공! (월 +45만 원, 주 5시간)"}, {"p": 1, "tone": "bad", "effects": {"stress": 3}, "result": "\"내부 검토 후 연락드리겠습니다.\" 연락은 오지 않았다."}]}, {"label": "슬라이드만 깔끔하게 준비한다", "effects": {"stamina": -3}, "outcomes": [{"p": 0.6, "skill": "research", "tone": "good", "effects": {"trust": 3, "network": 2}, "setFlags": [{"id": "grant-industry", "weeks": 24}], "result": "깔끔한 발표가 통했다. 수주 성공! (월 +45만 원, 주 5시간)"}, {"p": 1, "tone": "bad", "effects": {"stress": 2}, "result": "다른 연구실이 과제를 가져갔다."}]}, {"label": "선배에게 발표를 맡긴다", "effects": {"relation": -1, "trust": -1}, "result": "선배가 발표했다. 결과는 선배 몫이 됐다."}]},
+  {"id": "proposal-ict", "title": "정부 R&D 과제 공모", "speaker": "교수", "weight": 2, "scene": "lab-day", "mood": "normal", "when": {"semester": true, "minWeek": 12, "notFlags": ["grant-ict", "proposal-writing"]}, "text": "정부 ICT R&D 과제 공모가 떴다. 기업 두 곳과 컨소시엄을 꾸려 제안서를 낸다고 한다.", "choices": [{"label": "컨소시엄 미팅까지 챙긴다", "hint": "2주간 주 8시간 · 선정 확률↑", "effects": {"stress": 4, "network": 3, "trust": 3}, "setFlags": [{"id": "proposal-writing", "weeks": 2}], "schedule": {"eventId": "grant-ict-result-strong", "weeks": 10}, "result": "판교와 학교를 오가며 제안서를 완성했다."}, {"label": "내 파트만 쓴다", "effects": {"stress": 1}, "schedule": {"eventId": "grant-ict-result", "weeks": 10}, "result": "맡은 10쪽을 마감 하루 전에 넘겼다."}, {"label": "이번엔 빠진다", "effects": {"trust": -2}, "result": "다른 학생들이 밤을 새우는 걸 미안한 마음으로 지켜봤다."}]},
+  {"id": "grant-ict-result-strong", "title": "R&D 과제 발표 평가", "weight": 1, "random": false, "scene": "classroom", "mood": "flustered", "text": "정부 R&D 과제 발표 평가 날. 평가위원 다섯 명이 앉아 있다.", "choices": [{"label": "준비한 대로 발표한다", "outcomes": [{"p": 1.6, "luck": true, "effects": {"trust": 5, "network": 2, "stress": -5}, "setFlags": [{"id": "grant-ict", "weeks": 36}], "result": "최종 선정! 과제 인건비가 늘었다. (월 +40만 원, 주 4시간)"}, {"p": 1, "effects": {"stress": 4}, "result": "근소한 차이로 탈락했다. 평가 점수표를 오래 들여다봤다."}]}]},
+  {"id": "grant-ict-result", "title": "R&D 과제 결과", "weight": 1, "random": false, "scene": "lab-day", "mood": "normal", "text": "정부 R&D 과제 결과 메일이 왔다.", "choices": [{"label": "열어본다", "outcomes": [{"p": 1, "luck": true, "effects": {"trust": 2, "stress": -3}, "setFlags": [{"id": "grant-ict", "weeks": 36}], "result": "선정! 과제 인건비가 늘었다. (월 +40만 원, 주 4시간)"}, {"p": 1.3, "effects": {"stress": 2}, "result": "탈락. 다음 공고를 기다린다."}]}]},
+  {"id": "annual-report", "title": "과제 연차 보고서", "speaker": "교수", "weight": 3, "scene": "lab-night", "mood": "tired", "when": {"anyFlags": ["grant-nrf", "grant-ict", "grant-industry"], "notFlags": ["report-season"]}, "text": "\"과제 연차 보고서 마감이 2주 뒤예요. 성과 정리랑 정량 지표 표 좀 부탁해요.\"", "variants": ["과제 관리 시스템에 '보고서 제출 기한 D-14' 알림이 떴다. 정량 성과 표가 텅 비어 있다."], "choices": [{"label": "이번 주에 몰아서 끝낸다", "effects": {"stamina": -8, "stress": 4, "trust": 3}, "result": "밤 11시, 마지막 표를 채웠다. {prof}님이 \"빠르네요\"라고 하셨다."}, {"label": "2주에 나눠서 쓴다", "hint": "2주간 주 6시간", "effects": {"trust": 2}, "setFlags": [{"id": "report-season", "weeks": 2}], "result": "매일 조금씩 쓰니 덜 괴롭다."}, {"label": "작년 보고서를 복붙한다", "outcomes": [{"p": 1, "luck": true, "tone": "good", "effects": {"stress": -2}, "result": "무사히 통과했다. 아무도 눈치채지 못했다."}, {"p": 1.2, "tone": "bad", "effects": {"trust": -5, "stress": 5}, "setFlags": [{"id": "grant-cut", "weeks": 12}], "result": "평가 점수가 낮게 나와 과제비가 삭감됐다. (12주간 월 -15만 원)"}]}]},
+  {"id": "grant-evaluation", "title": "과제 현장 평가", "weight": 2, "scene": "office", "mood": "flustered", "when": {"anyFlags": ["grant-nrf", "grant-ict", "grant-industry"]}, "text": "과제 담당 기관에서 현장 평가를 나온다. 연구실 대청소와 시연 준비가 시작됐다.", "choices": [{"label": "리허설을 세 번 한다", "effects": {"stamina": -5}, "outcomes": [{"p": 1.2, "luck": true, "tone": "good", "effects": {"trust": 5, "network": 2, "money": 300000}, "result": "우수 과제로 선정! 연구실 성과급 30만 원이 나왔다."}, {"p": 1, "tone": "info", "effects": {"trust": 2}, "result": "무난히 통과했다. 평가위원이 시연을 인상 깊게 봤다고 한다."}]}, {"label": "교수님께 맡기고 서류만 챙긴다", "effects": {"stress": -1}, "result": "평가는 무사히 끝났다. 나는 복사기 앞에서 하루를 보냈다."}]},
+  {"id": "grant-settlement", "title": "연구비 정산 마감", "weight": 2, "scene": "office", "mood": "frustrated", "when": {"minWeek": 10}, "text": "연구비 정산 마감이다. 회의비 영수증, 출장 증빙, 참석자 명단... 서류가 산더미다.", "variants": ["행정실에서 연락이 왔다. \"지난달 회의비 증빙에 참석자 서명이 빠졌어요.\""], "choices": [{"label": "영수증 50장을 정리한다", "effects": {"stamina": -4, "stress": 4, "trust": 2}, "result": "엑셀과 풀과 스테이플러의 하루였다."}, {"label": "행정 선생님께 커피를 사드리며 여쭤본다", "requireMoney": 10000, "effects": {"money": -10000, "stress": 1, "relation": 2}, "result": "\"이건 이렇게 하면 돼요.\" 30분 만에 끝났다. 인맥이 곧 행정력이다."}]},
+  {"id": "project-crunch", "title": "과제 납품 주간", "speaker": "교수", "weight": 2, "scene": "lab-night", "mood": "tired", "when": {"anyFlags": ["grant-industry", "extra-project"]}, "text": "\"기업에 모델 납품이 다음 주예요. 이번 주말에 다 같이 나와서 마무리합시다.\"", "choices": [{"label": "주말 출근한다", "effects": {"stamina": -8, "stress": 3, "trust": 4, "money": 100000}, "result": "납품 완료. 교수님이 과제비에서 야근 수당을 챙겨주셨다."}, {"label": "평일에 최대한 끝낸다", "effects": {"stress": 2, "trust": -1}, "result": "금요일 밤 11시에 겨우 마무리했다."}]},
+  {"id": "patent", "title": "특허 출원", "speaker": "교수", "weight": 1, "scene": "office", "mood": "happy", "when": {"minWeek": 16, "anyFlags": ["grant-nrf", "grant-ict", "grant-industry", "extra-project"]}, "text": "\"과제 결과물로 특허를 내봅시다. 발명 신고서 초안을 {name}씨가 써줄래요?\"", "choices": [{"label": "발명 신고서를 쓴다", "effects": {"stamina": -4, "trust": 3}, "outcomes": [{"p": 1, "luck": true, "tone": "good", "effects": {"money": 500000}, "result": "출원 완료! 직무발명 보상금 50만 원이 나왔다."}, {"p": 1, "tone": "info", "effects": {"network": 1}, "result": "출원 완료. 보상금은 등록되면 나온다고 한다. 이력서에 한 줄이 늘었다."}]}, {"label": "선배에게 양보한다", "effects": {"relation": 3}, "result": "\"고마워, 다음엔 네가 1번 발명자야.\""}]},
+  {"id": "contest-notice", "title": "공모전 포스터", "weight": 2, "scene": "classroom", "mood": "normal", "when": {"maxMoney": 2000000, "notFlags": ["contest-prep"]}, "text": "학교 게시판에 'AI 활용 아이디어 공모전' 포스터가 붙었다. 대상 상금 200만 원.", "variants": ["지자체에서 '공공데이터 활용 경진대회'를 연다. 상금 총 500만 원. 통장 잔고 {money}이 떠오른다."], "choices": [{"label": "동기들과 팀을 꾸린다", "hint": "3주간 주 5시간", "setFlags": [{"id": "contest-prep", "weeks": 3}], "schedule": {"eventId": "contest-result", "weeks": 4}, "effects": {"relation": 2}, "result": "팀 이름은 '졸업하고싶다'로 정했다."}, {"label": "연구가 먼저다", "result": "포스터를 사진으로만 찍어뒀다."}]},
+  {"id": "contest-result", "title": "공모전 결과", "weight": 1, "random": false, "scene": "classroom", "mood": "flustered", "text": "공모전 수상작 발표 날이다.", "choices": [{"label": "명단을 확인한다", "outcomes": [{"p": 0.4, "luck": true, "tone": "good", "effects": {"money": 2000000, "network": 3, "stress": -6}, "result": "대상! 상금 200만 원을 팀원들과 나눴다... 아니, 내 몫이 200만 원이다!"}, {"p": 1, "skill": "research", "tone": "good", "effects": {"money": 500000, "network": 2, "stress": -3}, "result": "우수상! 상금 50만 원."}, {"p": 1.2, "tone": "bad", "effects": {"stress": 3}, "result": "낙선. 수상작을 보니 할 말이 없다. 다음엔 더 잘하자."}]}]},
+  {"id": "hackathon-invite", "title": "해커톤 초대", "weight": 1, "scene": "cafe", "mood": "happy", "when": {"minWeek": 6}, "text": "학부 후배가 해커톤 팀에 들어와달라고 한다. \"형/누나가 모델만 맡아주면 돼요!\"", "choices": [{"label": "주말을 불태운다", "effects": {"stamina": -10, "stress": -2}, "outcomes": [{"p": 0.6, "skill": "research", "tone": "good", "effects": {"money": 1000000, "network": 5}, "result": "대상! 상금 100만 원. 심사위원이었던 스타트업 대표가 명함을 줬다."}, {"p": 1, "skill": "network", "tone": "good", "effects": {"money": 300000, "network": 3}, "result": "기업상 수상! 상금 30만 원."}, {"p": 1.2, "tone": "info", "effects": {"network": 2}, "result": "수상은 못 했지만 후배들이 고마워했다."}]}, {"label": "다음 기회에", "result": "\"아쉽다... 다음엔 꼭 같이 해요!\""}]},
+  {"id": "short-gig", "title": "단기 알바 제의", "weight": 2, "scene": "lab-day", "mood": "normal", "when": {"maxMoney": 1000000, "notFlags": ["side-job"]}, "text": "선배 지인이 데이터 전처리 단기 알바를 구한다. 2주, 40만 원 선지급.", "variants": ["옆 연구실에서 크롤러 개발 단기 알바를 구한다. 2주에 40만 원."], "choices": [{"label": "한다", "hint": "2주간 주 6시간", "effects": {"money": 400000, "stress": 1}, "setFlags": [{"id": "side-job", "weeks": 2}], "result": "통장에 40만 원이 꽂혔다. 이제 2주간 일하면 된다."}, {"label": "거절한다", "result": "\"연구 바쁘지? 다음에 또 얘기할게.\""}]},
+  {"id": "research-scholarship", "title": "연구 장학금 공고", "weight": 1, "scene": "classroom", "mood": "normal", "when": {"semester": true, "minWeek": 10}, "text": "교내 대학원 연구장학금 공고가 떴다. 연구계획서와 실적을 심사해 150만 원을 준다.", "choices": [{"label": "연구계획서를 써서 지원한다", "effects": {"stamina": -4, "stress": 2}, "outcomes": [{"p": 1, "skill": "research", "tone": "good", "effects": {"money": 1500000, "trust": 2, "stress": -5}, "result": "선정! 장학금 150만 원."}, {"p": 1.3, "tone": "bad", "effects": {"stress": 2}, "result": "탈락. 경쟁률이 12:1이었다고 한다."}]}, {"label": "어차피 안 될 거야", "result": "지원 마감일이 조용히 지나갔다."}]}
 ]

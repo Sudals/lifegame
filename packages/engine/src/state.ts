@@ -1,6 +1,6 @@
 import type { RngState } from './rng';
 
-export const GAME_VERSION = '0.2.0';
+export const GAME_VERSION = '0.3.0';
 
 export type Background = 'cs' | 'math' | 'ee' | 'other';
 export type StartTerm = 3 | 9;
@@ -24,6 +24,9 @@ export interface Hidden {
   lastCounselingAlert: number; // 마지막 상담 권유 주차
   stressSum: number; // 웰빙 보너스용 누적
   sleepSum: number;
+  affection: number; // 연인 애정도 0~100 (연애 중일 때만)
+  grantsWon: number; // 수주한 과제 수 (진로 평가)
+  lastMoneyAlert: number; // 마지막 잔고 부족 안내 주차
 }
 
 export type PaperStage =
@@ -79,6 +82,7 @@ export type InboxItem =
   | { kind: 'experiment-fail'; paperId: string }
   | { kind: 'counseling' }
   | { kind: 'leave' }
+  | { kind: 'loan'; amount: number }
   | { kind: 'notice'; title: string; text: string };
 
 export interface LogEntry {
@@ -108,6 +112,8 @@ export interface WeeklyPlan {
   choreRatio: number; // 잡무 처리 비율 0~1
   counseling: boolean;
   attendConferenceId: string | null; // 개최 중 학회 참석
+  food: number; // 식비 수준 0 절약 · 1 보통 · 2 여유
+  activities: string[]; // 이번 주 활동 id
 }
 
 export type Phase = 'contact' | 'semester' | 'career' | 'ended';
@@ -119,6 +125,17 @@ export interface Ending {
   breakdown: Record<string, number>;
   grade: 'S' | 'A' | 'B' | 'C' | 'D';
   epithet: string;
+  /** 졸업 1년 후 진로 안착 평가 */
+  landing?: Landing;
+  assets?: { money: number; debt: number; net: number };
+}
+
+export interface Landing {
+  score: number; // 0~100
+  tier: number; // 0 대성공 ~ 4 위기
+  label: string;
+  story: string;
+  notes: { text: string; good: boolean }[];
 }
 
 export interface GameState {
@@ -152,18 +169,54 @@ export interface GameState {
   flags: Record<string, number>;
   /** 예약된 후속 이벤트 (분기) */
   scheduled: { eventId: string; week: number }[];
+  /** 학자금 대출 잔액 */
+  debt: number;
+  /** 상점 구매 기록: id → 마지막 구매 주차·그 주 구매 수·누적 */
+  purchases: Record<string, { week: number; count: number; total: number }>;
+  /** 활동: id → 마지막으로 한 주차 */
+  activityLast: Record<string, number>;
+  /** 무대 대사로 보여줄 로그 시작 위치 (지난 진행 이후 로그만) */
+  logMark: number;
 }
 
 export const PERMANENT = 1_000_000;
 
-export const PLAN_DEFAULTS = { secondFocusPaperId: null, split: 0.5, living: 28, projectRatio: 1, choreRatio: 1 } as const;
+export const PLAN_DEFAULTS: Pick<WeeklyPlan, 'secondFocusPaperId' | 'split' | 'living' | 'projectRatio' | 'choreRatio' | 'food' | 'activities'> = Object.freeze({
+  secondFocusPaperId: null,
+  split: 0.5,
+  living: 28,
+  projectRatio: 1,
+  choreRatio: 1,
+  food: 1,
+  activities: Object.freeze([]) as unknown as string[],
+});
+
+/** v0.3에서 이름이 바뀐 id */
+const RENAMED_LABS: Record<string, string> = { 'dbi-hanyang': 'dbi' };
+const RENAMED_TOPICS: Record<string, string> = { 'dbi-ecommerce': 'dbi-credit', 'dbi-tabnet': 'dbi-medimg', 'dbi-edge': 'dbi-multiexit' };
 
 /** 이전 버전 세이브를 현재 형식으로 */
 export function migrate(state: GameState): GameState {
   const s = clone(state);
   s.flags ??= {};
   s.scheduled ??= [];
-  if (s.lastPlan) s.lastPlan = { ...PLAN_DEFAULTS, ...s.lastPlan };
+  s.debt ??= 0;
+  s.purchases ??= {};
+  s.activityLast ??= {};
+  s.logMark ??= s.log.length;
+  s.hidden.affection ??= (s.flags.relationship ?? -1) > s.week ? 60 : 0;
+  s.hidden.grantsWon ??= 0;
+  s.hidden.lastMoneyAlert ??= -99;
+  // v0.2 이벤트 대출(플래그) → 학자금 대출 잔액
+  if (s.flags.loan !== undefined) {
+    if (s.flags.loan > s.week) s.debt += 3_000_000;
+    delete s.flags.loan;
+  }
+  if (s.labId && RENAMED_LABS[s.labId]) s.labId = RENAMED_LABS[s.labId]!;
+  for (const c of s.contacts) c.labId = RENAMED_LABS[c.labId] ?? c.labId;
+  for (const p of s.papers) p.topicId = RENAMED_TOPICS[p.topicId] ?? p.topicId;
+  if (s.ideaCandidates) s.ideaCandidates.topicIds = s.ideaCandidates.topicIds.map((t) => RENAMED_TOPICS[t] ?? t);
+  if (s.lastPlan) s.lastPlan = { ...PLAN_DEFAULTS, ...s.lastPlan, activities: s.lastPlan.activities ?? [] };
   s.version = GAME_VERSION;
   return s;
 }

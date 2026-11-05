@@ -1,6 +1,7 @@
 import type { ContentPack, Effects, GpuGrade, Lab } from '@grad-sim/content';
 import { inSemester } from './time';
 import { flagEfficiency, flagHours } from './flags';
+import { activityStatus } from './activities';
 import { clamp, PLAN_DEFAULTS, type GameState, type WeeklyPlan } from './state';
 
 export const GPU_RANK: Record<GpuGrade, number> = { A: 4, B: 3, C: 2, D: 1 };
@@ -45,6 +46,8 @@ export function normalizePlan(pack: ContentPack, plan: WeeklyPlan): WeeklyPlan {
     projectRatio: clamp(p.projectRatio, b.projectRatioMin, b.projectRatioMax),
     choreRatio: clamp(p.choreRatio, 0, 1),
     split: clamp(p.split, 0.2, 0.8),
+    food: clamp(Math.round(p.food ?? 1), 0, 2),
+    activities: [...new Set((p.activities ?? []).filter((id) => pack.activities.some((a) => a.id === id)))],
   };
 }
 
@@ -74,6 +77,9 @@ export interface PlanCheck {
   forced: ForcedHours;
   sleepHours: number;
   extraHours: number; // 상담·학회
+  activityHours: number; // 이번 주 활동
+  activityCost: number;
+  foodCost: number;
   freeHours: number; // 연구/공부/휴식에 배분 가능한 시간
   allocated: number;
   errors: string[];
@@ -85,14 +91,23 @@ export function checkPlan(pack: ContentPack, state: GameState, rawPlan: WeeklyPl
   const sleepHours = Math.round(plan.sleepPerDay * 7);
   const flagH = forced.extra.reduce((a, x) => a + x.hours, 0);
   const extraHours = flagH + (plan.counseling ? pack.balance.counselingHours : 0) + (plan.attendConferenceId ? CONFERENCE_HOURS : 0);
-  const fixed = forced.living + forced.class + forced.project + forced.chores + sleepHours + extraHours;
+  const acts = plan.activities.map((id) => pack.activities.find((a) => a.id === id)!);
+  const activityHours = acts.reduce((a, x) => a + x.hours, 0);
+  const activityCost = acts.reduce((a, x) => a + x.cost, 0);
+  const foodCost = pack.balance.foodLevels[plan.food]!.cost;
+  const fixed = forced.living + forced.class + forced.project + forced.chores + sleepHours + extraHours + activityHours;
   const freeHours = 168 - fixed;
   const allocated = plan.research + plan.study + plan.rest;
   const errors: string[] = [];
+  for (const a of acts) {
+    const st = activityStatus(pack, state, a);
+    if (!st.ok) errors.push(`${a.name}: ${st.reason}`);
+  }
+  if (activityCost > 0 && activityCost > state.stats.money) errors.push(`활동 비용 ${activityCost.toLocaleString()}원이 잔고보다 많습니다.`);
   if (plan.sleepPerDay < 4 || plan.sleepPerDay > 10) errors.push('수면은 하루 4~10시간 사이로 설정하세요.');
   if ([plan.research, plan.study, plan.rest].some((v) => v < 0 || !Number.isFinite(v))) errors.push('시간은 0 이상이어야 합니다.');
   if (allocated > freeHours) errors.push(`배분 가능한 시간(${freeHours}h)을 ${allocated - freeHours}h 초과했습니다.`);
-  return { ok: errors.length === 0, forced, sleepHours, extraHours, freeHours, allocated, errors };
+  return { ok: errors.length === 0, forced, sleepHours, extraHours, activityHours, activityCost, foodCost, freeHours, allocated, errors };
 }
 
 /** 체력·스트레스·수면 부채에 따른 시간당 효율 */

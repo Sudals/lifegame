@@ -264,3 +264,42 @@ h1, h2, h3, .btn.primary, .stage-name, strong { font-family: 'Galmuri11 Bold', '
 .flag-chip.income { border-color: var(--good); }
 .flag-chip.cost { border-color: var(--bad); }
 .stage-choice:disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; border-image-source: url(/art/ui-panel.png) !important; color: #9498b0 !important; }
+
+/* v0.3: 식비·활동·상점·은행·진로 안착 */
+.btn.small.on { border-color: var(--accent); color: var(--accent); background: #34345e; }
+.food-row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin: 6px 0 2px; }
+.act-summary { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 6px; padding: 4px 6px; border-left: 3px solid #ff9ecd; }
+.act-summary small { font-size: 0.78em; }
+.activity-board section, .shop-board section { margin-bottom: 12px; }
+.activity-board h3, .shop-board h3 { display: flex; align-items: center; gap: 6px; }
+.act-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+.act-card { background: var(--bg2); color: var(--ink); text-align: left; padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; font: inherit; cursor: pointer; border: var(--px) solid var(--line); box-shadow: 0 var(--px) 0 0 #0b0b1a; }
+.act-card:hover:not(:disabled) { border-color: var(--accent); }
+.act-card:disabled { opacity: 0.45; cursor: not-allowed; }
+.act-card.selected { border-color: #ff9ecd; background: #3a2d55; }
+.act-card strong { display: flex; align-items: center; gap: 4px; }
+.act-card small { font-size: 0.76em; line-height: 1.35; }
+.act-meta { color: var(--accent); }
+.shop-item { cursor: default; }
+.shop-item .btn { margin-top: 4px; align-self: flex-start; }
+.shop-cats { display: flex; gap: 2px; flex-wrap: wrap; margin: 4px 0 8px; }
+.shop-cats .tab { display: inline-flex; align-items: center; gap: 4px; }
+.bank { background: #1a1a36; border: var(--px) dashed var(--line); padding: 8px 10px; }
+.bank-grid { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 0.88em; margin-bottom: 6px; }
+.bank-grid span { color: var(--dim); }
+.bank small { display: block; margin-top: 4px; font-size: 0.75em; }
+button.stat.money { background: none; border: none; box-shadow: none; color: inherit; font: inherit; padding: 0; cursor: pointer; }
+button.stat.money:hover .stat-label { color: var(--accent); }
+.stat.money.bad { color: var(--bad); }
+.debt { color: #ff8fab; font-size: 0.75em; }
+.landing { border: var(--px) solid var(--line); padding: 8px 12px; margin: 10px 0; background: #1a1a36; }
+.landing h3 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.landing.tier-0 { border-color: #ffd166; }
+.landing.tier-1 { border-color: var(--good); }
+.landing.tier-2 { border-color: var(--info); }
+.landing.tier-3 { border-color: #f4a261; }
+.landing.tier-4 { border-color: var(--bad); }
+.landing-story { font-size: 0.95em; line-height: 1.6; }
+.landing-notes { list-style: none; padding: 0; margin: 6px 0 0; font-size: 0.85em; }
+.landing-notes li { padding: 2px 0; }
+.landing-notes li.bad { color: #ff8fab; }

@@ -625,7 +625,7 @@ export const CHARACTERS: CharacterSpec[] = [
   { id: 'prof-ind-han', name: '한교수', skin: 'tan', hair: 'slick', hairTone: tone('wood', 0), outfit: 'suit', outfitTone: tone('gray', 1), accent: c('gold2'), age: 'mid' },
   { id: 'prof-theory-yoon', name: '윤교수', skin: 'light', hair: 'wild', hairTone: tone('gray', 3), outfit: 'sweater', outfitTone: tone('red', 0), accent: c('gray5'), glasses: 'round', beard: 'stubble', age: 'old' },
   // DBI 연구실 — 실존 인물의 외모가 아닌 일반적인 디자인 (비즈니스 캐주얼: 노타이 셔츠 + 재킷)
-  { id: 'prof-dbi-hanyang', name: '김은찬 교수', skin: 'light', hair: 'short', hairTone: tone('ink', 0).map((v, i) => (i === 3 ? c('blue1') : v)) as Tone4, outfit: 'suit', outfitTone: tone('gray', 0), accent: c('blue5'), glasses: 'square', glassesColor: c('ink2'), age: 'young' },
+  { id: 'prof-dbi', name: '김은찬 교수', skin: 'light', hair: 'short', hairTone: tone('ink', 0).map((v, i) => (i === 3 ? c('blue1') : v)) as Tone4, outfit: 'suit', outfitTone: tone('gray', 0), accent: c('blue5'), glasses: 'square', glassesColor: c('ink2'), age: 'young' },
   { id: 'senior', name: '선배', skin: 'light', hair: 'long', hairTone: tone('wood', 0), outfit: 'labcoat', outfitTone: [c('gray3'), c('gray4'), c('gray5'), c('gray6')], accent: c('grn2'), eyeBags: true, age: 'young', iris: c('wood1') },
   { id: 'counselor', name: '상담 선생님', skin: 'light', hair: 'bun', hairTone: tone('wood', 1), outfit: 'cardigan', outfitTone: tone('gold', 1), accent: c('gray5'), age: 'mid', iris: c('wood1') },
   { id: 'reviewer', name: '리뷰어 2', skin: 'light', hair: 'hood', hairTone: tone('vio', 0), outfit: 'cloak', outfitTone: [c('ink0'), c('ink1'), c('ink2'), c('vio0')], accent: c('gold2'), shadowFace: true },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getLab, weeklyMonologue, type GameState } from '@grad-sim/engine';
 import { Character } from '../art/Character';
 import { isRainy, labScene, playerMood } from '../art/direction';
@@ -11,22 +11,29 @@ import { Calendar } from './parts/Calendar';
 import { Hud } from './parts/Hud';
 import { InboxModal } from './parts/InboxModal';
 import { LogFeed } from './parts/LogFeed';
+import { ActivityBoard } from './parts/ActivityBoard';
 import { Planner } from './parts/Planner';
 import { ResearchBoard } from './parts/ResearchBoard';
-
-type Tab = 'research' | 'calendar' | 'log';
+import { ShopBoard } from './parts/ShopBoard';
 
 /** 연구실 무대: 지난 한 주의 일을 대사로 넘겨본다 */
 function LabStage({ game }: { game: GameState }) {
   const plan = useGame((s) => s.plan);
   const lines = useMemo(() => {
-    const week = game.log.filter((l) => l.week === game.week - 1 || (game.week === 0 && l.week === 0));
-    // 아무 일 없던 주: 지난 로그(예: 월급)를 반복하지 말고 그 주 상황에 맞는 혼잣말
-    return week.length ? week : [{ week: game.week, ...weeklyMonologue(pack, game) }];
+    // 지난 진행(또는 입학) 이후에 생긴 로그만 — 컨택 기간·지난주 로그를 다시 틀지 않는다
+    const fresh = game.log.slice(game.logMark ?? game.log.length);
+    // 아무 일 없던 주: 그 주 상황에 맞는 혼잣말
+    return fresh.length ? fresh : [{ week: game.week, ...weeklyMonologue(pack, game) }];
   }, [game]);
   const [idx, setIdx] = useState(0);
   const [typing, setTyping] = useState(false);
-  useEffect(() => setIdx(0), [game.week, lines.length]);
+  const seen = useRef({ week: game.week, count: lines.length });
+  useEffect(() => {
+    // 새 주: 처음부터 / 같은 주에 구매·대출 등으로 대사가 늘면 새 대사로
+    if (seen.current.week !== game.week) setIdx(0);
+    else if (lines.length > seen.current.count) setIdx(lines.length - 1);
+    seen.current = { week: game.week, count: lines.length };
+  }, [game.week, lines.length]);
   const line = lines[Math.min(idx, lines.length - 1)];
   const lab = getLab(pack, game.labId);
   const mood = playerMood(game, line);
@@ -50,7 +57,7 @@ function LabStage({ game }: { game: GameState }) {
 }
 
 export function Main({ game }: { game: GameState }) {
-  const [tab, setTab] = useState<Tab>('research');
+  const { tab, setTab } = useGame();
   return (
     <div className="game-screen">
       <Hud game={game} />
@@ -63,6 +70,8 @@ export function Main({ game }: { game: GameState }) {
               {(
                 [
                   ['research', '연구 보드'],
+                  ['activity', '활동'],
+                  ['shop', '상점 · 은행'],
                   ['calendar', '학회 달력 · 졸업'],
                   ['log', '일지'],
                 ] as const
@@ -73,6 +82,8 @@ export function Main({ game }: { game: GameState }) {
               ))}
             </nav>
             {tab === 'research' && <ResearchBoard game={game} />}
+            {tab === 'activity' && <ActivityBoard game={game} />}
+            {tab === 'shop' && <ShopBoard game={game} />}
             {tab === 'calendar' && <Calendar game={game} />}
             {tab === 'log' && <LogFeed log={game.log} limit={60} />}
           </Panel>

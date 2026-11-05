@@ -1,0 +1,47 @@
+[
+  { "id": "gimbap", "name": "삼각김밥 + 컵라면", "category": "food", "price": 4000, "perWeek": 3, "description": "편의점 국룰 조합. 배는 채운다.", "effects": { "stamina": 1 }, "result": "3분 만에 끝난 한 끼." },
+  { "id": "americano", "name": "아메리카노", "category": "food", "price": 4500, "perWeek": 3, "description": "대학원생의 연료.", "effects": { "stamina": 1, "stress": -1 }, "result": "카페인이 혈관을 타고 흐른다." },
+  { "id": "energy-drink", "name": "에너지 드링크", "category": "food", "price": 2500, "perWeek": 2, "description": "당장은 살아난다. 대가는 나중에.", "effects": { "stamina": 4, "stress": 1 }, "result": "심장이 조금 빨리 뛴다." },
+  { "id": "gukbap", "name": "든든한 국밥", "category": "food", "price": 10000, "description": "뜨끈한 국물 한 그릇.", "effects": { "stamina": 4, "stress": -1 }, "result": "역시 국밥이다." },
+  { "id": "salad", "name": "샐러드 도시락", "category": "food", "price": 9000, "perWeek": 2, "description": "가볍고 건강하게.", "effects": { "stamina": 2, "stress": -0.5 }, "result": "몸이 고마워하는 느낌이다." },
+  { "id": "malatang", "name": "마라탕", "category": "food", "price": 14000, "description": "얼얼함으로 스트레스를 덮는다.", "effects": { "stress": -3, "stamina": 1 }, "result": "땀과 함께 스트레스가 빠져나갔다." },
+  { "id": "chicken", "name": "치킨 한 마리", "category": "food", "price": 23000, "description": "모든 마감 뒤에는 치킨이 있다.", "effects": { "stress": -5, "stamina": 1 }, "result": "치킨은 옳다." },
+  { "id": "samgyetang", "name": "삼계탕", "category": "food", "price": 18000, "description": "기력 회복엔 보양식.", "effects": { "stamina": 7 }, "result": "기운이 솟는다." },
+  { "id": "dessert", "name": "케이크 한 조각", "category": "food", "price": 7000, "perWeek": 2, "description": "당 충전.", "effects": { "stress": -2.5 }, "result": "달다. 인생도 이랬으면." },
+  { "id": "lab-snack", "name": "연구실 간식 쏘기", "category": "food", "price": 50000, "description": "커피와 도넛을 연구실 전원에게.", "effects": { "relation": 4, "trust": 1, "stress": -1 }, "result": "\"오늘 무슨 날이야?\" 연구실 분위기가 밝아졌다." },
+  { "id": "beef-treat", "name": "소고기 회식 (내가 쏜다)", "category": "food", "price": 150000, "description": "후배·동기들에게 한턱. 통장은 울지만 평판은 오른다.", "effects": { "relation": 8, "network": 1, "stress": -4 }, "result": "\"선배 최고!\" 잊지 못할 저녁이었다." },
+
+  { "id": "vitamin", "name": "종합 비타민 (4주분)", "category": "health", "price": 25000, "description": "4주간 매주 체력 회복.", "setFlags": [{ "id": "vitamin", "weeks": 4 }], "result": "아침마다 한 알. 습관이 되길." },
+  { "id": "red-ginseng", "name": "홍삼 스틱 (4주분)", "category": "health", "price": 85000, "description": "4주간 체력 크게 회복, 스트레스 소폭 완화.", "setFlags": [{ "id": "red-ginseng", "weeks": 4 }], "result": "쓰다. 그래서 몸에 좋을 것 같다." },
+  { "id": "probiotics", "name": "유산균 (4주분)", "category": "health", "price": 20000, "description": "장이 편해야 연구도 편하다.", "setFlags": [{ "id": "probiotics", "weeks": 4 }], "result": "장 건강 챙기는 대학원생." },
+  { "id": "omega3", "name": "오메가3 (4주분)", "category": "health", "price": 22000, "description": "4주간 연구 효율 +2%.", "setFlags": [{ "id": "omega3", "weeks": 4 }], "result": "머리가 맑아지는... 기분이다." },
+  { "id": "eye-drops", "name": "인공눈물", "category": "health", "price": 8000, "description": "모니터 12시간의 동반자.", "effects": { "stamina": 1, "stress": -1 }, "result": "눈이 촉촉해졌다." },
+  { "id": "massage", "name": "마사지 1회", "category": "health", "price": 60000, "description": "굳은 어깨와 거북목을 풀어준다.", "effects": { "stamina": 6, "stress": -5 }, "result": "\"어깨가 돌이네요.\" 시원하다." },
+  { "id": "sleep-kit", "name": "수면 안대·귀마개 세트", "category": "health", "price": 15000, "once": true, "description": "잠의 질이 오른다. (영구: 매주 체력↑)", "setFlags": [{ "id": "sleep-kit" }], "result": "드디어 깊게 잤다." },
+
+  { "id": "keyboard", "name": "기계식 키보드", "category": "gear", "price": 120000, "once": true, "description": "타건감이 곧 생산성. (효율 +2%, 스트레스↓)", "setFlags": [{ "id": "keyboard" }], "result": "찰칵찰칵. 코딩이 즐거워졌다." },
+  { "id": "monitor", "name": "27인치 모니터", "category": "gear", "price": 280000, "once": true, "description": "논문과 코드를 나란히. (효율 +4%)", "setFlags": [{ "id": "monitor" }], "result": "듀얼 모니터의 세계에 오신 걸 환영합니다." },
+  { "id": "chair", "name": "인체공학 의자", "category": "gear", "price": 450000, "once": true, "description": "허리는 소중하니까. (매주 체력↑)", "setFlags": [{ "id": "chair" }], "result": "앉는 순간 허리가 감사 인사를 했다." },
+  { "id": "headphones", "name": "노이즈캔슬링 헤드폰", "category": "gear", "price": 350000, "once": true, "description": "연구실 소음 차단. (효율 +3%, 스트레스↓)", "setFlags": [{ "id": "headphones" }], "result": "고요. 나와 코드만 남았다." },
+  { "id": "gpu-credit", "name": "클라우드 GPU 크레딧 (4주)", "category": "gear", "price": 300000, "description": "4주간 실험 효율 +12%. 연구실 GPU가 모자랄 때.", "setFlags": [{ "id": "gpu-credit", "weeks": 4 }], "result": "A100이 내 손 안에. 큐 대기 없음!" },
+
+  { "id": "textbook", "name": "딥러닝 전공 원서", "category": "study", "price": 45000, "once": true, "description": "베개로도 쓸 수 있다. (연구력 +1)", "effects": { "research": 1 }, "result": "3장까지 읽었다. 꽤 많이 배웠다." },
+  { "id": "online-course", "name": "온라인 강의 수강권 (8주)", "category": "study", "price": 150000, "description": "8주간 매주 연구력 소폭↑", "setFlags": [{ "id": "online-course", "weeks": 8 }], "result": "출퇴근길에 1.5배속으로 듣는다." },
+  { "id": "proofreading", "name": "영문 교정 서비스", "category": "study", "price": 200000, "description": "작성 중인 논문 완성도 +3.", "paperQuality": 3, "result": "빨간 줄이 가득한 원고가 돌아왔다. 문장이 훨씬 매끄러워졌다." },
+  { "id": "conf-ticket", "name": "학회 튜토리얼 온라인 등록", "category": "study", "price": 80000, "once": true, "description": "최신 연구 흐름을 따라잡는다. (연구력·네트워크↑)", "effects": { "research": 0.8, "network": 2 }, "result": "튜토리얼 슬라이드가 보물 창고다." },
+
+  { "id": "gifticon", "name": "케이크 기프티콘", "category": "gift", "price": 25000, "requireFlags": ["relationship"], "description": "\"오늘 고생했어\" 한마디와 함께.", "effects": { "affection": 4 }, "result": "\"뭐야~ 고마워!\"" },
+  { "id": "flowers", "name": "꽃다발", "category": "gift", "price": 40000, "requireFlags": ["relationship"], "description": "이유 없는 꽃이 제일 좋다.", "effects": { "affection": 7, "stress": -1 }, "result": "꽃보다 환한 웃음을 봤다." },
+  { "id": "perfume", "name": "향수", "category": "gift", "price": 120000, "requireFlags": ["relationship"], "description": "특별한 날을 위해.", "effects": { "affection": 14 }, "result": "\"내 취향 어떻게 알았어?\"" },
+  { "id": "couple-ring", "name": "커플링", "category": "gift", "price": 300000, "once": true, "requireFlags": ["relationship"], "description": "약속의 의미.", "effects": { "affection": 25, "stress": -3 }, "result": "손가락에 반지가 반짝인다. 연구실 사람들이 다 알아챘다." },
+
+  { "id": "ott", "name": "OTT 한 달 구독", "category": "fun", "price": 14000, "description": "4주간 스트레스 완화. 정주행은 조심.", "setFlags": [{ "id": "ott", "weeks": 4 }], "result": "\"한 편만 더...\"" },
+  { "id": "plant", "name": "책상 화분", "category": "fun", "price": 15000, "once": true, "description": "초록은 마음을 편하게 한다. (영구: 스트레스↓)", "setFlags": [{ "id": "plant" }], "result": "모니터 옆에 작은 초록이 생겼다. 이름은 '베이스라인'." },
+  { "id": "console", "name": "게임기", "category": "fun", "price": 400000, "once": true, "description": "스트레스는 확실히 준다. 효율도 조금 준다.", "setFlags": [{ "id": "console" }], "result": "\"딱 한 판만.\" 새벽 3시가 됐다." },
+  { "id": "lotto", "name": "로또 한 장", "category": "fun", "price": 1000, "perWeek": 5, "description": "인생 역전... 혹시?", "outcomes": [
+    { "p": 0.0005, "luck": true, "tone": "good", "effects": { "money": 1500000, "stress": -10 }, "result": "3등 당첨!!! 150만 원! 손이 떨린다." },
+    { "p": 0.002, "luck": true, "tone": "good", "effects": { "money": 50000, "stress": -3 }, "result": "4등! 5만 원. 오늘은 치킨이다." },
+    { "p": 0.025, "luck": true, "tone": "good", "effects": { "money": 5000, "stress": -1 }, "result": "5등. 본전은 뽑았다." },
+    { "p": 0.97, "tone": "info", "effects": { "stress": 0.5 }, "result": "꽝. 역시 연구가 답이다." }
+  ] }
+]

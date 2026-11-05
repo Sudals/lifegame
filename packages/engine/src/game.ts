@@ -1,6 +1,9 @@
 import type { ContentPack } from '@grad-sim/content';
 import { eventText, rollEvent } from './events';
-import { activeFlags, applyFlagWeekly, clearFlag, expireFlags, flagMonthly, hasFlag, setFlag } from './flags';
+import { runActivities } from './activities';
+import { doBorrow, doBuy, doRepay, monthlyInterest, suggestedLoan } from './economy';
+import { activeFlags, applyFlagWeekly, expireFlags, flagMonthly, hasFlag } from './flags';
+import { applyChoice, borrowMoney, RELATIONSHIP_FLAG, turnOffFlag } from './outcome';
 import {
   addEventPaper,
   createThesis,
@@ -65,7 +68,21 @@ export function newGame(pack: ContentPack, opts: NewGameOptions): GameState {
     startMonth: opts.startTerm,
     week: 0,
     stats: { research: BACKGROUND_STATS[opts.background].research, stress: 20, stamina: 80, luck: rng.int(20, 80), money: pack.balance.startMoney },
-    hidden: { trust: 50, relation: 50, network: 5, sleepDebt: 0, highStressWeeks: 0, maxStressWeeks: 0, leaveTaken: 0, lastCounselingAlert: -99, stressSum: 0, sleepSum: 0 },
+    hidden: {
+      trust: 50,
+      relation: 50,
+      network: 5,
+      sleepDebt: 0,
+      highStressWeeks: 0,
+      maxStressWeeks: 0,
+      leaveTaken: 0,
+      lastCounselingAlert: -99,
+      stressSum: 0,
+      sleepSum: 0,
+      affection: 0,
+      grantsWon: 0,
+      lastMoneyAlert: -99,
+    },
     labId: null,
     contacts: [],
     credits: 0,
@@ -83,6 +100,10 @@ export function newGame(pack: ContentPack, opts: NewGameOptions): GameState {
     ending: null,
     flags: {},
     scheduled: [],
+    debt: 0,
+    purchases: {},
+    activityLast: {},
+    logMark: 0,
   };
   state.rngState = rng.save();
   log(state, `${state.player.name}, ${state.startYear}년 ${state.startMonth}월 입학을 목표로 연구실 컨택을 시작한다.`, 'info');
@@ -204,6 +225,7 @@ export function enroll(pack: ContentPack, state: GameState, labId: string): Game
     const lab = getLab(pack, labId)!;
     s.labId = labId;
     s.phase = 'semester';
+    s.logMark = s.log.length; // 컨택 기간 로그는 무대 대사로 다시 보여주지 않는다
     log(s, `${formatDate(dateOf(s, 0))}, ${lab.name}(${lab.professor})에 입학했다. 대학원 생활 시작!`, 'good');
   });
 }
@@ -235,6 +257,7 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
     const st = s.stats;
     const h = s.hidden;
     const { forced } = check;
+    s.logMark = s.log.length; // 이번 주 진행부터의 로그만 무대 대사로
 
     // 학회 참석
     if (plan.attendConferenceId) {
@@ -252,7 +275,8 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
     // 체력 · 수면
     const sleep = plan.sleepPerDay;
     h.sleepDebt = Math.max(0, h.sleepDebt + (6 - sleep) * 7);
-    const workload = plan.research + plan.study + forced.class + forced.project + forced.chores;
+    const jobHours = plan.activities.reduce((a, id) => a + (pack.activities.find((x) => x.id === id && x.category === 'money')?.hours ?? 0), 0);
+    const workload = plan.research + plan.study + forced.class + forced.project + forced.chores + jobHours;
     let dStamina = (sleep - 6) * b.staminaPerSleepHourOver6 + plan.rest * b.staminaPerRestHour;
     dStamina -= Math.max(0, workload - b.overworkThreshold) * b.staminaPerOverworkHour;
     if (h.sleepDebt > 20) dStamina -= 3;
@@ -269,9 +293,15 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
       (5 - lab.humanity) * b.stressPerMissingHumanity -
       plan.rest * b.stressReliefPerRestHour;
     if (st.money < 0) dStress += 5;
+    // 식비: 고른 수준만큼 매주 나가고, 먹는 만큼 몸과 기분이 달라진다
+    const food = b.foodLevels[plan.food]!;
+    st.money -= food.cost;
+    dStamina += food.stamina;
+    dStress += food.stress;
     if (lab.style === 'micro') dStress += 1.5;
     if (plan.counseling) {
-      dStress -= b.counselingStressRelief;
+      // 잠을 못 자면 상담만으로는 회복이 더디다
+      dStress -= b.counselingStressRelief * (sleep < b.counselingMinSleep ? b.counselingPoorSleepFactor : 1);
       st.money -= b.counselingCost;
     }
 
@@ -299,6 +329,8 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
 
     applyEffects(s, { stamina: dStamina, stress: dStress, research: dResearch });
     applyFlagWeekly(pack, s);
+    runActivities(pack, s, plan.activities, rng);
+    updateRelationship(pack, s);
     if (plan.research > 0) h.trust = clamp(h.trust + 0.3, 0, 100);
     else h.trust = clamp(h.trust - 1.5, 0, 100);
 
@@ -312,9 +344,16 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
       const stipend = lab.projectLoad * b.projectStipendPerStar;
       const extras = flagMonthly(pack, s);
       const extraSum = extras.reduce((a, x) => a + x.amount, 0);
-      const net = salary + stipend + extraSum - b.livingCostPerMonth;
+      const interest = monthlyInterest(pack, s);
+      const net = salary + stipend + extraSum - b.livingCostPerMonth - interest;
       st.money += net;
-      const parts = [`인건비 ${salary.toLocaleString()}`, `과제수당 ${stipend.toLocaleString()}`, ...extras.map((x) => `${x.name} ${x.amount > 0 ? '+' : ''}${x.amount.toLocaleString()}`), `생활비 -${b.livingCostPerMonth.toLocaleString()}`];
+      const parts = [
+        `인건비 ${salary.toLocaleString()}`,
+        `기본 과제수당 ${stipend.toLocaleString()}`,
+        ...extras.map((x) => `${x.name} ${x.amount > 0 ? '+' : ''}${x.amount.toLocaleString()}`),
+        `월세·공과금 -${b.livingCostPerMonth.toLocaleString()}`,
+        ...(interest ? [`대출 이자 -${interest.toLocaleString()}`] : []),
+      ];
       log(s, `💰 ${m}월 월급날: ${parts.join(' · ')} → ${net >= 0 ? '+' : ''}${net.toLocaleString()}원`, net >= 0 ? 'info' : 'bad');
     }
     // 등록금 (학기 시작 주) — 연구실 장학 비율만큼 면제
@@ -325,6 +364,15 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
         st.money -= due;
         log(s, `🎓 ${sem}학기 등록금 ${b.tuitionPerSemester.toLocaleString()}원 중 장학 ${Math.round(lab.tuitionCover * 100)}% — 본인 부담 ${due.toLocaleString()}원 납부.`, 'bad');
       } else log(s, `🎓 ${sem}학기 등록금은 연구실 장학으로 전액 면제됐다.`, 'good');
+    }
+
+    // 잔고가 마이너스면 학자금 대출 안내 (거절해도 상점·은행 탭에서 언제든)
+    if (st.money < 0 && s.week - h.lastMoneyAlert >= b.moneyAlertWeeks) {
+      const amount = suggestedLoan(pack, s);
+      if (amount > 0) {
+        h.lastMoneyAlert = s.week;
+        s.inbox.push({ kind: 'loan', amount });
+      }
     }
 
     // 심사
@@ -374,6 +422,21 @@ export function advanceWeek(pack: ContentPack, state: GameState, rawPlan: Weekly
     }
     if (s.week >= s.semesterDeadlineWeek) graduationReview(pack, s);
   });
+}
+
+/** 연애: 애정도는 매주 조금씩 줄고, 데이트·선물로 채운다. 바닥나면 이별 */
+function updateRelationship(pack: ContentPack, s: GameState): void {
+  if (!hasFlag(s, RELATIONSHIP_FLAG)) return;
+  const b = pack.balance;
+  const h = s.hidden;
+  h.affection = clamp(h.affection - b.affectionDecay, 0, 100);
+  if (h.affection >= b.affectionHigh) applyEffects(s, { stress: -1.5 });
+  else if (h.affection <= b.affectionLow) applyEffects(s, { stress: 1 });
+  if (h.affection <= 0) {
+    turnOffFlag(s, RELATIONSHIP_FLAG);
+    applyEffects(s, { stress: 12 });
+    log(s, '💔 연락이 점점 뜸해지더니... "우리 그만하자." 연애가 끝났다.', 'bad');
+  }
 }
 
 export const LEAVE_WEEKS = 4;
@@ -521,6 +584,16 @@ export function describeInbox(pack: ContentPack, state: GameState, item: InboxIt
       };
     case 'notice':
       return { title: item.title, text: item.text, choices: [{ label: '확인' }] };
+    case 'loan':
+      return {
+        title: '잔고 부족',
+        speaker: '학자금 대출 안내',
+        text: `통장 잔고가 ${state.stats.money.toLocaleString()}원이다. 마이너스 잔고는 스트레스를 키운다. 학자금 대출(연 ${(pack.balance.loanAnnualRate * 100).toFixed(1)}%)을 받을까? 졸업할 때 남은 대출은 순자산에서 빠진다.`,
+        choices: [
+          { label: `${item.amount.toLocaleString()}원 대출받는다`, hint: `대출 잔액 ${(state.debt + item.amount).toLocaleString()}원 / 한도 ${pack.balance.loanLimit.toLocaleString()}원` },
+          { label: '알바·대회로 메워본다', hint: '활동 탭의 알바·대회 · 상점·은행 탭에서 언제든 대출 가능' },
+        ],
+      };
     case 'leave':
       return {
         title: '번아웃',
@@ -549,22 +622,7 @@ export function resolveInbox(pack: ContentPack, state: GameState, choice: number
         // 잔고가 부족한 선택지는 고를 수 없음 → 가능한 첫 선택지로
         const idx = affordable(choice) ? choice : e.choices.findIndex((_, i) => affordable(i));
         const c = e.choices[idx < 0 ? e.choices.length - 1 : idx]!;
-        applyEffects(s, c.effects);
-        for (const f of c.setFlags) setFlag(s, f.id, f.weeks);
-        for (const f of c.clearFlags) clearFlag(s, f);
-        if (c.schedule) s.scheduled.push({ eventId: c.schedule.eventId, week: s.week + c.schedule.weeks });
-        let result = c.result;
-        let tone: 'good' | 'bad' | 'info' = 'info';
-        if (c.outcomes.length) {
-          const luck = s.stats.luck / 50; // 1 = 평균
-          const o = rng.weighted(c.outcomes, (x) => x.p * (x.luck ? luck : 1));
-          applyEffects(s, o.effects);
-          for (const f of o.setFlags) setFlag(s, f.id, f.weeks);
-          for (const f of o.clearFlags) clearFlag(s, f);
-          if (o.schedule) s.scheduled.push({ eventId: o.schedule.eventId, week: s.week + o.schedule.weeks });
-          result = [c.result, o.result].filter(Boolean).join(' ');
-          tone = o.luck ? 'good' : 'bad';
-        }
+        const { result, tone } = applyChoice(pack, s, c, rng);
         if (c.addPaper) addEventPaper(s, c.addPaper);
         log(s, `[${fillTemplate(e.title, item.vars)}] ${fillTemplate(result, item.vars)}`, tone);
         break;
@@ -583,6 +641,12 @@ export function resolveInbox(pack: ContentPack, state: GameState, choice: number
         break;
       case 'notice':
         break;
+      case 'loan':
+        if (choice === 0) {
+          const got = borrowMoney(pack, s, item.amount);
+          log(s, `🏦 학자금 대출 ${got.toLocaleString()}원을 받았다. (잔액 ${s.debt.toLocaleString()}원)`, 'info');
+        } else log(s, '대출 없이 버텨보기로 했다. 알바 공고를 뒤적인다.', 'info');
+        break;
       case 'leave':
         if (choice === 0) {
           takeLeave(pack, s);
@@ -599,5 +663,11 @@ export function resolveInbox(pack: ContentPack, state: GameState, choice: number
     }
   });
 }
+
+// ───────────────────────── 상점 · 은행 ─────────────────────────
+
+export const buy = (pack: ContentPack, state: GameState, itemId: string) => act(state, (s, rng) => doBuy(pack, s, itemId, rng));
+export const borrow = (pack: ContentPack, state: GameState, amount: number) => act(state, (s) => doBorrow(pack, s, amount));
+export const repay = (pack: ContentPack, state: GameState, amount: number) => act(state, (s) => doRepay(pack, s, amount));
 
 export { careerOffers, activeFlags, hasFlag };

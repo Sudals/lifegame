@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useState } from 'react';
 import type { FlagDef } from '@grad-sim/content';
-import { activeFlags, dateOf, formatDate, getLab, inSemester, mentalState, upcomingDeadlines, type GameState } from '@grad-sim/engine';
+import { activeFlags, dateOf, formatDate, getLab, hasFlag, inSemester, mentalState, upcomingDeadlines, type GameState } from '@grad-sim/engine';
 import { Icon } from '../../art/Sprite';
 import type { IconName } from '../../art/assets';
 import { StatBar, won } from '../../components/ui';
@@ -48,7 +48,7 @@ function Stat({ icon, k, children }: { icon: IconName; k: string; children: Reac
 }
 
 export function Hud({ game }: { game: GameState }) {
-  const { slot, notify, go } = useGame();
+  const { slot, notify, go, setTab } = useGame();
   const [saving, setSaving] = useState(false);
   const d = dateOf(game, game.week);
   const lab = getLab(pack, game.labId);
@@ -93,10 +93,11 @@ export function Hud({ game }: { game: GameState }) {
           </div>
         </Stat>
         <Stat icon="money" k="money">
-          <div className={`stat money ${s.money < 0 ? 'bad' : ''}`}>
+          <button className={`stat money ${s.money < 0 ? 'bad' : ''}`} onClick={() => setTab('shop')} title="상점 · 은행 열기">
             <span className="stat-label">돈</span>
             <span>{won(s.money)}</span>
-          </div>
+            {game.debt > 0 && <small className="debt">대출 {Math.round(game.debt / 10000).toLocaleString()}만</small>}
+          </button>
         </Stat>
       </div>
       <div className="hud-sub">
@@ -110,6 +111,11 @@ export function Hud({ game }: { game: GameState }) {
           <Icon name="network" size={12} /> 네트워크 {Math.round(game.hidden.network)}
         </span>
         <span className={`mental ${mentalState(pack, game)}`}>{mentalState(pack, game)}</span>
+        {hasFlag(game, 'relationship') && (
+          <span className={`flag-chip ${game.hidden.affection <= pack.balance.affectionLow ? 'cost' : 'income'}`} title="데이트·선물로 애정을 채우세요 (매주 조금씩 줄어요)">
+            <Icon name="love" size={12} /> 애정 {Math.round(game.hidden.affection)}
+          </span>
+        )}
         <span title="월급은 매달 1주차에 들어옵니다">💰 월급날 {game.week % 4 === 0 ? '이번 주' : `${4 - (game.week % 4)}주 뒤`}</span>
         {activeFlags(pack, game)
           .filter((f) => !f.def.hidden)

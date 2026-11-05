@@ -1,0 +1,68 @@
+[
+  { "id": "run", "name": "한강 러닝", "category": "health", "hours": 3, "description": "뛰고 나면 머리가 맑아진다.", "effects": { "stamina": 3, "stress": -1.5 }, "result": "5km를 뛰었다. 땀과 함께 잡념이 날아갔다." },
+  { "id": "swim", "name": "수영", "category": "health", "hours": 3, "cost": 8000, "description": "관절에 무리 없는 전신 운동.", "effects": { "stamina": 4, "stress": -2 }, "result": "물속에선 리뷰어 2도 없다." },
+  { "id": "pt", "name": "헬스장 PT", "category": "health", "hours": 2, "cost": 50000, "description": "트레이너가 거북목을 교정해준다.", "effects": { "stamina": 5, "stress": -1.5 }, "result": "\"회원님, 하나만 더!\" 다음 날 계단이 무섭다." },
+  { "id": "sauna", "name": "목욕탕·사우나", "category": "health", "hours": 3, "cost": 12000, "description": "뜨끈한 탕에서 몸을 녹인다.", "effects": { "stamina": 4, "stress": -3 }, "result": "바나나우유까지 완벽했다." },
+  { "id": "clinic", "name": "한의원 침 맞기", "category": "health", "hours": 2, "cost": 15000, "cooldown": 2, "description": "뻐근한 목과 어깨에.", "effects": { "stamina": 5, "stress": -1 }, "result": "\"많이 뭉치셨네요.\" 몸이 가벼워졌다." },
+
+  { "id": "walk", "name": "캠퍼스 산책", "category": "leisure", "hours": 1, "description": "점심 먹고 한 바퀴.", "effects": { "stress": -1 }, "result": "고양이를 만났다. 오늘은 좋은 날이다." },
+  { "id": "karaoke", "name": "코인노래방", "category": "leisure", "hours": 1, "cost": 5000, "description": "목청껏 지르고 오자.", "effects": { "stress": -2 }, "result": "고음에서 삑사리가 났지만 아무도 없었다." },
+  { "id": "movie", "name": "혼영 (영화 혼자 보기)", "category": "leisure", "hours": 3, "cost": 15000, "description": "팝콘과 두 시간의 도피.", "effects": { "stress": -3.5 }, "result": "엔딩 크레딧까지 보고 나왔다." },
+  { "id": "binge", "name": "드라마 정주행", "category": "leisure", "hours": 6, "description": "\"딱 한 편만.\"", "effects": { "stress": -5, "stamina": -1 }, "result": "새벽 2시. 시즌 하나가 끝났다." },
+  { "id": "game", "name": "게임 몰아서 하기", "category": "leisure", "hours": 8, "description": "주말 하루를 통째로.", "effects": { "stress": -6, "stamina": -2 }, "result": "랭크가 올랐다. 연구력은 그대로다." },
+  { "id": "hometown", "name": "본가 다녀오기", "category": "leisure", "hours": 20, "cost": 60000, "cooldown": 6, "description": "집밥과 늦잠. 교통비가 든다.", "effects": { "stress": -10, "stamina": 6 }, "outcomes": [
+    { "p": 1, "luck": true, "tone": "good", "effects": { "money": 200000 }, "result": "엄마가 반찬 세 통과 용돈 20만 원을 챙겨주셨다." },
+    { "p": 1.5, "tone": "info", "effects": { "stress": 1 }, "result": "\"그래서 졸업은 언제 하니?\" 질문은 피할 수 없었다." }
+  ], "result": "오랜만에 내 방 침대에서 잤다." },
+  { "id": "trip", "name": "1박 2일 여행", "category": "leisure", "hours": 30, "cost": 250000, "cooldown": 10, "description": "노트북은 두고 간다.", "effects": { "stress": -18, "stamina": 6 }, "result": "바다를 봤다. 연구 생각이 딱 두 번밖에 안 났다." },
+
+  { "id": "friends", "name": "학부 동기 만나기", "category": "social", "hours": 4, "cost": 40000, "description": "회사 다니는 친구들의 이야기를 듣는다.", "effects": { "stress": -5, "network": 1 }, "result": "\"너 아직도 학생이야?\" 웃으며 맥주를 마셨다." },
+  { "id": "lab-dinner", "name": "랩 동료와 저녁", "category": "social", "hours": 2, "cost": 20000, "description": "연구실 밖에서 보는 동료는 또 다르다.", "effects": { "relation": 3, "stress": -2 }, "result": "교수님 성대모사 대회가 열렸다." },
+  { "id": "prof-meeting", "name": "교수님 면담 신청", "category": "social", "hours": 1, "cooldown": 3, "description": "연구 방향과 진로를 상의한다.", "effects": { "trust": 3, "stress": 1 }, "result": "\"좋은 질문이에요.\" 생각보다 많은 조언을 들었다." },
+  { "id": "meetup", "name": "AI 밋업·세미나", "category": "social", "hours": 4, "cost": 10000, "cooldown": 2, "description": "현업 엔지니어와 연구자들을 만난다.", "effects": { "network": 3, "research": 0.3 }, "result": "명함 세 장과 피자 두 조각을 얻었다." },
+  { "id": "blind-date", "name": "소개팅 나가기", "category": "social", "hours": 4, "cost": 60000, "cooldown": 6, "notFlags": ["relationship", "dating"], "description": "친구가 주선한 자리. 연구 얘기는 10분만.", "outcomes": [
+    { "p": 1, "luck": true, "tone": "good", "effects": { "stress": -6 }, "setFlags": [{ "id": "dating", "weeks": 8 }], "schedule": { "eventId": "date-2", "weeks": 2 }, "result": "대화가 끊이지 않았다. 연락처를 교환했다!" },
+    { "p": 1.3, "tone": "info", "effects": { "stress": 2 }, "result": "어색한 침묵 끝에 \"좋은 분 만나세요\"로 끝났다." }
+  ] },
+
+  { "id": "date-walk", "name": "산책 데이트", "category": "date", "hours": 3, "cost": 5000, "requireFlags": ["relationship"], "description": "편의점 커피 들고 천천히 걷기.", "effects": { "affection": 6, "stress": -3, "stamina": 1 }, "result": "손을 잡고 한참을 걸었다." },
+  { "id": "date-cafe", "name": "카페 데이트", "category": "date", "hours": 3, "cost": 25000, "requireFlags": ["relationship"], "description": "디저트 맛집에서 수다.", "effects": { "affection": 8, "stress": -4 }, "result": "연구 얘기는 꺼내지 않기로 했다. 잘 참았다." },
+  { "id": "date-home", "name": "집 데이트 (같이 요리)", "category": "date", "hours": 4, "cost": 30000, "requireFlags": ["relationship"], "description": "장 봐서 파스타를 만든다.", "effects": { "affection": 10, "stress": -5, "stamina": 1 }, "result": "면이 좀 불었지만 세상에서 제일 맛있었다." },
+  { "id": "date-movie", "name": "영화 데이트", "category": "date", "hours": 4, "cost": 45000, "requireFlags": ["relationship"], "description": "개봉작 보고 저녁까지.", "effects": { "affection": 10, "stress": -5 }, "result": "영화 얘기로 집에 가는 길이 짧았다." },
+  { "id": "date-dinner", "name": "맛집 데이트", "category": "date", "hours": 4, "cost": 80000, "requireFlags": ["relationship"], "description": "한 달 전에 예약한 레스토랑.", "effects": { "affection": 14, "stress": -6 }, "result": "\"여기 진짜 맛있다!\" 그 표정이면 충분하다." },
+  { "id": "date-trip", "name": "여행 데이트", "category": "date", "hours": 30, "cost": 400000, "cooldown": 10, "requireFlags": ["relationship"], "description": "1박 2일. 사진 300장 예약.", "effects": { "affection": 28, "stress": -16, "stamina": 4 }, "result": "노을 진 바다 앞에서 사진을 찍었다. 오래 기억할 것 같다." },
+
+  { "id": "oss", "name": "오픈소스 기여", "category": "growth", "hours": 6, "cooldown": 2, "description": "유명 라이브러리에 PR을 올린다.", "outcomes": [
+    { "p": 1, "skill": "research", "tone": "good", "effects": { "network": 3, "research": 0.4 }, "result": "PR이 머지됐다! 메인테이너가 고맙다고 했다." },
+    { "p": 1, "tone": "info", "effects": { "research": 0.3 }, "result": "리뷰 코멘트 12개. 고치는 중이다." }
+  ] },
+  { "id": "blog", "name": "기술 블로그 쓰기", "category": "growth", "hours": 4, "description": "배운 걸 정리하면 내 것이 된다.", "effects": { "network": 1.5, "research": 0.15 }, "result": "조회수 37. 그중 10은 나다." },
+  { "id": "english", "name": "영어 회화 스터디", "category": "growth", "hours": 3, "cost": 30000, "description": "학회 Q&A가 두렵지 않게.", "effects": { "network": 1, "stress": 0.5 }, "result": "\"Could you elaborate on...\" 입에 붙었다." },
+  { "id": "reading-club", "name": "논문 리딩 모임 주최", "category": "growth", "hours": 3, "cooldown": 1, "description": "동기들과 최신 논문 한 편.", "effects": { "research": 0.3, "relation": 1 }, "result": "토론하다 보니 아이디어 하나가 떠올랐다." },
+
+  { "id": "tutoring", "name": "과외", "category": "money", "hours": 6, "description": "고등학생 수학 과외. 주 2회.", "effects": { "money": 150000, "stamina": -2, "stress": 1.5 }, "result": "미적분을 가르치다 내 미적분 실력에 놀랐다." },
+  { "id": "labeling", "name": "데이터 라벨링 알바", "category": "money", "hours": 5, "description": "재택. 바운딩 박스를 그린다.", "effects": { "money": 80000, "stress": 1.5 }, "result": "고양이 사진 2,000장에 박스를 쳤다." },
+  { "id": "grading", "name": "학부 과제 채점", "category": "money", "hours": 4, "semester": true, "description": "학과 사무실 단기 알바.", "effects": { "money": 60000, "stress": 1 }, "result": "\"교수님 이거 왜 0점이에요\" 메일이 벌써 기다려진다." },
+  { "id": "store-shift", "name": "편의점 주말 알바", "category": "money", "hours": 14, "description": "주말 낮 근무. 몸은 고되다.", "effects": { "money": 150000, "stamina": -5, "stress": 2 }, "result": "폐기 도시락은 덤이다." },
+  { "id": "survey", "name": "실험·설문 참가", "category": "money", "hours": 2, "cooldown": 3, "description": "심리학과 실험 피험자 모집.", "effects": { "money": 30000 }, "result": "화면에 뜨는 점을 보고 버튼을 눌렀다. 3만 원." },
+  { "id": "kaggle", "name": "데이터 경진대회 도전", "category": "money", "hours": 10, "cooldown": 8, "description": "상금이 걸린 온라인 대회. 실력이 곧 상금.", "outcomes": [
+    { "p": 0.25, "skill": "research", "tone": "good", "effects": { "money": 1500000, "network": 3, "research": 0.5 }, "result": "상위 1%! 상금 150만 원!" },
+    { "p": 0.7, "skill": "research", "tone": "good", "effects": { "money": 300000, "network": 2, "research": 0.5 }, "result": "메달권 진입! 상금 30만 원." },
+    { "p": 1, "tone": "info", "effects": { "research": 0.4 }, "result": "순위권 밖. 그래도 상위권 솔루션에서 많이 배웠다." }
+  ] },
+  { "id": "contest", "name": "AI 아이디어 공모전 출품", "category": "money", "hours": 8, "cooldown": 12, "description": "기획서와 데모 영상을 제출한다.", "outcomes": [
+    { "p": 0.15, "luck": true, "tone": "good", "effects": { "money": 2000000, "network": 3, "stress": -5 }, "result": "대상! 상금 200만 원. 상장은 액자에 넣었다." },
+    { "p": 0.5, "skill": "research", "tone": "good", "effects": { "money": 500000, "network": 2 }, "result": "우수상! 상금 50만 원." },
+    { "p": 1, "tone": "bad", "effects": { "stress": 2 }, "result": "낙선. 심사평에 '실현 가능성'이라는 단어가 보였다." }
+  ] },
+  { "id": "hackathon", "name": "주말 해커톤", "category": "money", "hours": 30, "cooldown": 12, "description": "무박 2일. 피자와 에너지 드링크.", "effects": { "stamina": -8 }, "outcomes": [
+    { "p": 0.3, "skill": "research", "tone": "good", "effects": { "money": 1000000, "network": 5 }, "result": "1등! 상금 100만 원과 스타트업 대표의 명함." },
+    { "p": 0.7, "skill": "network", "tone": "good", "effects": { "money": 300000, "network": 3 }, "result": "기업상 수상! 상금 30만 원." },
+    { "p": 1, "tone": "info", "effects": { "network": 2, "stress": -2 }, "result": "수상은 못 했지만 팀원들과 친해졌다." }
+  ] },
+  { "id": "paper-contest", "name": "교내 논문 경진대회", "category": "money", "hours": 6, "cooldown": 24, "minAccepted": 1, "description": "채택된 논문으로 출전한다.", "outcomes": [
+    { "p": 0.5, "skill": "research", "tone": "good", "effects": { "money": 1000000, "trust": 3 }, "result": "최우수상! 상금 100만 원. {prof}님이 단톡방에 축하를 남기셨다." },
+    { "p": 1, "skill": "research", "tone": "good", "effects": { "money": 300000 }, "result": "장려상. 상금 30만 원." },
+    { "p": 0.8, "tone": "info", "effects": { "stress": 1 }, "result": "입상은 못 했다. 발표 연습은 됐다." }
+  ] }
+]

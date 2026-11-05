@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { activePapers, attendCost, canDualTask, checkPlan, normalizePlan, ongoingConferences, type GameState, type WeeklyPlan } from '@grad-sim/engine';
 import { Panel, won } from '../../components/ui';
-import { pack, useGame } from '../../store/gameStore';
+import { fitPlan, pack, useGame } from '../../store/gameStore';
+
+type HourKey = 'research' | 'study' | 'rest';
+/** 한 항목을 늘리면 남은 시간부터 쓰고, 모자라면 이 순서로 다른 항목에서 가져온다 */
+const TAKE_FROM: Record<HourKey, HourKey[]> = { research: ['rest', 'study'], study: ['rest', 'research'], rest: ['study', 'research'] };
 
 function Slider({
   label,
   value,
   min = 0,
   max,
-  cap,
   step = 1,
   onChange,
   unit = 'h',
@@ -18,8 +21,6 @@ function Slider({
   value: number;
   min?: number;
   max: number;
-  /** 남은 시간 때문에 실제로 올릴 수 있는 한계 (슬라이더 범위는 max 유지) */
-  cap?: number;
   step?: number;
   onChange: (v: number) => void;
   unit?: string;
@@ -28,7 +29,7 @@ function Slider({
   return (
     <label className="slider">
       <span>{label}</span>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Math.min(Number(e.target.value), cap ?? Infinity))} />
+      <input type="range" min={min} max={Math.max(min, max)} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
       <span className="slider-value">{format ? format(value) : `${value}${unit}`}</span>
     </label>
   );
@@ -41,7 +42,7 @@ const PRESETS: Record<string, { label: string; sleep: number; research: number; 
 };
 
 export function Planner({ game }: { game: GameState }) {
-  const { plan: rawPlan, setPlan, advance } = useGame();
+  const { plan: rawPlan, setPlan, advance, setTab } = useGame();
   const plan = normalizePlan(pack, rawPlan);
   const [openFixed, setOpenFixed] = useState(false);
   const check = checkPlan(pack, game, plan);
@@ -54,17 +55,24 @@ export function Planner({ game }: { game: GameState }) {
   const b = pack.balance;
 
   /** 고정 일정이 바뀌어 넘치면 휴식 → 공부 → 연구 순으로 줄인다 */
-  const fit = (next: Partial<WeeklyPlan>) => {
-    const p = normalizePlan(pack, { ...plan, ...next });
-    let over = p.research + p.study + p.rest - checkPlan(pack, game, p).freeHours;
-    for (const k of ['rest', 'study', 'research'] as const) {
+  const fit = (next: Partial<WeeklyPlan>) => setPlan(fitPlan(game, { ...plan, ...next }));
+
+  /** 연구·공부·휴식: 남은 시간이 없으면 다른 항목에서 자동으로 가져온다 */
+  const setHours = (k: HourKey, v: number) => {
+    const p = { ...plan, [k]: Math.max(0, Math.round(v)) };
+    let over = p.research + p.study + p.rest - Math.max(0, check.freeHours);
+    for (const o of TAKE_FROM[k]) {
       if (over <= 0) break;
-      const cut = Math.min(p[k], over);
-      p[k] -= cut;
+      const cut = Math.min(p[o], over);
+      p[o] -= cut;
       over -= cut;
     }
+    if (over > 0) p[k] = Math.max(0, p[k] - over);
     setPlan(p);
   };
+  const free = Math.max(0, check.freeHours);
+  const acts = plan.activities.map((id) => pack.activities.find((a) => a.id === id)!).filter(Boolean);
+  const income = acts.reduce((a, x) => a + Math.max(0, x.effects.money ?? 0), 0);
 
   const preset = (key: keyof typeof PRESETS) => {
     const pr = PRESETS[key]!;
@@ -88,6 +96,7 @@ export function Planner({ game }: { game: GameState }) {
           ['과제', f.project, '#e76f51'],
           ['잡무', f.chores, '#f4a261'],
           ['기타', check.extraHours, '#b5838d'],
+          ['활동', check.activityHours, '#ff9ecd'],
           ['연구', plan.research, 'var(--c-research)'],
           ['공부', plan.study, '#43aa8b'],
           ['휴식', plan.rest, 'var(--c-stamina)'],
@@ -111,12 +120,33 @@ export function Planner({ game }: { game: GameState }) {
       </div>
 
       <Slider label="수면/일" value={plan.sleepPerDay} min={4} max={10} step={0.5} unit="h" onChange={(v) => fit({ sleepPerDay: v })} />
-      <Slider label="연구" value={plan.research} max={100} cap={plan.research + Math.max(0, remaining)} onChange={(v) => setPlan({ research: v })} />
-      <Slider label="공부" value={plan.study} max={60} cap={plan.study + Math.max(0, remaining)} onChange={(v) => setPlan({ study: v })} />
-      <Slider label="휴식" value={plan.rest} max={60} cap={plan.rest + Math.max(0, remaining)} onChange={(v) => setPlan({ rest: v })} />
+      <Slider label="연구" value={plan.research} max={free} onChange={(v) => setHours('research', v)} />
+      <Slider label="공부" value={plan.study} max={free} onChange={(v) => setHours('study', v)} />
+      <Slider label="휴식" value={plan.rest} max={free} onChange={(v) => setHours('rest', v)} />
       <p className={`remaining ${remaining < 0 ? 'bad' : ''}`}>
         남은 시간 {remaining}h / 배분 가능 {check.freeHours}h
       </p>
+      <small className="dim">남은 시간이 없으면 다른 항목에서 자동으로 가져옵니다.</small>
+
+      <div className="food-row">
+        <span className="dim small">식비</span>
+        {b.foodLevels.map((lv, i) => (
+          <button key={lv.label} className={`btn small ${plan.food === i ? 'on' : 'ghost'}`} onClick={() => setPlan({ food: i })} title={`주 ${won(lv.cost)} · 체력 ${lv.stamina >= 0 ? '+' : ''}${lv.stamina} · 스트레스 ${lv.stress >= 0 ? '+' : ''}${lv.stress}`}>
+            {lv.label} {lv.cost / 10000}만
+          </button>
+        ))}
+      </div>
+
+      <div className="act-summary">
+        <button className="fixed-toggle" onClick={() => setTab('activity')}>
+          ▸ 이번 주 활동 {acts.length ? `${acts.length}개 · ${check.activityHours}h` : '없음 — 운동·데이트·알바 고르기'}
+        </button>
+        {acts.length > 0 && <small className="dim">{acts.map((a) => a.name).join(' · ')}</small>}
+        <small className={check.foodCost + check.activityCost > game.stats.money ? 'bad' : 'dim'}>
+          이번 주 지출 {won(check.foodCost + check.activityCost)} (식비 {check.foodCost / 10000}만{check.activityCost ? ` · 활동 ${won(check.activityCost)}` : ''})
+          {income > 0 && <span className="good"> · 알바 수입 +{won(income)}</span>}
+        </small>
+      </div>
 
       <button className="fixed-toggle" onClick={() => setOpenFixed((o) => !o)}>
         {openFixed ? '▾' : '▸'} 고정 일정 조정 — 생활 {f.living}h · 수업 {f.class}h · 과제 {f.project}h · 잡무 {f.chores}h
@@ -201,7 +231,7 @@ export function Planner({ game }: { game: GameState }) {
 
       <label className="check">
         <input type="checkbox" checked={plan.counseling} onChange={(e) => fit({ counseling: e.target.checked })} />
-        상담/정신건강의학과 ({b.counselingHours}h, {won(b.counselingCost)}) — 스트레스↓
+        상담/정신건강의학과 ({b.counselingHours}h, {won(b.counselingCost)}) — 스트레스↓{plan.sleepPerDay < b.counselingMinSleep && <span className="bad"> (수면 {b.counselingMinSleep}h 미만: 효과 절반)</span>}
       </label>
 
       {conferences.length > 0 && (

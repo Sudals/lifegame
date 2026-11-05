@@ -7,10 +7,22 @@ describe('AI 콘텐츠 팩', () => {
   });
   it('MVP 볼륨: 연구실 7개 이상(DBI 포함), 아이디어 경로 9종, 저널 9개', () => {
     expect(aiPack.labs.length).toBeGreaterThanOrEqual(7);
-    expect(aiPack.labs.some((l) => l.id === 'dbi-hanyang')).toBe(true);
+    expect(aiPack.labs.some((l) => l.id === 'dbi')).toBe(true);
     expect(aiPack.ideaSources).toHaveLength(9);
     expect(aiPack.journals).toHaveLength(9);
     expect(aiPack.venues.length).toBeGreaterThanOrEqual(15);
+  });
+  it('DBI 연구실: 주제 카드 4장, 설명에 학교명·학회명 없음', () => {
+    const dbi = aiPack.labs.find((l) => l.id === 'dbi')!;
+    expect(aiPack.topics.filter((t) => t.id.startsWith('dbi-'))).toHaveLength(4);
+    expect(`${dbi.name} ${dbi.description} ${dbi.rumors.join(' ')}`).not.toMatch(/한양|NeurIPS/);
+  });
+  it('v0.3 볼륨: 상점 30종·활동 30종 이상, 과제/제안서·공모전·알바 이벤트', () => {
+    expect(aiPack.shop.length).toBeGreaterThanOrEqual(30);
+    expect(aiPack.activities.length).toBeGreaterThanOrEqual(30);
+    for (const cat of ['date', 'money', 'health']) expect(aiPack.activities.some((a) => a.category === cat)).toBe(true);
+    for (const id of ['proposal-nrf', 'proposal-industry', 'proposal-ict', 'annual-report', 'contest-notice', 'short-gig']) expect(aiPack.events.some((e) => e.id === id)).toBe(true);
+    expect(aiPack.flags.filter((f) => f.grant).length).toBeGreaterThanOrEqual(3);
   });
   it('모든 연구실 분야에 주제 카드가 3장 이상 있다', () => {
     for (const lab of aiPack.labs)

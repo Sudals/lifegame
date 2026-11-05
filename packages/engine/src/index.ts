@@ -10,3 +10,6 @@ export * from './game';
 export * from './bot';
 export * from './flags';
 export * from './text';
+export * from './outcome';
+export * from './economy';
+export * from './activities';

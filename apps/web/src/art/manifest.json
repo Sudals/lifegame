@@ -802,9 +802,9 @@
    "file": "/art/char-prof-theory-yoon.png",
    "frame": 128
   },
-  "prof-dbi-hanyang": {
+  "prof-dbi": {
    "name": "김은찬 교수",
-   "file": "/art/char-prof-dbi-hanyang.png",
+   "file": "/art/char-prof-dbi.png",
    "frame": 128
   },
   "senior": {
@@ -1041,11 +1041,11 @@
   },
   "icons": {
    "file": "/art/icons.png",
-   "w": 256,
+   "w": 464,
    "h": 16,
    "frameW": 16,
    "frameH": 16,
-   "frames": 16
+   "frames": 29
   },
   "ui-dialog": {
    "file": "/art/ui-dialog.png",
@@ -1096,6 +1096,19 @@
   "trophy",
   "coffee",
   "sleep",
-  "brain"
+  "brain",
+  "food",
+  "pill",
+  "monitor",
+  "gift",
+  "dice",
+  "love",
+  "bank",
+  "shoe",
+  "game",
+  "sprout",
+  "job",
+  "cart",
+  "grant"
  ]
 }

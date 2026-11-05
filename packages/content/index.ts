@@ -8,6 +8,9 @@ import events from './majors/ai/events.json';
 import careers from './majors/ai/careers.json';
 import balance from './majors/ai/balance.json';
 import flags from './majors/ai/flags.json';
+import shop from './majors/ai/shop.json';
+import activities from './majors/ai/activities.json';
+import landing from './majors/ai/landing.json';
 
 export * from './schema/index';
 
@@ -29,6 +32,9 @@ export const aiPack: ContentPack = loadPack({
   events,
   careers,
   flags,
+  shop,
+  activities,
+  landing,
   balance,
 });
 
@@ -49,6 +55,24 @@ export const FIELD_LABELS: Record<string, string> = {
   robotics: '로보틱스',
   ai4science: 'AI for Science',
   theory: '이론',
+};
+
+export const SHOP_CATEGORY_LABELS: Record<string, string> = {
+  food: '먹거리',
+  health: '건강',
+  gear: '장비',
+  study: '자기계발',
+  gift: '선물',
+  fun: '취미',
+};
+
+export const ACTIVITY_CATEGORY_LABELS: Record<string, string> = {
+  health: '운동·건강',
+  leisure: '여가',
+  social: '사람',
+  date: '데이트',
+  growth: '성장',
+  money: '알바·대회',
 };
 
 export const TOPIC_TYPE_LABELS: Record<string, string> = {

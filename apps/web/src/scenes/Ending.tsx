@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   careerOffers,
   chooseCareer,
+  computeLanding,
   findVenue,
   getLab,
   paperScore,
@@ -45,6 +46,7 @@ export function Career({ game }: { game: GameState }) {
               </strong>
               <small>{c.description}</small>
               <small className="dim">진로 점수 +{c.score}</small>
+              <small className="info">적응 전망: {computeLanding(pack, game, c).label}</small>
             </button>
           ))}
           {locked.map((c) => (
@@ -59,6 +61,22 @@ export function Career({ game }: { game: GameState }) {
   );
 }
 
+/** 진로별 1년 후 장면 */
+function landingScene(careerId: string | null): 'lab-day' | 'office' | 'cafe' | 'conference' | 'classroom' {
+  switch (careerId) {
+    case 'phd':
+      return 'lab-day';
+    case 'research-scientist':
+      return 'conference';
+    case 'outside':
+      return 'cafe';
+    case 'institute':
+      return 'classroom';
+    default:
+      return 'office';
+  }
+}
+
 export function Ending({ game }: { game: GameState }) {
   const { go, notify } = useGame();
   const [nickname, setNickname] = useState(game.player.name);
@@ -68,6 +86,12 @@ export function Ending({ game }: { game: GameState }) {
   const accepted = game.papers.filter((p) => p.kind === 'paper' && p.stage === 'accepted');
 
   const graduated = !!e.careerId;
+  const assets = e.assets ?? { money: game.stats.money, debt: game.debt ?? 0, net: game.stats.money - (game.debt ?? 0) };
+  const lines = graduated
+    ? [`「${e.epithet}」 — ${e.title}. 길고 긴 대학원 생활이 끝났다.`, ...(e.landing ? [`1년 후... ${e.landing.story}`] : [])]
+    : ['새벽 편의점. 삼각김밥을 들고 생각했다. 다시 시작하면 되지.'];
+  const [li, setLi] = useState(0);
+  const [typing, setTyping] = useState(true);
   useEffect(() => {
     if (graduated) {
       useFx.getState().play('firework');
@@ -88,10 +112,15 @@ export function Ending({ game }: { game: GameState }) {
   return (
     <div className="center-screen">
       <Panel title="이력서" className="form-panel resume">
-        <Stage sceneId={graduated ? 'conference' : 'store'}>
-          <Character id="player" expr={graduated ? 'happy' : 'tired'} x={320} />
-          <DialogueBox name={game.player.name}>
-            <Typewriter text={graduated ? `「${e.epithet}」 — ${e.title}. 길고 긴 대학원 생활이 끝났다.` : '새벽 편의점. 삼각김밥을 들고 생각했다. 다시 시작하면 되지.'} showCursor={false} />
+        <Stage sceneId={graduated ? (li === 0 ? 'conference' : landingScene(e.careerId)) : 'store'}>
+          <Character id="player" expr={!graduated ? 'tired' : li > 0 && e.landing && e.landing.tier >= 3 ? 'tired' : 'happy'} x={320} talking={typing} />
+          <DialogueBox name={game.player.name} onClick={() => !typing && setLi((i) => Math.min(lines.length - 1, i + 1))}>
+            <Typewriter key={li} text={lines[li]!} onTyping={setTyping} showCursor={li < lines.length - 1} />
+            {lines.length > 1 && (
+              <span className="stage-page">
+                {li + 1}/{lines.length}
+              </span>
+            )}
           </DialogueBox>
         </Stage>
         <div className="resume-head">
@@ -107,6 +136,22 @@ export function Ending({ game }: { game: GameState }) {
           </div>
           <div className={`grade grade-${e.grade} slam`}>{e.grade}</div>
         </div>
+        {e.landing && (
+          <section className={`landing tier-${e.landing.tier}`}>
+            <h3>
+              <Icon name="job" /> 졸업 1년 후 — {e.landing.label}
+              <span className="dim small"> (안착도 {e.landing.score}/100)</span>
+            </h3>
+            <p className="landing-story">{e.landing.story}</p>
+            <ul className="landing-notes">
+              {e.landing.notes.map((n) => (
+                <li key={n.text} className={n.good ? 'good' : 'bad'}>
+                  {n.good ? '▲' : '▼'} {n.text}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <h3>
           <Icon name="paper" /> Publications
         </h3>
@@ -133,9 +178,15 @@ export function Ending({ game }: { game: GameState }) {
                 <td>{v > 0 ? `+${v}` : v}</td>
               </tr>
             ))}
-            <tr>
-              <td>잔고</td>
-              <td>{won(game.stats.money)}</td>
+            <tr className="dim">
+              <td>잔고 · 학자금 대출</td>
+              <td>
+                {won(assets.money)} · {assets.debt > 0 ? `-${won(assets.debt)}` : '대출 없음'}
+              </td>
+            </tr>
+            <tr className="dim">
+              <td>순자산</td>
+              <td className={assets.net < 0 ? 'bad' : 'good'}>{won(assets.net)}</td>
             </tr>
           </tbody>
         </table>

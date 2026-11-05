@@ -57,6 +57,8 @@ export function inboxDirection(pack: ContentPack, g: GameState, item: InboxItem)
     case 'counseling':
     case 'leave':
       return { scene: 'counseling', speaker: 'counselor', name: '상담 선생님', mood: 'happy', withPlayer: true };
+    case 'loan':
+      return { scene: 'home', mood: 'frustrated', ...me };
     case 'notice':
       return item.title.includes('쓰러') ? { scene: 'counseling', mood: 'tired', ...me } : { scene: 'office', speaker: prof, name: lab?.professor ?? '교수님', mood: 'normal', withPlayer: true };
   }

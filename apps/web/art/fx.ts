@@ -148,11 +148,69 @@ function stamp(id: string, label: string, col: number): Sheet {
 }
 
 // ───────────── 아이콘 16x16 ─────────────
-export const ICONS = ['research', 'stress', 'stamina', 'luck', 'money', 'trust', 'relation', 'network', 'calendar', 'mail', 'paper', 'gpu', 'trophy', 'coffee', 'sleep', 'brain'] as const;
+export const ICONS = [
+  'research', 'stress', 'stamina', 'luck', 'money', 'trust', 'relation', 'network', 'calendar', 'mail', 'paper', 'gpu', 'trophy', 'coffee', 'sleep', 'brain',
+  // v0.3 상점·활동·은행
+  'food', 'pill', 'monitor', 'gift', 'dice', 'love', 'bank', 'shoe', 'game', 'sprout', 'job', 'cart', 'grant',
+] as const;
 
 function drawIcon(cv: PixelCanvas, name: (typeof ICONS)[number], ox: number): void {
   const o = c('ink0');
   switch (name) {
+    case 'food': // 삼각김밥
+      cv.poly([[ox + 7, 2], [ox + 9, 2], [ox + 15, 11], [ox + 14, 14], [ox + 2, 14], [ox + 1, 11]], c('gray6'));
+      cv.poly([[ox + 10, 4], [ox + 15, 11], [ox + 14, 14], [ox + 11, 14]], c('gray5'));
+      cv.rect(ox + 4, 9, 8, 6, c('grn0')).hline(ox + 5, ox + 10, 10, c('grn1')).set(ox + 6, 4, c('gray6')).set(ox + 5, 6, c('gray4')).set(ox + 9, 7, c('gray4'));
+      break;
+    case 'pill': // 캡슐
+      cv.ellipse(ox + 5, 11, 3, 3, c('red3')).ellipse(ox + 11, 5, 3, 3, c('gray6')).line(ox + 4, 8, ox + 8, 4, c('gray6')).line(ox + 8, 12, ox + 12, 8, c('red3'));
+      cv.poly([[ox + 3, 10], [ox + 10, 3], [ox + 13, 6], [ox + 6, 13]], c('gray6')).poly([[ox + 3, 10], [ox + 7, 6], [ox + 10, 9], [ox + 6, 13]], c('red3')).set(ox + 10, 4, c('gray5')).set(ox + 4, 10, c('red4'));
+      break;
+    case 'monitor':
+      cv.rect(ox + 1, 2, 14, 9, c('gray2')).rect(ox + 2, 3, 12, 7, c('blue2')).hline(ox + 3, ox + 8, 4, c('teal3')).hline(ox + 3, ox + 6, 6, c('teal4')).hline(ox + 3, ox + 9, 8, c('teal3'));
+      cv.rect(ox + 7, 11, 2, 2, c('gray3')).rect(ox + 4, 13, 8, 2, c('gray3'));
+      break;
+    case 'gift':
+      cv.rect(ox + 2, 7, 12, 8, c('red2')).rect(ox + 1, 5, 14, 3, c('red3')).vline(ox + 7, 5, 14, c('gold3')).vline(ox + 8, 5, 14, c('gold3'));
+      cv.ellipse(ox + 5, 3, 2.5, 2, c('gold3')).ellipse(ox + 11, 3, 2.5, 2, c('gold3')).set(ox + 3, 8, c('red4'));
+      break;
+    case 'dice':
+      cv.rect(ox + 2, 2, 12, 12, c('gray6')).rect(ox + 2, 12, 12, 2, c('gray4'));
+      for (const [x, y] of [[4, 4], [11, 4], [7, 7], [4, 10], [11, 10]]) cv.rect(ox + x!, y!, 2, 2, c('red2'));
+      break;
+    case 'love': // 애정 하트 + 반짝
+      cv.ellipse(ox + 5, 6, 3, 3, c('red3')).ellipse(ox + 10, 6, 3, 3, c('red3')).poly([[ox + 2, 7], [ox + 13, 7], [ox + 8, 13]], c('red3'));
+      cv.set(ox + 4, 5, c('red4')).set(ox + 5, 4, c('red4')).set(ox + 13, 1, c('gold4')).set(ox + 14, 2, c('gold4')).set(ox + 12, 2, c('gold4')).set(ox + 13, 3, c('gold4'));
+      break;
+    case 'bank': // 기둥 건물
+      cv.poly([[ox + 8, 1], [ox + 15, 5], [ox + 1, 5]], c('gray5')).rect(ox + 2, 13, 12, 2, c('gray5')).rect(ox + 2, 5, 12, 1, c('gray4'));
+      for (const x of [3, 7, 11]) cv.rect(ox + x, 6, 2, 7, c('gray6'));
+      cv.set(ox + 8, 3, c('gold3'));
+      break;
+    case 'shoe': // 운동화
+      cv.poly([[ox + 2, 7], [ox + 7, 6], [ox + 10, 9], [ox + 14, 10], [ox + 14, 13], [ox + 2, 13]], c('blue3')).rect(ox + 2, 12, 13, 2, c('gray6'));
+      cv.set(ox + 5, 8, c('gray6')).set(ox + 7, 9, c('gray6')).set(ox + 9, 10, c('gray6')).hline(ox + 3, ox + 5, 10, c('blue4'));
+      break;
+    case 'game': // 게임패드
+      cv.ellipse(ox + 8, 9, 7, 4, c('vio2')).ellipse(ox + 3, 11, 2, 3, c('vio2')).ellipse(ox + 13, 11, 2, 3, c('vio2'));
+      cv.hline(ox + 3, ox + 5, 9, c('ink2')).vline(ox + 4, 8, 10, c('ink2')).set(ox + 11, 8, c('red3')).set(ox + 12, 10, c('gold3')).set(ox + 7, 7, c('vio3'));
+      break;
+    case 'sprout': // 새싹 (성장)
+      cv.rect(ox + 4, 11, 8, 4, c('wood3')).hline(ox + 3, ox + 12, 11, c('wood4')).vline(ox + 8, 5, 11, c('grn2'));
+      cv.ellipse(ox + 5, 5, 3, 2, c('grn3')).ellipse(ox + 11, 4, 3, 2, c('grn3')).set(ox + 4, 4, c('grn4')).set(ox + 10, 3, c('grn4'));
+      break;
+    case 'job': // 서류가방
+      cv.rect(ox + 1, 5, 14, 9, c('wood2')).frame(ox + 5, 2, 6, 4, c('wood1')).hline(ox + 1, ox + 14, 9, c('wood1')).rect(ox + 7, 8, 2, 3, c('gold3')).hline(ox + 2, ox + 13, 6, c('wood3'));
+      break;
+    case 'cart': // 장바구니
+      cv.hline(ox + 0, ox + 2, 2, c('gray5')).line(ox + 2, 2, ox + 4, 10, c('gray5')).rect(ox + 3, 4, 11, 6, c('gray4')).hline(ox + 4, ox + 13, 10, c('gray5'));
+      cv.rect(ox + 5, 5, 3, 2, c('red3')).rect(ox + 9, 5, 3, 3, c('grn3')).rect(ox + 4, 12, 2, 2, c('ink2')).rect(ox + 11, 12, 2, 2, c('ink2'));
+      break;
+    case 'grant': // 도장 찍힌 계약서
+      cv.rect(ox + 2, 1, 11, 14, c('gray6')).poly([[ox + 10, 1], [ox + 13, 4], [ox + 10, 4]], c('gray4'));
+      for (let y = 4; y < 10; y += 2) cv.hline(ox + 4, ox + 9, y, c('gray3'));
+      cv.ellipse(ox + 10, 12, 3, 3, c('red2')).ellipse(ox + 10, 12, 1.5, 1.5, c('red3')).set(ox + 9, 11, c('red4'));
+      break;
     case 'research': // 책
       cv.rect(ox + 2, 3, 12, 10, c('blue2')).rect(ox + 3, 4, 5, 8, c('gray6')).rect(ox + 8, 4, 5, 8, c('gray5')).vline(ox + 8, 3, 13, c('blue1'));
       cv.hline(ox + 4, ox + 6, 6, c('gray3')).hline(ox + 9, ox + 11, 6, c('gray3')).hline(ox + 4, ox + 6, 8, c('gray3')).hline(ox + 9, ox + 11, 8, c('gray3'));

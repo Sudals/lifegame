@@ -14,6 +14,7 @@ export function eventEligible(pack: ContentPack, state: GameState, e: GameEvent,
   const lab = getLab(pack, state.labId);
   if (w.flags && !w.flags.every((f) => hasFlag(state, f))) return false;
   if (w.notFlags && w.notFlags.some((f) => hasFlag(state, f))) return false;
+  if (w.anyFlags && !w.anyFlags.some((f) => hasFlag(state, f))) return false;
   if (scheduled) return true; // 예약된 후속 이벤트는 플래그 조건만 확인
   if (w.months && !w.months.includes(dateOf(state, state.week).month)) return false;
   if (w.minStress !== undefined && s.stress < w.minStress) return false;
@@ -32,6 +33,8 @@ export function eventEligible(pack: ContentPack, state: GameState, e: GameEvent,
   if (w.minHumanity !== undefined && (!lab || lab.humanity < w.minHumanity)) return false;
   if (w.maxHumanity !== undefined && (!lab || lab.humanity > w.maxHumanity)) return false;
   if (w.hasPaperStage && !state.papers.some((p) => p.stage === w.hasPaperStage)) return false;
+  if (w.minIndustry !== undefined && (!lab || lab.industry < w.minIndustry)) return false;
+  if (w.maxAffection !== undefined && state.hidden.affection > w.maxAffection) return false;
   // 같은 이벤트가 너무 자주 반복되지 않도록 최근 8개 제외
   if (state.firedEvents.slice(-8).includes(e.id)) return false;
   return true;

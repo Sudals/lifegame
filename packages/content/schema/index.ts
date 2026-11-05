@@ -15,6 +15,7 @@ export const Effects = z
     trust: z.number(),
     relation: z.number(),
     network: z.number(),
+    affection: z.number(), // 연인 애정도 (연애 중일 때만 의미)
   })
   .partial();
 export type Effects = z.infer<typeof Effects>;
@@ -104,6 +105,7 @@ export const FlagDef = z.object({
   weekly: Effects.default({}), // 매주 효과
   efficiency: z.number().positive().default(1), // 연구 효율 배수
   hidden: z.boolean().default(false),
+  grant: z.boolean().default(false), // 수주한 연구 과제 (진로 평가의 과제 경험)
 });
 export type FlagDef = z.infer<typeof FlagDef>;
 
@@ -113,6 +115,8 @@ const Schedule = z.object({ eventId: z.string(), weeks: z.number().int().positiv
 export const Outcome = z.object({
   p: z.number().positive().default(1), // 가중치
   luck: z.boolean().default(false), // true면 운이 높을수록 이 결과 확률↑
+  skill: z.enum(['research', 'network', 'trust']).optional(), // 해당 수치가 높을수록 확률↑
+  tone: z.enum(['good', 'bad', 'info']).optional(),
   effects: Effects.default({}),
   result: z.string(),
   setFlags: z.array(FlagSet).default([]),
@@ -125,6 +129,7 @@ export const EventChoice = z.object({
   label: z.string(),
   hint: z.string().optional(),
   requireMoney: z.number().int().positive().optional(), // 잔고가 부족하면 선택 불가
+  borrow: z.number().int().positive().optional(), // 학자금 대출 실행 (한도 내)
   effects: Effects.default({}),
   result: z.string().default(''),
   setFlags: z.array(FlagSet).default([]),
@@ -171,6 +176,9 @@ export const GameEvent = z.object({
       flags: z.array(z.string()), // 모두 켜져 있어야
       notFlags: z.array(z.string()), // 하나도 켜져 있으면 안 됨
       semester: z.boolean(), // true=학기 중, false=방학
+      anyFlags: z.array(z.string()), // 하나 이상 켜져 있어야
+      minIndustry: z.number(), // 연구실 산학 등급
+      maxAffection: z.number(),
     })
     .partial()
     .default({}),
@@ -178,12 +186,21 @@ export const GameEvent = z.object({
 });
 export type GameEvent = z.infer<typeof GameEvent>;
 
+/** 졸업 후 진로 안착도 평가에 쓰는 지표 (엔진 scoring.landingMetrics) */
+export const LANDING_METRICS = ['papers', 'topTier', 'research', 'network', 'trust', 'relation', 'experience', 'wellbeing', 'finance', 'luck', 'speed'] as const;
+export type LandingMetric = (typeof LANDING_METRICS)[number];
+
 export const Career = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
   score: z.number().int(),
   hidden: z.boolean().default(false),
+  /** 안착도: 지표 가중치 + 단계별(위기→대성공) 1년 후 이야기 5개 */
+  landing: z.object({
+    weights: z.record(z.enum(LANDING_METRICS), z.number().positive()),
+    texts: z.tuple([z.string(), z.string(), z.string(), z.string(), z.string()]),
+  }),
   req: z
     .object({
       minPaperScore: z.number(),
@@ -198,6 +215,54 @@ export const Career = z.object({
     .partial(),
 });
 export type Career = z.infer<typeof Career>;
+
+export const Landing = z.object({
+  /** 높은 순서. 점수(0~100)가 min 이상이면 해당 단계 — 마지막이 가장 낮은 단계 */
+  tiers: z.array(z.object({ min: z.number(), label: z.string() })).length(5),
+  metrics: z.record(z.enum(LANDING_METRICS), z.object({ label: z.string(), strong: z.string(), weak: z.string() })),
+});
+export type Landing = z.infer<typeof Landing>;
+
+/** 상점: 즉시 효과(음식) · 기간 버프(영양제, 플래그) · 1회성 장비 · 선물 */
+export const ShopItem = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: z.enum(['food', 'health', 'gear', 'study', 'gift', 'fun']),
+  price: z.number().int().positive(),
+  description: z.string(),
+  effects: Effects.default({}),
+  setFlags: z.array(FlagSet).default([]),
+  outcomes: z.array(Outcome).default([]),
+  perWeek: z.number().int().positive().default(1), // 주당 구매 한도
+  once: z.boolean().default(false), // 한 번만 살 수 있는 물건
+  requireFlags: z.array(z.string()).default([]),
+  paperQuality: z.number().optional(), // 작성 중인 논문 완성도 +
+  result: z.string().default(''),
+});
+export type ShopItem = z.infer<typeof ShopItem>;
+
+/** 주간 활동: 플래너에서 고르면 그 주 시간·돈을 쓰고 효과를 얻는다 */
+export const Activity = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: z.enum(['health', 'leisure', 'social', 'date', 'growth', 'money']),
+  description: z.string(),
+  hours: z.number().positive(),
+  cost: z.number().int().nonnegative().default(0),
+  effects: Effects.default({}), // money가 +면 수입
+  outcomes: z.array(Outcome).default([]),
+  setFlags: z.array(FlagSet).default([]),
+  clearFlags: z.array(z.string()).default([]),
+  schedule: Schedule.optional(),
+  cooldown: z.number().int().nonnegative().default(0), // 하고 나서 다시 하려면 기다릴 주
+  requireFlags: z.array(z.string()).default([]),
+  notFlags: z.array(z.string()).default([]),
+  months: z.array(z.number().int().min(1).max(12)).optional(),
+  semester: z.boolean().optional(),
+  minAccepted: z.number().int().optional(),
+  result: z.string().default(''),
+});
+export type Activity = z.infer<typeof Activity>;
 
 export const Balance = z.object({
   weeksPerMonth: z.literal(4),
@@ -214,6 +279,8 @@ export const Balance = z.object({
   counselingCost: z.number(),
   counselingHours: z.number(),
   counselingStressRelief: z.number(),
+  counselingMinSleep: z.number(), // 이보다 적게 자면 상담 효과가 줄어든다
+  counselingPoorSleepFactor: z.number(),
   stressPerWeek: z.number(),
   stressDeadline: z.number(),
   stressPerChoreHour: z.number(),
@@ -253,6 +320,20 @@ export const Balance = z.object({
   tuitionPerSemester: z.number(),
   thesisFee: z.number(),
   acceptIncentivePerTrack: z.number(),
+  /** 식비 수준 (주간): 절약·보통·여유 */
+  foodLevels: z.array(z.object({ label: z.string(), cost: z.number(), stamina: z.number(), stress: z.number() })).length(3),
+  loanUnit: z.number(),
+  loanLimit: z.number(),
+  loanAnnualRate: z.number(),
+  moneyAlertWeeks: z.number().int(),
+  affectionStart: z.number(),
+  affectionDecay: z.number(), // 주당
+  affectionHigh: z.number(), // 이상이면 스트레스 추가 완화
+  affectionLow: z.number(), // 이하이면 불안
+  moneyScoreUnit: z.number(), // 순자산 이만큼당 1점
+  moneyScoreMin: z.number(),
+  moneyScoreMax: z.number(),
+  landingScoreScale: z.number(), // (안착도-50) × 이 값 = 정착 점수
 });
 export type Balance = z.infer<typeof Balance>;
 
@@ -266,6 +347,9 @@ export const ContentPack = z.object({
   events: z.array(GameEvent),
   careers: z.array(Career),
   flags: z.array(FlagDef),
+  shop: z.array(ShopItem),
+  activities: z.array(Activity),
+  landing: Landing,
   balance: Balance,
 });
 export type ContentPack = z.infer<typeof ContentPack>;
@@ -311,6 +395,24 @@ export function checkIntegrity(pack: ContentPack): string[] {
     }
     for (const f of refs) if (!flagIds.has(f)) errors.push(`event ${e.id}: 없는 플래그 "${f}"`);
   }
+  dup('shop', pack.shop.map((x) => x.id));
+  dup('activities', pack.activities.map((x) => x.id));
+  const outcomeRefs = (where: string, os: { setFlags: { id: string }[]; clearFlags: string[]; schedule?: { eventId: string } }[]) => {
+    for (const o of os) {
+      for (const f of [...o.setFlags.map((x) => x.id), ...o.clearFlags]) if (!flagIds.has(f)) errors.push(`${where}: 없는 플래그 "${f}"`);
+      if (o.schedule && !eventIds.has(o.schedule.eventId)) errors.push(`${where}: 없는 후속 이벤트 "${o.schedule.eventId}"`);
+    }
+  };
+  for (const e of pack.events) for (const f of e.when.anyFlags ?? []) if (!flagIds.has(f)) errors.push(`event ${e.id}: 없는 플래그 "${f}"`);
+  for (const it of pack.shop) {
+    outcomeRefs(`shop ${it.id}`, [{ setFlags: it.setFlags, clearFlags: [] }, ...it.outcomes]);
+    for (const f of it.requireFlags) if (!flagIds.has(f)) errors.push(`shop ${it.id}: 없는 플래그 "${f}"`);
+  }
+  for (const a of pack.activities) {
+    outcomeRefs(`activity ${a.id}`, [a, ...a.outcomes]);
+    for (const f of [...a.requireFlags, ...a.notFlags]) if (!flagIds.has(f)) errors.push(`activity ${a.id}: 없는 플래그 "${f}"`);
+  }
+  for (const c of pack.careers) if (!Object.keys(c.landing.weights).length) errors.push(`career ${c.id}: 안착도 가중치 없음`);
   for (const v of [...pack.venues, ...pack.journals]) {
     for (const f of v.fields) if (!fields.has(f)) errors.push(`${v.id}: 주제 카드가 없는 분야 "${f}"`);
   }
