@@ -295,10 +295,14 @@ describe('상담 선택지', () => {
     s.stats.stress = 70;
     const run = (id: string) => advanceWeek(pack, s, plan(s, { counseling: true, counselingId: id }));
     const none = advanceWeek(pack, s, plan(s));
-    expect(checkPlan(pack, s, plan(s, { counseling: true, counselingId: 'online' })).extraHours).toBe(1);
+    expect(pack.counseling.map((c) => c.id)).toEqual(['clinic', 'campus']);
+    expect(checkPlan(pack, s, plan(s, { counseling: true, counselingId: 'campus' })).extraHours).toBe(2);
+    expect(checkPlan(pack, s, plan(s, { counseling: true, counselingId: 'clinic' })).extraHours).toBe(3);
     expect(none.stats.money - run('campus').stats.money).toBe(0);
-    expect(none.stats.money - run('private').stats.money).toBe(90000);
-    expect(run('private').stats.stress).toBeLessThan(run('online').stats.stress);
+    expect(none.stats.money - run('clinic').stats.money).toBe(50000);
+    expect(run('clinic').stats.stress).toBeLessThan(run('campus').stats.stress);
+    // 예전 세이브의 없어진 상담 종류는 첫 번째(정신건강의학과)로
+    expect(checkPlan(pack, s, plan(s, { counseling: true, counselingId: 'private' })).extraHours).toBe(3);
     expect(run('campus').log.some((l) => l.text.startsWith('[학생상담센터]'))).toBe(true);
   });
   it('스트레스가 계속 높으면 7가지 선택지가 있는 상담 권유가 온다', () => {
@@ -314,10 +318,11 @@ describe('상담 선택지', () => {
   });
   it('정기 상담을 시작하면 8주 뒤 종결 면담이 예약된다', () => {
     let s = clear(enrolled('therapy'));
-    s.stats.money = 1_000_000;
+    s.stats.money = 0;
     s.inbox.push({ kind: 'event', eventId: 'counseling-alert', variant: 0, vars: {} });
     s = resolveInbox(pack, s, 2);
     expect(hasFlag(s, 'therapy')).toBe(true);
+    expect(s.stats.money).toBe(0); // 학생상담센터 정기 상담은 무료
     expect(s.scheduled.some((x) => x.eventId === 'therapy-review' && x.week === s.week + 8)).toBe(true);
   });
   it('번아웃: 2주 병가, 업무 조정(주 4시간 면제)도 고를 수 있다', () => {

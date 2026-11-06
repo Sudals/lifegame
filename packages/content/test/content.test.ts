@@ -5,11 +5,13 @@ describe('AI 콘텐츠 팩', () => {
   it('zod 스키마와 참조 무결성을 통과한다', () => {
     expect(checkIntegrity(aiPack)).toEqual([]);
   });
-  it('MVP 볼륨: 연구실 7개 이상(DBI 포함), 아이디어 경로 9종, 저널 9개', () => {
+  it('MVP 볼륨: 연구실 7개 이상(DBI 포함), 아이디어 경로 9종, 저널 20개 이상(NMI 포함)', () => {
     expect(aiPack.labs.length).toBeGreaterThanOrEqual(7);
     expect(aiPack.labs.some((l) => l.id === 'dbi')).toBe(true);
     expect(aiPack.ideaSources).toHaveLength(9);
-    expect(aiPack.journals).toHaveLength(9);
+    expect(aiPack.journals.length).toBeGreaterThanOrEqual(20);
+    expect(aiPack.journals.find((j) => j.id === 'nmi')).toMatchObject({ displayName: 'Nature Machine Intelligence', tier: 'S' });
+    for (const tier of ['S', 'A', 'B', 'C', 'domestic']) expect(aiPack.journals.filter((j) => j.tier === tier).length).toBeGreaterThanOrEqual(2);
     expect(aiPack.venues.length).toBeGreaterThanOrEqual(15);
   });
   it('DBI 연구실: 주제 카드 4장, 설명에 학교명·학회명 없음', () => {
@@ -29,7 +31,7 @@ describe('AI 콘텐츠 팩', () => {
     for (const part of aiPack.contact.mail) expect(part.options.length).toBeGreaterThanOrEqual(4);
     expect(aiPack.contact.interview.length).toBeGreaterThanOrEqual(12);
     for (const q of aiPack.contact.interview) expect(q.options.length).toBeGreaterThanOrEqual(4);
-    expect(aiPack.counseling.length).toBeGreaterThanOrEqual(6);
+    expect(aiPack.counseling.map((c) => c.name)).toEqual(['정신건강의학과 진료', '학생상담센터']);
     expect(aiPack.events.find((e) => e.id === 'counseling-alert')!.choices.length).toBeGreaterThanOrEqual(7);
     expect(aiPack.flags.some((f) => f.id === 'light-duty')).toBe(true); // 번아웃 업무 조정 (엔진에서 사용)
   });

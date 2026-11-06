@@ -65,6 +65,7 @@ export const Journal = z.object({
   cut: z.number(),
   fields: z.array(z.string()),
   apc: z.number().int().nonnegative(),
+  score: z.number().positive().optional(), // 채택 점수 직접 지정 (없으면 balance.tierScore)
 });
 export type Journal = z.infer<typeof Journal>;
 

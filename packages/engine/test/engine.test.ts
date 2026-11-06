@@ -11,10 +11,12 @@ import {
   fallbackLabId,
   interview,
   newGame,
+  paperScore,
   resolveInbox,
   reviewMargin,
   Rng,
   runBot,
+  submitTargets,
   topTierCount,
   type GameState,
 } from '../src/index';
@@ -124,6 +126,15 @@ describe('심사', () => {
     const paper = { quality: 60, field: 'llm', rebuttalBonus: 0 } as never;
     const better = { quality: 80, field: 'llm', rebuttalBonus: 0 } as never;
     expect(reviewMargin(s, better, v)).toBeGreaterThan(reviewMargin(s, paper, v));
+  });
+  it('NMI는 가장 어려운 저널이고, 채택되면 다른 S 저널보다 점수가 높다', () => {
+    const s = enrolled();
+    expect(submitTargets(pack, s).some((t) => t.venueId === 'nmi' && t.kind === 'journal')).toBe(true);
+    const nmi = pack.journals.find((j) => j.id === 'nmi')!;
+    expect(Math.max(...pack.journals.map((j) => j.cut))).toBe(nmi.cut);
+    const accepted = (venueId: string) => ({ stage: 'accepted', kind: 'paper', venueId, venueKind: 'journal', authorOrder: 1 }) as never;
+    expect(paperScore(pack, accepted('nmi'))).toBeGreaterThan(paperScore(pack, accepted('tpami')));
+    expect(topTierCount(pack, { papers: [accepted('nmi')] } as never)).toBe(1);
   });
 });
 

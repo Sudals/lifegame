@@ -1,8 +1,4 @@
 [
   { "id": "clinic", "name": "정신건강의학과 진료", "hours": 3, "cost": 50000, "effects": { "stress": -12 }, "note": "진료와 처방. 효과가 확실하다.", "result": "의사 선생님과 이야기하고 처방을 받았다. 잠이 조금 편해질 것 같다." },
-  { "id": "campus", "name": "학생상담센터", "hours": 2, "cost": 0, "effects": { "stress": -8 }, "note": "무료. 교내라 부담이 적다.", "result": "상담 선생님이 끝까지 들어주셨다. 혼자가 아니라는 느낌이 들었다." },
-  { "id": "private", "name": "사설 심리상담센터", "hours": 3, "cost": 90000, "effects": { "stress": -15, "stamina": 2 }, "note": "비싸지만 깊이 있는 상담.", "result": "오래 묵은 생각을 정리했다. 마음이 한결 가볍다." },
-  { "id": "online", "name": "온라인 화상 상담", "hours": 1, "cost": 30000, "effects": { "stress": -6 }, "note": "시간이 가장 적게 든다.", "result": "연구실 빈 회의실에서 50분. 짧지만 숨통이 트였다." },
-  { "id": "group", "name": "마음챙김 집단 프로그램", "hours": 2, "cost": 0, "effects": { "stress": -5, "relation": 1 }, "note": "무료. 같은 처지의 대학원생들과 함께.", "result": "다들 비슷한 고민을 하고 있었다. 이상하게 위로가 됐다." },
-  { "id": "peer", "name": "동료 지지 모임 (대학원 총학)", "hours": 2, "cost": 5000, "effects": { "stress": -4, "network": 1 }, "note": "다과비 5천 원. 다른 연구실 사람들을 만난다.", "result": "\"우리 랩도 그래요.\" 웃으며 서로의 이야기를 나눴다." }
+  { "id": "campus", "name": "학생상담센터", "hours": 2, "cost": 0, "effects": { "stress": -8 }, "note": "무료. 교내라 부담이 적다.", "result": "상담 선생님이 끝까지 들어주셨다. 혼자가 아니라는 느낌이 들었다." }
 ]

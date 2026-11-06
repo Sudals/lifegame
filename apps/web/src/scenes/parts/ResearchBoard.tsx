@@ -46,19 +46,26 @@ function SubmitBox({ game, paper }: { game: GameState; paper: Paper }) {
   return (
     <div className="submit-box">
       <select value={venueId} onChange={(e) => setVenueId(e.target.value)}>
-        {targets.map((x) => {
-          const vv = findVenue(pack, x.venueId)!;
-          return (
-            <option key={x.venueId} value={x.venueId}>
-              [{vv.tier}] {vv.displayName} {x.deadlineWeek !== null ? `· 마감 D-${(x.deadlineWeek - game.week) * 7}` : '· 저널(상시)'}
-            </option>
-          );
-        })}
+        {(['conference', 'journal'] as const).map((kind) => (
+          <optgroup key={kind} label={kind === 'conference' ? '학회 (마감 있음)' : '저널 (상시 투고)'}>
+            {targets
+              .filter((x) => x.kind === kind)
+              .map((x) => {
+                const vv = findVenue(pack, x.venueId)!;
+                return (
+                  <option key={x.venueId} value={x.venueId}>
+                    [{vv.tier}] {vv.displayName} {x.deadlineWeek !== null ? `· 마감 D-${(x.deadlineWeek - game.week) * 7}` : ''}
+                  </option>
+                );
+              })}
+          </optgroup>
+        ))}
       </select>
       {hint && (
         <small className="dim">
           예상 채택률 {Math.round(hint.low * 100)}~{Math.round(hint.high * 100)}%
           {t?.kind === 'conference' ? ` · 결과 W${t.resultWeek + 1}` : ''}
+          {v && 'reviewMonths' in v ? ` · 심사 ${v.reviewMonths[0]}~${v.reviewMonths[1]}개월${v.apc ? ` · 채택 시 APC ${v.apc / 10000}만 원` : ''}` : ''}
         </small>
       )}
       <button className="btn small primary" disabled={!venueId} onClick={() => run((g) => submit(pack, g, paper.id, venueId))}>

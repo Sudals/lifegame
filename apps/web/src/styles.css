@@ -303,5 +303,5 @@ button.stat.money:hover .stat-label { color: var(--accent); }
 .landing-notes { list-style: none; padding: 0; margin: 6px 0 0; font-size: 0.85em; }
 .landing-notes li { padding: 2px 0; }
 .landing-notes li.bad { color: #ff8fab; }
-.counsel-pick { margin: 0 0 6px 20px; }
+.counsel-pick { margin: 0 0 6px 20px; display: flex; flex-direction: column; gap: 2px; }
 .counsel-pick small { font-size: 0.75em; }

@@ -15,7 +15,9 @@ export function paperTierKey(pack: ContentPack, p: Paper): string | null {
 export function paperScore(pack: ContentPack, p: Paper): number {
   const key = paperTierKey(pack, p);
   if (!key) return 0;
-  return (pack.balance.tierScore[key] ?? 0) * (pack.balance.authorWeight[String(p.authorOrder)] ?? 0.2);
+  const journal = p.venueKind === 'journal' ? pack.journals.find((j) => j.id === p.venueId) : undefined;
+  const base = journal?.score ?? pack.balance.tierScore[key] ?? 0;
+  return base * (pack.balance.authorWeight[String(p.authorOrder)] ?? 0.2);
 }
 
 export function totalPaperScore(pack: ContentPack, state: GameState): number {

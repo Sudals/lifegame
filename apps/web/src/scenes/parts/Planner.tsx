@@ -234,23 +234,23 @@ export function Planner({ game }: { game: GameState }) {
         이번 주 상담 받기 — 스트레스↓{plan.sleepPerDay < b.counselingMinSleep && <span className="bad"> (수면 {b.counselingMinSleep}h 미만: 효과 절반)</span>}
       </label>
       {plan.counseling && (
-        <label className="field counsel-pick">
-          <select value={plan.counselingId} onChange={(e) => fit({ counselingId: e.target.value })}>
+        <div className="counsel-pick">
+          <div className="food-row">
             {pack.counseling.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.cost ? `${c.cost / 10000}만` : '무료'})
-              </option>
+              <button key={c.id} className={`btn small ${plan.counselingId === c.id ? 'on' : 'ghost'}`} onClick={() => fit({ counselingId: c.id })}>
+                {c.name} {c.cost ? `${c.cost / 10000}만` : '무료'}
+              </button>
             ))}
-          </select>
+          </div>
           {(() => {
-            const c = pack.counseling.find((x) => x.id === plan.counselingId)!;
+            const c = pack.counseling.find((x) => x.id === plan.counselingId) ?? pack.counseling[0]!;
             return (
               <small className="dim">
                 {c.hours}h · 스트레스 {c.effects.stress} — {c.note}
               </small>
             );
           })()}
-        </label>
+        </div>
       )}
 
       {conferences.length > 0 && (
