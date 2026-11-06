@@ -78,4 +78,7 @@ pnpm exec tsx scripts/ui-walkthrough.ts <폴더>   # npm start 후: 설치된 Ch
 ```
 
 ## 배포 (Vercel)
-레포 연결 → 루트 그대로 사용 (`vercel.json`). Vercel 프로젝트 환경변수에 `DATABASE_URL`을 넣거나 Neon 통합을 설치.
+- 운영 주소: https://lifegame-gilt.vercel.app (프로젝트 `bitchans-projects/lifegame`)
+- 배포: `npx vercel deploy --prod` (루트 그대로 사용, `vercel.json`). 업로드 제외 목록은 `.vercelignore` (`.env*`·`.neon` 등 비밀값 제외)
+- DB: Vercel 프로젝트 환경변수(Production)에 `DATABASE_URL`(Neon pooled URL)을 넣거나 Neon 통합 설치 후 재배포. 없으면 API는 500, 게임은 로컬 세이브로 동작
+- 푸시마다 자동 배포하려면 Vercel 프로젝트 설정 → Git에서 GitHub 저장소 연결 (Vercel GitHub 앱에 저장소 권한 필요)

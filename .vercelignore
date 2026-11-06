@@ -1,0 +1,10 @@
+# Vercel CLI 업로드 제외 (비밀값·로컬 설정)
+.env
+.env.*
+!.env.example
+.neon
+.claude
+.vercel
+node_modules
+dist
+*.log
